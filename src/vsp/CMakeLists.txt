@@ -143,6 +143,7 @@ cabinLayoutScreen.h
 callback.h
 cfdMeshScreen.h
 curveEditScreen.h
+degenGeom.h
 drawBase.h
 ductGeom.h
 ductScreen.h
