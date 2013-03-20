@@ -359,6 +359,144 @@ vec2d Xsec_surf::get_refl_xsec_centroid_in_plane(int ixs, int plane, float refl_
 	return cgLoc;
 }
 
+vec3d Xsec_surf::get_xsec_shellCG( int ixs )
+{
+	double xcg = 0, zcg = 0, area = get_xsec_area(ixs);
+	int j;
+	vec3d xAxis(1,0,0), zAxis(0,0,1), areaNormal = get_area_normal(ixs);
+
+	vector<vec3d> pnts;
+	// Load cross section points
+	for( int i = 0; i < num_pnts; i++ )
+	{
+		pnts.push_back( pnts_xsecs(ixs,i) );
+	}
+
+	// Get rotation in xy plane to align areaNormal with yaxis
+	vec2d an2(areaNormal.x(), areaNormal.y()), ax1(1,0), ax2(0,1);
+	double theta2, theta1 = angle(an2, ax2);
+	if (areaNormal.x() < 0) theta1 = -theta1;
+	// Rotate areaNormal around z to y axis
+	areaNormal   = RotateArbAxis( areaNormal, theta1, zAxis );
+	// Rotate points as well
+	for ( int i = 0; i < num_pnts; i++ )
+		pnts[i] = RotateArbAxis( pnts[i], theta1, zAxis );
+
+	// Get rotation in yz plane to align areaNormal with yaxis
+	an2.set_xy(areaNormal.y(), areaNormal.z());
+	theta2 = angle(an2, ax1);
+	if(areaNormal.z() >= 0) theta2 = -theta2;
+	// Rotate points about x axis
+	for ( int i = 0; i < num_pnts; i++ )
+		pnts[i] = RotateArbAxis( pnts[i], theta2, xAxis );
+
+	vec3d  cg;
+	double segLen, totLen = 0;
+	// Cross section should now be in x-z plane. Calculate shell cg.
+	for ( j = 1; j < num_pnts; j++ )
+	{
+		// Line segment center point
+		cg     = (pnts[j-1] + pnts[j])/2;
+		// Line segment length
+		segLen = (pnts[j-1] - pnts[j]).mag();
+		// Sum of segment lengths (proxy for area, which is proxy for mass)
+		totLen += segLen;
+
+		xcg += cg.x() * segLen;
+		zcg += cg.z() * segLen;
+	}
+
+	// Line segment center point
+	cg     = (pnts[j-1] + pnts[0])/2;
+	// Line segment length
+	segLen = (pnts[j-1] - pnts[0]).mag();
+	// Sum of segment lengths (proxy for area, which is proxy for mass)
+	totLen += segLen;
+
+	xcg += cg.x() * segLen;
+	zcg += cg.z() * segLen;
+
+	xcg /= totLen;
+	zcg /= totLen;
+
+	// Xcg vector including y position (same for all points since xsec rotated into xz plane)
+	vec3d cgLoc(xcg, pnts[0].y(), zcg);
+	// Rotate back into original coordinate frame
+	cgLoc = RotateArbAxis( cgLoc, -theta2, xAxis );
+	cgLoc = RotateArbAxis( cgLoc, -theta1, zAxis );
+
+	return cgLoc;
+}
+
+vec3d Xsec_surf::get_refl_xsec_shellCG( int ixs )
+{
+	double xcg = 0, zcg = 0, area = get_xsec_area(ixs);
+	int j;
+	vec3d xAxis(1,0,0), zAxis(0,0,1), areaNormal = get_refl_area_normal(ixs);
+
+	vector<vec3d> pnts;
+	// Load cross section points
+	for( int i = 0; i < num_pnts; i++ )
+	{
+		pnts.push_back( refl_pnts_xsecs(ixs,i) );
+	}
+
+	// Get rotation in xy plane to align areaNormal with yaxis
+	vec2d an2(areaNormal.x(), areaNormal.y()), ax1(1,0), ax2(0,1);
+	double theta2, theta1 = angle(an2, ax2);
+	if (areaNormal.x() < 0) theta1 = -theta1;
+	// Rotate areaNormal around z to y axis
+	areaNormal   = RotateArbAxis( areaNormal, theta1, zAxis );
+	// Rotate points as well
+	for ( int i = 0; i < num_pnts; i++ )
+		pnts[i] = RotateArbAxis( pnts[i], theta1, zAxis );
+
+	// Get rotation in yz plane to align areaNormal with yaxis
+	an2.set_xy(areaNormal.y(), areaNormal.z());
+	theta2 = angle(an2, ax1);
+	if(areaNormal.z() >= 0) theta2 = -theta2;
+	// Rotate points about x axis
+	for ( int i = 0; i < num_pnts; i++ )
+		pnts[i] = RotateArbAxis( pnts[i], theta2, xAxis );
+
+	vec3d  cg;
+	double segLen, totLen = 0;
+	// Cross section should now be in x-z plane. Calculate shell cg.
+	for ( j = 1; j < num_pnts; j++ )
+	{
+		// Line segment center point
+		cg     = (pnts[j-1] + pnts[j])/2;
+		// Line segment length
+		segLen = (pnts[j-1] - pnts[j]).mag();
+		// Sum of segment lengths (proxy for area, which is proxy for mass)
+		totLen += segLen;
+
+		xcg += cg.x() * segLen;
+		zcg += cg.z() * segLen;
+	}
+
+	// Line segment center point
+	cg     = (pnts[j-1] + pnts[0])/2;
+	// Line segment length
+	segLen = (pnts[j-1] - pnts[0]).mag();
+	// Sum of segment lengths (proxy for area, which is proxy for mass)
+	totLen += segLen;
+
+	xcg += cg.x() * segLen;
+	zcg += cg.z() * segLen;
+
+	xcg /= totLen;
+	zcg /= totLen;
+
+	// Xcg vector including y position (same for all points since xsec rotated into xz plane)
+	vec3d cgLoc(xcg, pnts[0].y(), zcg);
+	// Rotate back into original coordinate frame
+	cgLoc = RotateArbAxis( cgLoc, -theta2, xAxis );
+	cgLoc = RotateArbAxis( cgLoc, -theta1, zAxis );
+
+	return cgLoc;
+}
+
 //===== Jxx, Jzz, Jyy coefficients. Use Jxx = inertias[0]*t^3 + inertias[1]*t, =====================//
 //===== Jzz = inertias[2]*t^3 + inertias[3]*t, etc with t as shell thickness to get inertias. =====//
 vector<double> Xsec_surf::calculate_shell_inertias(int ixs)

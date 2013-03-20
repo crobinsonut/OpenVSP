@@ -215,6 +215,9 @@ public:
    vec2d  get_xsec_centroid_in_plane(int ixs, int plane, float mat[4][4]);
    vec2d  get_refl_xsec_centroid_in_plane(int ixs, int plane, float refl_mat[4][4]);
 
+   vec3d get_xsec_shellCG( int ixs );
+   vec3d get_refl_xsec_shellCG( int ixs );
+
    vector<double> calculate_shell_inertias(int ixs);
    vector<double> calculate_refl_shell_inertias(int ixs);
    vector<double> calculate_shell_inertias_in_plane(int ixs, int plane, float mat[4][4]);
