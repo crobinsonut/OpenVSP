@@ -27,6 +27,7 @@
 #include "textureMgr.h"
 #include "GridDensity.h"
 #include "DragFactors.h"
+#include "degenGeom.h"
 
 
 class TMesh;
@@ -240,6 +241,11 @@ public:
 	virtual void dump_xsec_file(int geom_no, FILE* dump_file);
 
 	virtual void writeX3D( xmlNodePtr node );
+
+	//===== Degenerate Geometry =====//
+	virtual DegenGeom* createDegenGeom();
+	virtual void write_degenGeomCsv_file(DegenGeom* degenGeom, FILE* file_id);
+	virtual void write_degenGeomM_file(DegenGeom* degenGeom, FILE* file_id);
 
 	//===== Felisa Functions =====
 	virtual int write_felisa_file(int geom_no, FILE*)		{ return(geom_no); }

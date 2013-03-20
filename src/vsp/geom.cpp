@@ -1437,6 +1437,23 @@ void Geom::dump_xsec_file(int geom_no, FILE* dump_file)
 
 }
 
+//==== Write DegenGeom File(s) ====//
+void Geom::write_degenGeomCsv_file(DegenGeom* degenGeom, FILE* file_id)
+{
+
+}
+
+void Geom::write_degenGeomM_file(DegenGeom* degenGeom, FILE* file_id)
+{
+
+}
+
+//==== Create Degenerate Geometry ====//
+DegenGeom* Geom::createDegenGeom()
+{
+	return NULL;
+}
+
 
 void  Geom::storeModelMatrix()
 {
