@@ -35,6 +35,9 @@
 #include "vorGeom.h"
 #include "parmLinkMgr.h"
 #include "quat.h"
+#include "degenGeom.h"
+#include <iostream>
+#include <fstream>
 
 class TriTest;
 
@@ -175,6 +178,11 @@ public:
 	vector< Geom* > getDisplayGeomVec();
 	vector< Geom* > getGeomByName(Stringc name, int children);
 
+	//==== Degenerate Geometry ====//
+	void createDegenGeom();
+	vector< DegenGeom* > getDegenGeomVec()	{ return degenGeom; }
+	string writeDegenGeomFile();
+
 	int getGeomIndex(Geom * geom); //used for saving labels
 	Geom* getClipboardGeom(int index); //used for saving labels
 
@@ -236,13 +244,18 @@ public:
 	void setDefaultCompGroupID( int id );
 
 	//==== Export File Names ====//
-	enum{ COMP_GEOM_TXT_TYPE, COMP_GEOM_CSV_TYPE, SLICE_TXT_TYPE, MASS_PROP_TXT_TYPE, DRAG_BUILD_TSV_TYPE };
+	enum{ COMP_GEOM_TXT_TYPE, COMP_GEOM_CSV_TYPE, SLICE_TXT_TYPE, MASS_PROP_TXT_TYPE, DRAG_BUILD_TSV_TYPE,
+		  DEGEN_GEOM_CSV_TYPE, DEGEN_GEOM_M_TYPE};
 	void setExortFileName( const char* fn, int type );
 	Stringc getExportFileName( int type );
 	void setExportCompGeomCsvFile( bool b )		{ exportCompGeomCsvFile = b; };
 	bool getExportCompGeomCsvFile()				{ return exportCompGeomCsvFile; };
 	void setExportDragBuildTsvFile( bool b )	{ exportDragBuildTsvFile = b; };
 	bool getExportDragBuildTsvFile()			{ return exportDragBuildTsvFile; };
+	void setExportDegenGeomCsvFile( bool b )	{ exportDegenGeomCsvFile = b; };
+	bool getExportDegenGeomCsvFile()			{ return exportDegenGeomCsvFile; };
+	void setExportDegenGeomMFile( bool b )		{ exportDegenGeomMFile = b; };
+	bool getExportDegenGeomMFile()				{ return exportDegenGeomMFile; };
 	void updateExportFileNames();
 
 	//==== Temp Dir ====//
@@ -262,6 +275,7 @@ private:
 	vector< Geom* > activeGeomVec;			// Vector of Active Geoms
 	vector< Geom* > geomVec;				// Vector of All Geoms
 	vector< Geom* > topGeomVec;				// Top Level (ie no parents )
+	vector< DegenGeom* > degenGeom;			// Vector of components in degenerate representation
 
 	vector< LabelGeom* > labelVec;				// Vector of All Label Objects
 	vector< LabelGeom* > activeLabelVec;		// Vector of All Active Label Objects
@@ -310,6 +324,12 @@ private:
 	Stringc massPropFileName;
 	bool exportDragBuildTsvFile;
 	Stringc dragBuildTsvFileName;
+
+	//==== Degen Geom File Names ====//
+	bool 	exportDegenGeomCsvFile;
+	Stringc	degenGeomCsvFileName;
+	bool 	exportDegenGeomMFile;
+	Stringc	degenGeomMFileName;
 
 
 	//==== Custom Default Component Stuff ====//
