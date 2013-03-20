@@ -16,6 +16,7 @@ cabinLayoutFLScreen.fl
 cfdMeshFlScreen.fl
 compGeomScreen.fl
 curveEditFlScreen.fl
+degenGeomScreen.fl
 ductFlScreen.fl
 engineFlScreen.fl
 exportFileScreen.fl
