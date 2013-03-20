@@ -215,6 +215,14 @@ public:
    vec2d  get_xsec_centroid_in_plane(int ixs, int plane, float mat[4][4]);
    vec2d  get_refl_xsec_centroid_in_plane(int ixs, int plane, float refl_mat[4][4]);
 
+   DegenGeom* createSurfDegenGeom(Geom* parentGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4]);
+   DegenGeom* createBodyDegenGeom(Geom* parentGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4]);
+   void createDegenSurface(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4]);
+   void createSurfDegenPlate(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4]);
+   void createBodyDegenPlate(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4]);
+   void createSurfDegenStick(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4]);
+   void createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4]);
+
    vec3d get_xsec_shellCG( int ixs );
    vec3d get_refl_xsec_shellCG( int ixs );
 
