@@ -223,6 +223,9 @@ public:
    void createSurfDegenStick(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4]);
    void createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4]);
 
+   void write_degenGeomCsv_file(DegenGeom* degenGeom, FILE* file_id);
+   void write_refl_degenGeomCsv_file(DegenGeom* degenGeom, FILE* file_id);
+
    void write_degenGeomM_file(DegenGeom* degenGeom, FILE* file_id);
    void write_refl_degenGeomM_file(DegenGeom* degenGeom, FILE* file_id);
 
