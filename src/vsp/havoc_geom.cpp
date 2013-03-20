@@ -1366,6 +1366,37 @@ void Havoc_geom::dump_xsec_file(int geom_no, FILE* dump_file)
 
 }
 
+//==== Write DegenGeom File(s) ====//
+void Havoc_geom::write_degenGeomCsv_file(DegenGeom* degenGeom, FILE* file_id)
+{
+	fprintf(file_id, "\nBODY,%s\n", (char*) getName());
+	body_surf.write_degenGeomCsv_file(degenGeom, file_id);
+
+	if ( sym_code == NO_SYM ) return;
+
+	fprintf(file_id, "\nBODY,%s_refl\n", (char*) getName());
+	body_surf.write_refl_degenGeomCsv_file(degenGeom, file_id);
+}
+
+void Havoc_geom::write_degenGeomM_file(DegenGeom* degenGeom, FILE* file_id)
+{
+	fprintf(file_id, "\ndegenGeom(end+1).type = 'BODY';");
+	fprintf(file_id, "\ndegenGeom(end).name = '%s';", (char*) getName());
+	body_surf.write_degenGeomM_file(degenGeom, file_id);
+
+	if ( sym_code == NO_SYM ) return;
+
+	fprintf(file_id, "\ndegenGeom(end+1).type = 'BODY';");
+	fprintf(file_id, "\ndegenGeom(end).name = '%s_refl';", (char*) getName());
+	body_surf.write_refl_degenGeomM_file(degenGeom, file_id);
+}
+
+//==== Create Degenerate Geometry ====//
+DegenGeom* Havoc_geom::createDegenGeom()
+{
+	return body_surf.createBodyDegenGeom(this, sym_code, model_mat, reflect_mat);
+}
+
 //==== Aero Ref Parameters ====//
 double Havoc_geom::getRefArea()
 {

@@ -170,6 +170,11 @@ public:
    virtual float get_slice_parm(int index, int slc_no)			{ return(slice_parms( index, slc_no)); }
 
    virtual void dump_xsec_file(int geom_no, FILE* dump_file);
+
+   //===== Degen Geom =====//
+  void write_degenGeomCsv_file(DegenGeom* degenGeom, FILE* file_id);
+  void write_degenGeomM_file(DegenGeom* degenGeom, FILE* file_id);
+  DegenGeom* createDegenGeom();
 	
    virtual int write_felisa_file(int geom_no, FILE* dump_file);
    virtual void write_bco_info(FILE*, int&, int&);

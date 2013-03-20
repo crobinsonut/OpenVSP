@@ -375,6 +375,11 @@ class Hwb_geom : public HwbBaseGeom
 		virtual void set_depend_parms();
 		virtual void dump_xsec_file(int, FILE*);
 
+		 //===== Degen Geom =====//
+		 void write_degenGeomCsv_file(DegenGeom* degenGeom, FILE* file_id);
+		 void write_degenGeomM_file(DegenGeom* degenGeom, FILE* file_id);
+		 DegenGeom* createDegenGeom();
+
 		Parm* get_sweep_percent_edge_length() 			{return sweep_percent_edge_length;}
 		Parm* get_tesweep_percent_edge_length() 		{return tesweep_percent_edge_length;}
 		Parm* get_dihedral_percent_edge_length() 		{return dihedral_percent_edge_length;}

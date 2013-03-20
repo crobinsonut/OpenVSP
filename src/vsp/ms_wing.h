@@ -357,6 +357,11 @@ public:
 
    virtual void dump_xsec_file(int, FILE*);
 
+   //===== Degen Geom =====//
+   void write_degenGeomCsv_file(DegenGeom* degenGeom, FILE* file_id);
+   void write_degenGeomM_file(DegenGeom* degenGeom, FILE* file_id);
+   DegenGeom* createDegenGeom();
+
    //===== Aero Functions =====
    virtual void write_aero_file(FILE* aero_file, int aero_id_num);
    virtual void         set_trimmed_span(double val)           { trimmed_span = val; }

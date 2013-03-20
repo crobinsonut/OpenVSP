@@ -581,6 +581,92 @@ void PropGeom::write(FILE* file_id)
 {
 }
 
+//==== Write DegenGeom File(s) ====//
+void PropGeom::write_degenGeomCsv_file(DegenGeom* degenGeom, FILE* file_id)
+{
+	// Get propeller rotation axis and center
+	vec3d rotDir  = vec3d(1,0,0).transform(model_mat);
+	vec3d rotCntr = vec3d(0,0,0).transform(model_mat);
+	rotDir = rotDir - rotCntr;
+	rotDir.normalize();
+
+	fprintf(file_id, "\nSURFACE,%s\n", (char*) getName());
+	fprintf(file_id, "# Propeller, Num Blades, xLoc, yLoc, zLoc, nRotX, nRotY, nRotZ\n");
+	fprintf(file_id, "PROP, %d, %f, %f, %f, %f, %f, %f\n",  getNumBlades(),	\
+															rotCntr.x(),	\
+															rotCntr.y(),	\
+															rotCntr.z(),	\
+															rotDir.x(),		\
+															rotDir.y(),		\
+															rotDir.z()		);
+	bladeVec[0].write_degenGeomCsv_file(degenGeom, file_id);
+
+	if ( sym_code == NO_SYM ) return;
+
+	// Get propeller rotation axis and center
+	rotDir  = vec3d(1,0,0).transform(reflect_mat);
+	rotCntr = vec3d(0,0,0).transform(reflect_mat);
+	rotDir = rotDir - rotCntr;
+	rotDir.normalize();
+
+	fprintf(file_id, "\nSURFACE,%s_refl\n", (char*) getName());
+	fprintf(file_id, "# Propeller, Num Blades, xLoc, yLoc, zLoc, nRotX, nRotY, nRotZ\n");
+	fprintf(file_id, "PROP, %d, %f, %f, %f, %f, %f, %f\n",  getNumBlades(),	\
+															rotCntr.x(),	\
+															rotCntr.y(),	\
+															rotCntr.z(),	\
+															rotDir.x(),		\
+															rotDir.y(),		\
+															rotDir.z()		);
+	bladeVec[0].write_refl_degenGeomCsv_file(degenGeom, file_id);
+}
+
+void PropGeom::write_degenGeomM_file(DegenGeom* degenGeom, FILE* file_id)
+{
+	// Get propeller rotation axis and center
+	vec3d rotDir  = vec3d(1,0,0).transform(model_mat);
+	vec3d rotCntr = vec3d(0,0,0).transform(model_mat);
+	rotDir = rotDir - rotCntr;
+	rotDir.normalize();
+	fprintf(file_id, "\npropGeom(end).rotCenter = [%f, %f, %f];", rotCntr.x(),	\
+																  rotCntr.y(),	\
+																  rotCntr.z()	);
+	fprintf(file_id, "\npropGeom(end).rotVec = [%f, %f, %f];",	  rotDir.x(),	\
+																  rotDir.y(), 	\
+																  rotDir.z()	);
+	fprintf(file_id, "\npropGeom(end).numBlades = %d;", getNumBlades());
+
+	fprintf(file_id, "\ndegenGeom(end+1).type = 'SURFACE';");
+	fprintf(file_id, "\ndegenGeom(end).name = '%s';", (char*) getName());
+	bladeVec[0].write_degenGeomM_file(degenGeom, file_id);
+
+	if ( sym_code == NO_SYM ) return;
+
+	// Get propeller rotation axis and center
+	rotDir  = vec3d(1,0,0).transform(reflect_mat);
+	rotCntr = vec3d(0,0,0).transform(reflect_mat);
+	rotDir = rotDir - rotCntr;
+	rotDir.normalize();
+	fprintf(file_id,"\npropGeom(end+1).idx = propGeom(end).idx + 1;");
+	fprintf(file_id, "\npropGeom(end).rotCenter = [%f, %f, %f];", rotCntr.x(),	\
+																  rotCntr.y(),	\
+																  rotCntr.z()		);
+	fprintf(file_id, "\npropGeom(end).rotVec = [%f, %f, %f];",	rotDir.x(),	\
+																rotDir.y(), \
+																rotDir.z()	);
+	fprintf(file_id, "\npropGeom(end).numBlades = %d;", getNumBlades());
+
+	fprintf(file_id, "\ndegenGeom(end+1).type = 'SURFACE';");
+	fprintf(file_id, "\ndegenGeom(end).name = '%s_refl';", (char*) getName());
+	bladeVec[0].write_refl_degenGeomM_file(degenGeom, file_id);
+}
+
+//==== Create Degenerate Geometry ====//
+DegenGeom* PropGeom::createDegenGeom()
+{
+	return bladeVec[0].createSurfDegenGeom(this, sym_code, model_mat, reflect_mat);
+}
+
 //==== Write External File ====//
 void PropGeom::write(xmlNodePtr root)
 {

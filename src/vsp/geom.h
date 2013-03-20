@@ -541,6 +541,12 @@ public:
 	virtual void write_bezier_file( int id, FILE* file_id );
 	virtual void dump_xsec_file(int geom_no, FILE* dump_file);
 
+	//===== Degenerate Geometry =====//
+	virtual DegenGeom* createDegenGeom();
+	virtual void write_degenGeomCsv_file(DegenGeom* degenGeom, FILE* file_id);
+	virtual void write_degenGeomM_file(DegenGeom* degenGeom, FILE* file_id);
+
+
     virtual vec3d getVertex3d(int surf, double x, double p, int r)	{ return body_surf.get_vertex(x, p, r); }
 	virtual void  getVertexVec(vector< VertexID > *vertVec)		{ buildVertexVec(&body_surf, 0, vertVec); }
 

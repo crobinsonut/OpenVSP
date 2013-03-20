@@ -764,6 +764,37 @@ void EngineGeom::write(FILE* file_id)
 {
 }
 
+//==== Write DegenGeom File(s) ====//
+void EngineGeom::write_degenGeomCsv_file(DegenGeom* degenGeom, FILE* file_id)
+{
+	fprintf(file_id, "\nBODY,%s\n", (char*) getName());
+	engine_surf.write_degenGeomCsv_file(degenGeom, file_id);
+
+	if ( sym_code == NO_SYM ) return;
+
+	fprintf(file_id, "\nBODY,%s_refl\n", (char*) getName());
+	engine_surf.write_refl_degenGeomCsv_file(degenGeom, file_id);
+}
+
+void EngineGeom::write_degenGeomM_file(DegenGeom* degenGeom, FILE* file_id)
+{
+	fprintf(file_id, "\ndegenGeom(end+1).type = 'BODY';");
+	fprintf(file_id, "\ndegenGeom(end).name = '%s';", (char*) getName());
+	engine_surf.write_degenGeomM_file(degenGeom, file_id);
+
+	if ( sym_code == NO_SYM ) return;
+
+	fprintf(file_id, "\ndegenGeom(end+1).type = 'BODY';");
+	fprintf(file_id, "\ndegenGeom(end).name = '%s_refl';", (char*) getName());
+	engine_surf.write_refl_degenGeomM_file(degenGeom, file_id);
+}
+
+//==== Create Degenerate Geometry ====//
+DegenGeom* EngineGeom::createDegenGeom()
+{
+	return engine_surf.createBodyDegenGeom(this, sym_code, model_mat, reflect_mat);
+}
+
 //==== Read Fuse File ====//
 void EngineGeom::read(xmlNodePtr root)
 {
