@@ -72,6 +72,66 @@ public:
 };
 
 
+//===========================================================================================================//
+//================================================ DegenGeom ================================================//
+//===========================================================================================================//
+
+class DegenGeomTetraMassProp
+{
+public:
+	DegenGeomTetraMassProp(int id, vec3d& p0, vec3d& p1, vec3d& p2, vec3d& p3);
+	DegenGeomTetraMassProp()		{}
+	~DegenGeomTetraMassProp()		{}
+
+	vec3d v0;
+	vec3d v1;
+	vec3d v2;
+	vec3d v3;
+
+	int compId;
+
+	vec3d cg;
+
+	double vol;
+
+	double Ixx;
+	double Iyy;
+	double Izz;
+
+	double Ixy;
+	double Ixz;
+	double Iyz;
+};
+
+class DegenGeomTriShellMassProp
+{
+public:
+	DegenGeomTriShellMassProp(int id, vec3d& p0, vec3d& p1, vec3d& p2);
+	~DegenGeomTriShellMassProp()		{}
+
+	vec3d v0;
+	vec3d v1;
+	vec3d v2;
+
+	vec3d cg;
+
+	int compId;
+
+	double tri_area;
+
+	double Ixx;
+	double Iyy;
+	double Izz;
+
+	double Ixy;
+	double Ixz;
+	double Iyz;
+};
+
+//===========================================================================================================//
+//============================================== END DegenGeom ==============================================//
+//===========================================================================================================//
+
 
 class TriShellMassProp
 {
