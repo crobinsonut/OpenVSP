@@ -41,10 +41,12 @@
 #include "aeroRefScreen.h"
 #include "aboutScreen.h"
 #include "keyHelpScreen.h"
+#include "degenGeomScreen.h"
 
 #include "vspScreen.h"
 #include "vspGlWindow.h"
 #include "geom.h"
+#include "degenGeom.h"
 #include "aircraft.h"
 #include "sliceScreen.h"
 
@@ -183,6 +185,7 @@ public:
 	void s_import(int src, const char * newfile, int type);
 	void s_export(int src, const char * newfile, int type);
 	void s_compgeom(int src);
+	void s_degengeom(int src);
 	void s_meshgeom(int src);
 	void s_cfdmeshgeom(int src);
 	void s_texturemgr(int scr);
@@ -214,6 +217,7 @@ private:
 	BackgroundUI* backgroundUI;
 	LightingUI* lightingUI;
 	MassPropUI* massPropUI;
+	DegenGeomUI* degenGeomUI;
 	AeroRefUI* aeroRefUI;
 	ViewUI* viewUI;
 	ScriptUI* scriptUI;
@@ -223,6 +227,7 @@ private:
 	Fl_Text_Buffer *compGeomTextBuffer;
 	Fl_Text_Buffer *awaveTextBuffer;
 	Fl_Text_Buffer *aboutScreenTextBuffer;
+	Fl_Text_Buffer *degenGeomTextBuffer;
 
 	PodScreen* podScreen;
 	MeshScreen* meshScreen;

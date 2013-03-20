@@ -105,6 +105,7 @@ ScreenMgr::~ScreenMgr()
 	delete compGeomUI;
 	delete importFileUI;
 	delete exportFileUI;
+	delete degenGeomUI;
 
 	delete backgroundWScaleSlider;
 	delete backgroundHScaleSlider;
@@ -115,6 +116,7 @@ ScreenMgr::~ScreenMgr()
 	delete compGeomTextBuffer;
 	delete awaveTextBuffer;
 	delete aboutScreenTextBuffer;
+	delete degenGeomTextBuffer;
 
 	delete mainWinUI;
 
@@ -148,6 +150,7 @@ void ScreenMgr::createGui()
 	mainWinUI->AeroRefMenu->callback( staticMenuCB, this );
 //	mainWinUI->SliceMenu->callback( staticMenuCB, this );
 	mainWinUI->AwaveMenu->callback( staticMenuCB, this );
+	mainWinUI->DegenGeomMenu->callback( staticMenuCB, this);
 	mainWinUI->OneScreenMenu->callback( staticMenuCB, this );
 	mainWinUI->FourScreenMenu->callback( staticMenuCB, this );
 	mainWinUI->TwoHorzScreenMenu->callback( staticMenuCB, this );
@@ -285,6 +288,17 @@ void ScreenMgr::createGui()
 	massPropUI->computeButton->callback( staticMenuCB, this );
 	massPropUI->drawCgButton->callback( staticMenuCB, this );
 	massPropUI->fileExportButton->callback( staticMenuCB, this );
+
+	//==== Degen Geom Screen ====//
+	degenGeomUI = new DegenGeomUI();
+	degenGeomUI->UIWindow->position( 170, 60 );
+	degenGeomTextBuffer = new Fl_Text_Buffer();
+	degenGeomUI->outputTextDisplay->buffer( degenGeomTextBuffer);
+	degenGeomUI->computeButton->callback( staticMenuCB, this );
+	degenGeomUI->csvFileButton->callback( staticMenuCB, this );
+	degenGeomUI->csvFileChooseButton->callback( staticMenuCB, this );
+	degenGeomUI->mFileButton->callback( staticMenuCB, this );
+	degenGeomUI->mFileChooseButton->callback( staticMenuCB, this );
 
 	//==== Aero Ref Screen ====//
 	aeroRefUI = new AeroRefUI();
@@ -1151,6 +1165,64 @@ void ScreenMgr::menuCB( Fl_Widget* w )
 			massPropUI->fileExportOutput->value(fn);
 		}
 	}
+	else if (m == mainWinUI->DegenGeomMenu)
+	{
+		s_degengeom(ScriptMgr::GUI);
+		//scriptMgr->addLine("degengeom"); What is this?
+	}
+	else if ( w == degenGeomUI->csvFileButton )
+	{
+		aircraftPtr->setExportDegenGeomCsvFile( !!degenGeomUI->csvFileButton->value() );
+	}
+	else if ( w == degenGeomUI->csvFileChooseButton )
+	{
+		char *newfile = FileChooser("Select DegenGeom output file.", "*.csv");
+		if ( newfile )
+		{
+			aircraftPtr->setExortFileName( newfile, Aircraft::DEGEN_GEOM_CSV_TYPE );
+			Stringc fn = aircraftPtr->getExportFileName( Aircraft::DEGEN_GEOM_CSV_TYPE);
+			if ( fn.get_length() > 40 )
+			{
+				fn.delete_range( 0, fn.get_length()-40 );
+				fn.overwrite_at_position(0, "...");
+			}
+			degenGeomUI->csvFileOutput->value(fn);
+		}
+	}
+	else if ( w == degenGeomUI->mFileButton )
+	{
+		aircraftPtr->setExportDegenGeomMFile( !!degenGeomUI->mFileButton->value() );
+	}
+	else if ( w == degenGeomUI->mFileChooseButton )
+	{
+		char *newfile = FileChooser("Select degen_geom output file.", "*.m");
+		if ( newfile )
+		{
+			aircraftPtr->setExortFileName( newfile, Aircraft::DEGEN_GEOM_M_TYPE );
+			Stringc fn = aircraftPtr->getExportFileName( Aircraft::DEGEN_GEOM_M_TYPE);
+			if ( fn.get_length() > 40 )
+			{
+				fn.delete_range( 0, fn.get_length()-40 );
+				fn.overwrite_at_position(0, "...");
+			}
+			degenGeomUI->mFileOutput->value(fn);
+		}
+	}
+	else if (w == degenGeomUI->computeButton)
+	{
+		degenGeomUI->outputTextDisplay->buffer()->text("");
+		degenGeomUI->outputTextDisplay->buffer()->append("Computing degenerate geometry...\n");
+		Fl::flush();
+		aircraftPtr->createDegenGeom();
+		degenGeomUI->outputTextDisplay->buffer()->append("Done!\n");
+		if ( aircraftPtr->getExportDegenGeomCsvFile() || aircraftPtr->getExportDegenGeomMFile() )
+		{
+			degenGeomUI->outputTextDisplay->buffer()->append("--------------------------------\n");
+			degenGeomUI->outputTextDisplay->buffer()->append("\nWriting output...\n");
+			Fl::flush();
+			degenGeomUI->outputTextDisplay->buffer()->append( aircraftPtr->writeDegenGeomFile().c_str() );
+		}
+	}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1944,6 +2016,37 @@ void ScreenMgr::s_compgeom(int src)
 //			geomScreen->selectGeomBrowser(geom);
 //		}
 //	}
+}
+
+void ScreenMgr::s_degengeom(int src)
+{
+	if (src != ScriptMgr::SCRIPT)
+	{
+		degenGeomUI->outputTextDisplay->buffer()->text("");			// Clear results
+		Stringc fncsv = aircraftPtr->getExportFileName( Aircraft::DEGEN_GEOM_CSV_TYPE);
+		if ( fncsv.get_length() > 40 )
+		{
+			fncsv.delete_range( 0, fncsv.get_length()-40 );
+			fncsv.overwrite_at_position(0, "...");
+		}
+		degenGeomUI->csvFileOutput->value(fncsv);
+
+		Stringc fnm = aircraftPtr->getExportFileName( Aircraft::DEGEN_GEOM_M_TYPE);
+		if ( fnm.get_length() > 40 )
+		{
+			fnm.delete_range( 0, fnm.get_length()-40 );
+			fnm.overwrite_at_position(0, "...");
+		}
+		degenGeomUI->mFileOutput->value(fnm);
+
+		degenGeomUI->UIWindow->show();
+
+
+	}
+	else
+	{
+		//Geom* geom = aircraftPtr->comp_geom(0);
+	}
 }
 
 void ScreenMgr::s_meshgeom(int src)
