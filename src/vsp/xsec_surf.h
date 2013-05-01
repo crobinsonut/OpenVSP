@@ -37,6 +37,7 @@
 #include "vec2d.h"
 #include "util.h"
 #include "textureMgr.h"
+#include "degenGeom.h"
 
 #include <vector>
 //using namespace std;
@@ -89,6 +90,8 @@ protected:
 
 
 public:
+
+   enum{ XY_PLANE, XZ_PLANE, YZ_PLANE };
 
    Xsec_surf();
    virtual ~Xsec_surf();
@@ -199,7 +202,19 @@ public:
 
    void set_draw_flag( bool flag )				{ draw_flag = flag; }
    bool get_draw_flag( )						{ return draw_flag; }
- 
+
+   // Degenerate geometry stuff found in:
+   // xsec_surf_degen.cpp
+   vec3d  get_area_normal( int ixs );
+   vec3d  get_refl_area_normal( int ixs );
+   double get_xsec_area( int ixs );
+   double get_xsec_plane_area( int ixs, int plane, float mat[4][4] );
+   double get_refl_xsec_plane_area( int ixs, int plane, float refl_mat[4][4] );
+   vec3d  get_xsec_centroid( int ixs );
+   vec3d  get_refl_xsec_centroid( int ixs );
+   vec2d  get_xsec_centroid_in_plane(int ixs, int plane, float mat[4][4]);
+   vec2d  get_refl_xsec_centroid_in_plane(int ixs, int plane, float refl_mat[4][4]);
+   // End of degenerate geometry stuff.
 };   
 
 

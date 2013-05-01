@@ -116,6 +116,7 @@ vspScreen.cpp
 wingGeom.cpp
 wingScreen.cpp
 xsec_surf.cpp
+xsec_surf_degen.cpp
 CfdMeshMgr.h
 CommonCompGui.h
 CommonParmButtonGui.h
