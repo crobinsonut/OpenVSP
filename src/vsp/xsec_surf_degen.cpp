@@ -1,11 +1,6 @@
 
 #include "xsec_surf.h"
-#include "vector_util.h"
 #include "geom.h"
-
-#include "bezier_surf.h"
-
-#include "tMesh.h"
 #include <cmath>
 
 //==== Get area normal vector for PLANAR cross section ====//
