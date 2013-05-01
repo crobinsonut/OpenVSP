@@ -87,6 +87,7 @@ int batchMode(int argc, char *argv[], Aircraft* airPtr)
     int i;
     int batchModeFlag = 0;
     int compgeomFlag = 0;
+    int degenFlag = 0;
 	int meshFlag = 0;
     int sliceFlag = 0;
     int massFlag = 0;
@@ -122,12 +123,13 @@ int batchMode(int argc, char *argv[], Aircraft* airPtr)
 	//==== Output Names =====//
 	enum { COMPGEOM_TXT, COMPGEOM_CSV, CFDMESH_STL, CFDMESH_POLY, CFDMESH_TRI, CFDMESH_OBJ,
 		   CFDMESH_DAT, CFDMESH_KEY, FEAMESH_STL, FEAMESH_MASS, FEAMESH_NASTRAN, 
-		   FEAMESH_CALC_GEOM, FEAMESH_CALC_THICK, COMPGEOM_DRAG, NUM_OUT_NAMES }; 
+		   FEAMESH_CALC_GEOM, FEAMESH_CALC_THICK, COMPGEOM_DRAG, DEGEN_CSV, DEGEN_M, NUM_OUT_NAMES };
 
 	const char* outFileTypes[] = {"compgeom_txt", "compgeom_csv", "cfdmesh_stl", "cfdmesh_poly",
 	                        "cfdmesh_tri",  "cfdmesh_obj",  "cfdmesh_dat", "cfdmesh_key",
 	                        "feamesh_stl",  "feamesh_mass", "feamesh_nastran",
-	                        "feamesh_calc_geom",  "feamesh_calc_thick", "compgeom_drag" };
+	                        "feamesh_calc_geom",  "feamesh_calc_thick", "compgeom_drag",
+	                        "degen_csv",   "degen_m" };
 	bool outNameFlags[NUM_OUT_NAMES];
 	Stringc outNames[NUM_OUT_NAMES];
 
@@ -187,6 +189,9 @@ int batchMode(int argc, char *argv[], Aircraft* airPtr)
        }
        if ( strcmp(argv[i],"-compgeom") == 0 ) {
           compgeomFlag = 1;
+       }
+       if ( strcmp(argv[i],"-degen") == 0 ) {
+          degenFlag = 1;
        }
        if ( strcmp(argv[i],"-mesh") == 0 ) {
           meshFlag = 1;
@@ -296,6 +301,7 @@ int batchMode(int argc, char *argv[], Aircraft* airPtr)
          printf("\n");     
          printf("VSP batch options listed below:\n");     
          printf("  -compgeom          Batch run compgeom\n" );
+         printf("  -degen             Batch run degenerate geometry\n" );
          printf("  -slice Ns M Nr     Batch run AWave slice, Ns - Num Slices, M - Mach, Nr - Num Radial\n" );
          printf("  -mass N            Batch run mass properties, N - Num Slices\n" );
          printf("  -mesh              Batch run mesh\n" );
@@ -315,10 +321,12 @@ int batchMode(int argc, char *argv[], Aircraft* airPtr)
 		 printf("  -xddm filename     Set variables according to *.xddm file \n");
 		 printf("  -tempdir pathname  Set the path name of the dir to write temp files\n");
 		 printf("  -outname type name Set the filenames for output where type = \n");
-		 printf("                      %s, %s, %s, %s, \n", outFileTypes[0], outFileTypes[1], outFileTypes[2], outFileTypes[3] );
-		 printf("                      %s, %s, %s, %s, \n", outFileTypes[4], outFileTypes[5], outFileTypes[6], outFileTypes[7] );
-		 printf("                      %s, %s, %s \n", outFileTypes[8], outFileTypes[9], outFileTypes[10] );
-		 printf("                      %s, %s \n", outFileTypes[11], outFileTypes[12] );
+		 printf("                      %s, %s, %s, \n", outFileTypes[0], outFileTypes[1], outFileTypes[13] );
+		 printf("                      %s, %s, %s, \n", outFileTypes[2], outFileTypes[3], outFileTypes[4] );
+		 printf("                      %s, %s, %s, \n", outFileTypes[5], outFileTypes[6], outFileTypes[7] );
+		 printf("                      %s, %s, %s, \n", outFileTypes[8], outFileTypes[9], outFileTypes[10] );
+		 printf("                      %s, %s, \n", outFileTypes[11], outFileTypes[12] );
+		 printf("                      %s, %s, \n", outFileTypes[14], outFileTypes[15] );
 		 //printf("                      cfdmesh_tri, cfdmesh_obj, cfdmesh_dat, cfdmesh_key, \n");
 		 //printf("                      feamesh_stl, feamesh_mass, feamesh_nastran, \n");
 		 //printf("                      feamesh_calc_geom, feamesh_calc_thick  \n");
@@ -432,6 +440,23 @@ int batchMode(int argc, char *argv[], Aircraft* airPtr)
 			}
 
 			Geom* geom = airPtr->comp_geom(0);
+		}
+		if ( degenFlag )
+		{
+			if ( outNameFlags[DEGEN_CSV] )
+			{
+				airPtr->setExportDegenGeomCsvFile( true );
+				airPtr->setExortFileName( outNames[DEGEN_CSV], Aircraft::DEGEN_GEOM_CSV_TYPE );
+
+			}
+			if ( outNameFlags[DEGEN_M] )
+			{
+				airPtr->setExportDegenGeomMFile( true );
+				airPtr->setExortFileName( outNames[DEGEN_M], Aircraft::DEGEN_GEOM_M_TYPE );
+			}
+
+			airPtr->createDegenGeom();
+			airPtr->writeDegenGeomFile();
 		}
 		if ( meshFlag )
 		{
