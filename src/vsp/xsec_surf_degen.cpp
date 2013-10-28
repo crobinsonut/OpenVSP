@@ -444,13 +444,35 @@ void Xsec_surf::createDegenSurface(DegenGeom* degenGeom, int sym_code_in, float 
 		degenSurface.w.push_back( wArray[j] );
 	}
 
+	degenSurface.x    = xSurfMat;
+	degenSurface.nvec = nSurfMat;
+	degenGeom->setDegenSurface(degenSurface);
 
-	if ( sym_code_in == NO_SYM )
+	if(sym_code_in != NO_SYM)
+		createDegenSurface_refl(degenGeom, sym_code_in, mat, refl_mat);
+
+	return;
+}
+
+void Xsec_surf::createDegenSurface_refl(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4])
+{
+	DegenSurface	degenSurface = degenGeom->getDegenSurface();
+
+	int nLow = 0, nHigh = num_xsecs;
+
+	vector< vector<vec3d> > xSurfMat = degenSurface.x;
+	vector< vector<vec3d> > nSurfMat = degenSurface.nvec;
+
+	vector<vec3d> xVec( num_pnts );
+	vector<vec3d> nVec( num_pnts );
+
+	if ( degenGeom->getType() == DegenGeom::SURFACE_TYPE )
 	{
-		degenSurface.x    = xSurfMat;
-		degenSurface.nvec = nSurfMat;
-		degenGeom->setDegenSurface(degenSurface);
-		return;
+		if ( degenGeom->getParentGeom()->getTypeStr() == "wing" || degenGeom->getParentGeom()->getTypeStr() == "prop" )
+		{
+			nLow  = 1;
+			nHigh = num_xsecs - 1;
+		}
 	}
 
 	if ( sym_code_in != refl_pnts_xsecs_code )
