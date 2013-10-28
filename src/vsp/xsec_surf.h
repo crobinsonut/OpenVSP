@@ -218,8 +218,7 @@ public:
    DegenGeom* createSurfDegenGeom(Geom* parentGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4]);
    DegenGeom* createBodyDegenGeom(Geom* parentGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4]);
 
-   void createDegenSurface(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
-   void createDegenSurface_refl(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
+   void createDegenSurface(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, bool refl);
    void createSurfDegenPlate(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
    void createSurfDegenPlate_refl(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
    void createBodyDegenPlate(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);

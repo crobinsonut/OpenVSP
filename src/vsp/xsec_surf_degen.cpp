@@ -369,9 +369,9 @@ DegenGeom* Xsec_surf::createSurfDegenGeom(Geom* parentGeom, int sym_code_in, flo
 		load_refl_pnts_xsecs();
 	}
 
-	createDegenSurface(degenGeom, sym_code_in, mat, pnts_xsecs);
+	createDegenSurface(degenGeom, sym_code_in, mat, pnts_xsecs, false);
 	if(sym_code_in != NO_SYM)
-		createDegenSurface_refl(degenGeom, sym_code_in, refl_mat, refl_pnts_xsecs);
+		createDegenSurface(degenGeom, sym_code_in, refl_mat, refl_pnts_xsecs, true);
 
 	createSurfDegenPlate(degenGeom, sym_code_in, mat, pnts_xsecs);
 	if(sym_code_in != NO_SYM)
@@ -399,9 +399,9 @@ DegenGeom* Xsec_surf::createBodyDegenGeom(Geom* parentGeom, int sym_code_in, flo
 		load_refl_pnts_xsecs();
 	}
 
-	createDegenSurface(degenGeom, sym_code_in, mat, pnts_xsecs);
+	createDegenSurface(degenGeom, sym_code_in, mat, pnts_xsecs, false);
 	if(sym_code_in != NO_SYM)
-		createDegenSurface_refl(degenGeom, sym_code_in, refl_mat, refl_pnts_xsecs);
+		createDegenSurface(degenGeom, sym_code_in, refl_mat, refl_pnts_xsecs, true);
 
 	createBodyDegenPlate(degenGeom, sym_code_in, mat, pnts_xsecs);
 	if ( sym_code_in != NO_SYM )
@@ -414,70 +414,7 @@ DegenGeom* Xsec_surf::createBodyDegenGeom(Geom* parentGeom, int sym_code_in, flo
 	return degenGeom;
 }
 
-void Xsec_surf::createDegenSurface(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
-{
-	DegenSurface	degenSurface = degenGeom->getDegenSurface();
-
-	int nLow = 0, nHigh = num_xsecs;
-
-	vector< vector<vec3d> > xSurfMat;
-	vector< vector<vec3d> > nSurfMat;
-
-	vector<vec3d> xVec( num_pnts );
-	vector<vec3d> nVec( num_pnts );
-
-	if ( degenGeom->getType() == DegenGeom::SURFACE_TYPE )
-	{
-		if ( degenGeom->getParentGeom()->getTypeStr() == "wing" || degenGeom->getParentGeom()->getTypeStr() == "prop" )
-		{
-			nLow  = 1;
-			nHigh = num_xsecs - 1;
-		}
-	}
-
-	for ( int i = nLow; i < nHigh-1; i++ )
-	{
-		nVec.assign(num_pnts,vec3d(NAN,NAN,NAN));
-
-		for ( int j = 0; j < num_pnts-1; j++ )
-		{
-			vec3d sVec1 = pntsarr(i+1,j).transform(mat) - pntsarr(i,j).transform(mat);
-			vec3d sVec2 = pntsarr(i,j+1).transform(mat) - pntsarr(i,j).transform(mat);
-			nVec[j]     = cross(sVec1,sVec2);
-			nVec[j].normalize();
-		}
-
-		nSurfMat.push_back(nVec);
-	}
-	nVec.assign(num_pnts,vec3d(NAN,NAN,NAN));
-	nSurfMat.push_back(nVec);
-
-
-
-	for ( int i = nLow; i < nHigh; i++ )
-	{
-		for ( int j = 0; j < num_pnts; j++ )
-		{
-			xVec[j] = pntsarr(i,j).transform(mat);
-		}
-
-		degenSurface.u.push_back( uArray[i] );
-
-		xSurfMat.push_back(xVec);
-	}
-
-
-	for ( int j = 0; j < num_pnts; j++ )
-	{
-		degenSurface.w.push_back( wArray[j] );
-	}
-
-	degenSurface.x    = xSurfMat;
-	degenSurface.nvec = nSurfMat;
-	degenGeom->setDegenSurface(degenSurface);
-}
-
-void Xsec_surf::createDegenSurface_refl(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
+void Xsec_surf::createDegenSurface(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, bool refl)
 {
 	DegenSurface	degenSurface = degenGeom->getDegenSurface();
 
@@ -504,9 +441,14 @@ void Xsec_surf::createDegenSurface_refl(DegenGeom* degenGeom, int sym_code_in, f
 
 		for ( int j = 0; j < num_pnts-1; j++ )
 		{
-			vec3d sVec2 = pntsarr(i+1,j).transform(mat) - pntsarr(i,j).transform(mat);
-			vec3d sVec1 = pntsarr(i,j+1).transform(mat) - pntsarr(i,j).transform(mat);
-			nVec[j]     = cross(sVec1,sVec2);
+			vec3d sVec1 = pntsarr(i+1,j).transform(mat) - pntsarr(i,j).transform(mat);
+			vec3d sVec2 = pntsarr(i,j+1).transform(mat) - pntsarr(i,j).transform(mat);
+
+			if(!refl)
+				nVec[j]     = cross(sVec1,sVec2);
+			else
+				nVec[j]     = cross(sVec2,sVec1);
+
 			nVec[j].normalize();
 		}
 
@@ -537,7 +479,6 @@ void Xsec_surf::createDegenSurface_refl(DegenGeom* degenGeom, int sym_code_in, f
 	degenSurface.nvec = nSurfMat;
 	degenGeom->setDegenSurface(degenSurface);
 }
-
 
 void Xsec_surf::createSurfDegenPlate(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
 {
