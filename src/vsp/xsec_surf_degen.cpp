@@ -368,6 +368,9 @@ DegenGeom* Xsec_surf::createSurfDegenGeom(Geom* parentGeom, int sym_code_in, flo
 		createDegenSurface_refl(degenGeom, sym_code_in, refl_mat);
 
 	createSurfDegenPlate(degenGeom, sym_code_in, mat, refl_mat);
+	if(sym_code_in != NO_SYM)
+		createSurfDegenPlate_refl(degenGeom, sym_code_in, mat, refl_mat);
+
 	createSurfDegenStick(degenGeom, sym_code_in, mat, refl_mat);
 
 	return degenGeom;
@@ -618,9 +621,6 @@ void Xsec_surf::createSurfDegenPlate(DegenGeom* degenGeom, int sym_code_in, floa
 	degenPlate.t		= tMat;
 	degenPlate.zcamber	= zMat;
 	degenGeom->setDegenPlate(degenPlate);
-
-	if(sym_code_in != NO_SYM)
-		createSurfDegenPlate_refl(degenGeom, sym_code_in, mat, refl_mat);
 
 	return;
 }
