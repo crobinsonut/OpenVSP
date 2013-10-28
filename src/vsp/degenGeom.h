@@ -92,11 +92,11 @@ public:
 	int getType()				{ return type; }
 	void setType( int geomType)	{ type = geomType; }
 
-	void write_degenGeomCsv_file(DegenGeom* degenGeom, FILE* file_id);
-	void write_refl_degenGeomCsv_file(DegenGeom* degenGeom, FILE* file_id);
+	void write_degenGeomCsv_file(FILE* file_id);
+	void write_refl_degenGeomCsv_file(FILE* file_id);
 
-	void write_degenGeomM_file(DegenGeom* degenGeom, FILE* file_id);
-	void write_refl_degenGeomM_file(DegenGeom* degenGeom, FILE* file_id);
+	void write_degenGeomM_file(FILE* file_id);
+	void write_refl_degenGeomM_file(FILE* file_id);
 
 protected:
 
