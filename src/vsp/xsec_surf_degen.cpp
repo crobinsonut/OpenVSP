@@ -390,6 +390,9 @@ DegenGeom* Xsec_surf::createBodyDegenGeom(Geom* parentGeom, int sym_code_in, flo
 		createDegenSurface_refl(degenGeom, sym_code_in, refl_mat);
 
 	createBodyDegenPlate(degenGeom, sym_code_in, mat, refl_mat);
+	if ( sym_code_in != NO_SYM )
+		createBodyDegenPlate_refl(degenGeom, sym_code_in, mat, refl_mat);
+
 	createBodyDegenStick(degenGeom, sym_code_in, mat, refl_mat);
 
 	return degenGeom;
@@ -881,9 +884,6 @@ void Xsec_surf::createBodyDegenPlate(DegenGeom* degenGeom, int sym_code_in, floa
 	degenPlate.t		= tMat;
 	degenPlate.zcamber	= zMat;
 	degenGeom->setDegenPlate(degenPlate);
-
-	if ( sym_code_in != NO_SYM )
-		createBodyDegenPlate_refl(degenGeom, sym_code_in, mat, refl_mat);
 
 	return;
 }
