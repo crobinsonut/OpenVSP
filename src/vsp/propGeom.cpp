@@ -599,7 +599,7 @@ void PropGeom::write_degenGeomCsv_file(DegenGeom* degenGeom, FILE* file_id)
 															rotDir.x(),		\
 															rotDir.y(),		\
 															rotDir.z()		);
-	bladeVec[0].write_degenGeomCsv_file(degenGeom, file_id);
+	degenGeom->write_degenGeomCsv_file(degenGeom, file_id);
 
 	if ( sym_code == NO_SYM ) return;
 
@@ -618,7 +618,7 @@ void PropGeom::write_degenGeomCsv_file(DegenGeom* degenGeom, FILE* file_id)
 															rotDir.x(),		\
 															rotDir.y(),		\
 															rotDir.z()		);
-	bladeVec[0].write_refl_degenGeomCsv_file(degenGeom, file_id);
+	degenGeom->write_refl_degenGeomCsv_file(degenGeom, file_id);
 }
 
 void PropGeom::write_degenGeomM_file(DegenGeom* degenGeom, FILE* file_id)
@@ -638,7 +638,7 @@ void PropGeom::write_degenGeomM_file(DegenGeom* degenGeom, FILE* file_id)
 
 	fprintf(file_id, "\ndegenGeom(end+1).type = 'SURFACE';");
 	fprintf(file_id, "\ndegenGeom(end).name = '%s';", (char*) getName());
-	bladeVec[0].write_degenGeomM_file(degenGeom, file_id);
+	degenGeom->write_degenGeomM_file(degenGeom, file_id);
 
 	if ( sym_code == NO_SYM ) return;
 
@@ -658,7 +658,7 @@ void PropGeom::write_degenGeomM_file(DegenGeom* degenGeom, FILE* file_id)
 
 	fprintf(file_id, "\ndegenGeom(end+1).type = 'SURFACE';");
 	fprintf(file_id, "\ndegenGeom(end).name = '%s_refl';", (char*) getName());
-	bladeVec[0].write_refl_degenGeomM_file(degenGeom, file_id);
+	degenGeom->write_refl_degenGeomM_file(degenGeom, file_id);
 }
 
 //==== Create Degenerate Geometry ====//

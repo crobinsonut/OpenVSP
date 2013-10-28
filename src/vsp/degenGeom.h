@@ -80,11 +80,23 @@ public:
 	void setDegenStick(   DegenStick   degenStick )	{ this->degenStick   = degenStick;   }
 	void setDegenPoint(   DegenPoint   degenPoint )	{ this->degenPoint   = degenPoint;   }
 
+	int getNumXSecs()	{ return num_xsecs; };
+	int getNumPnts()	{ return num_pnts; };
+
+	void setNumXSecs( int nxss )		{ num_xsecs = nxss; }
+	void setNumPnts( int npts )		{ num_pnts = npts; }
+
 	Geom* getParentGeom()				{ return parentGeom; }
 	void  setParentGeom( Geom* geom )	{ parentGeom = geom; }
 
 	int getType()				{ return type; }
 	void setType( int geomType)	{ type = geomType; }
+
+	void write_degenGeomCsv_file(DegenGeom* degenGeom, FILE* file_id);
+	void write_refl_degenGeomCsv_file(DegenGeom* degenGeom, FILE* file_id);
+
+	void write_degenGeomM_file(DegenGeom* degenGeom, FILE* file_id);
+	void write_refl_degenGeomM_file(DegenGeom* degenGeom, FILE* file_id);
 
 protected:
 
@@ -92,6 +104,9 @@ protected:
 	DegenPlate   degenPlate;
 	DegenStick   degenStick;
 	DegenPoint   degenPoint;
+
+	int num_xsecs;
+	int num_pnts;
 
 	Geom* parentGeom;
 	int   type;

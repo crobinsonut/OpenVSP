@@ -44,6 +44,7 @@ cabinLayoutScreen.cpp
 CfdMeshMgr.cpp
 cfdMeshScreen.cpp
 curveEditScreen.cpp
+degenGeom.cpp
 drawBase.cpp
 ductGeom.cpp
 ductScreen.cpp
