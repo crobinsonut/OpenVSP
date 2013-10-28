@@ -475,8 +475,6 @@ void Xsec_surf::createDegenSurface(DegenGeom* degenGeom, int sym_code_in, float 
 	degenSurface.x    = xSurfMat;
 	degenSurface.nvec = nSurfMat;
 	degenGeom->setDegenSurface(degenSurface);
-
-	return;
 }
 
 void Xsec_surf::createDegenSurface_refl(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
@@ -498,12 +496,6 @@ void Xsec_surf::createDegenSurface_refl(DegenGeom* degenGeom, int sym_code_in, f
 			nLow  = 1;
 			nHigh = num_xsecs - 1;
 		}
-	}
-
-	if ( sym_code_in != refl_pnts_xsecs_code )
-	{
-		refl_pnts_xsecs_code = sym_code_in;
-		load_refl_pnts_xsecs();
 	}
 
 	for ( int i = nLow; i < nHigh-1; i++ )
@@ -640,8 +632,6 @@ void Xsec_surf::createSurfDegenPlate(DegenGeom* degenGeom, int sym_code_in, floa
 	degenPlate.t		= tMat;
 	degenPlate.zcamber	= zMat;
 	degenGeom->setDegenPlate(degenPlate);
-
-	return;
 }
 
 
@@ -671,13 +661,6 @@ void Xsec_surf::createSurfDegenPlate_refl(DegenGeom* degenGeom, int sym_code_in,
 	vector<double>	zVec(  platePnts );
 
 	vec3d  topPnt, botPnt, chordVec, camberPnt, chordPnt, nPlate;
-
-
-	if ( sym_code_in != refl_pnts_xsecs_code )
-	{
-		refl_pnts_xsecs_code = sym_code_in;
-		load_refl_pnts_xsecs();
-	}
 
 	for ( int i = nLow; i < nHigh; i++ )
 	{
@@ -900,8 +883,6 @@ void Xsec_surf::createBodyDegenPlate(DegenGeom* degenGeom, int sym_code_in, floa
 	degenPlate.t		= tMat;
 	degenPlate.zcamber	= zMat;
 	degenGeom->setDegenPlate(degenPlate);
-
-	return;
 }
 
 void Xsec_surf::createBodyDegenPlate_refl(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
@@ -923,12 +904,6 @@ void Xsec_surf::createBodyDegenPlate_refl(DegenGeom* degenGeom, int sym_code_in,
 	vector<double>	zVec(  platePnts );
 
 	vec3d  topPnt, botPnt, chordVec, camberPnt, chordPnt, nPlate;
-
-	if ( sym_code_in != refl_pnts_xsecs_code )
-	{
-		refl_pnts_xsecs_code = sym_code_in;
-		load_refl_pnts_xsecs();
-	}
 
 	// "Vertical" plate
 	for ( int i = nLow; i < nHigh; i++ )
@@ -1172,8 +1147,6 @@ void Xsec_surf::createSurfDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 	degenStick.sweep.push_back( NAN );
 
 	degenGeom->setDegenStick(degenStick);
-
-	return;
 }
 
 void Xsec_surf::createSurfDegenStick_refl(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
@@ -1284,7 +1257,6 @@ void Xsec_surf::createSurfDegenStick_refl(DegenGeom* degenGeom, int sym_code_in,
 	degenStick.sweep.push_back( NAN );
 
 	degenGeom->setDegenStick( degenStick );
-
 }
 
 void Xsec_surf::createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
@@ -1418,7 +1390,6 @@ void Xsec_surf::createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 	}
 
 	degenGeom->setDegenStick(degenStick);
-
 }
 
 void Xsec_surf::createBodyDegenStick_refl(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
@@ -1551,7 +1522,6 @@ void Xsec_surf::createBodyDegenStick_refl(DegenGeom* degenGeom, int sym_code_in,
 	}
 
 	degenGeom->setDegenStick( degenStick );
-
 }
 
 vec3d Xsec_surf::get_xsec_shellCG( int ixs )
