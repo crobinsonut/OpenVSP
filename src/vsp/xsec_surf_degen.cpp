@@ -1155,10 +1155,27 @@ void Xsec_surf::createSurfDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 	}
 	degenStick.sweep.push_back( NAN );
 
-	if ( sym_code_in == NO_SYM )
+	degenGeom->setDegenStick(degenStick);
+
+	if ( sym_code_in != NO_SYM )
+		createSurfDegenStick_refl(degenGeom, sym_code_in, mat, refl_mat);
+
+	return;
+}
+
+void Xsec_surf::createSurfDegenStick_refl(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4])
+{
+	DegenStick	degenStick = degenGeom->getDegenStick();
+
+	int nLow = 0, nHigh = num_xsecs;
+	int platePnts = (num_pnts + 1) / 2;
+	vec3d chordVec, camberPnt, prevCamberPnt;
+
+	if ( degenGeom->getParentGeom()->getTypeStr() == "wing" || degenGeom->getParentGeom()->getTypeStr() == "prop" )
 	{
-		degenGeom->setDegenStick(degenStick);
-		return;
+		// Keep only airfoil sections, discard endcap close-out lines
+		nLow  = 1;
+		nHigh = num_xsecs - 1;
 	}
 
 	for ( int i = nLow; i < nHigh; i++ )
