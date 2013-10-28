@@ -541,7 +541,6 @@ void Xsec_surf::createSurfDegenPlate(DegenGeom* degenGeom, int sym_code_in, floa
 
 	vector< vector<vec3d>  >	xMat;
 	vector< vector<vec3d>  >	nCamberMat;
-	vector< vector<vec3d>  >	nPlateMat;
 	vector< vector<double> >	tMat;
 	vector< vector<double> >	zMat;
 
@@ -614,15 +613,46 @@ void Xsec_surf::createSurfDegenPlate(DegenGeom* degenGeom, int sym_code_in, floa
 	degenPlate.wTop.push_back( wArray[platePnts-1] );
 	degenPlate.wBot.push_back( wArray[platePnts-1] );
 
-	if ( sym_code_in == NO_SYM )
+	degenPlate.x    	= xMat;
+	degenPlate.nCamber 	= nCamberMat;
+	degenPlate.t		= tMat;
+	degenPlate.zcamber	= zMat;
+	degenGeom->setDegenPlate(degenPlate);
+
+	if(sym_code_in != NO_SYM)
+		createSurfDegenPlate_refl(degenGeom, sym_code_in, mat, refl_mat);
+
+	return;
+}
+
+
+void Xsec_surf::createSurfDegenPlate_refl(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4])
+{
+	DegenPlate	degenPlate = degenGeom->getDegenPlate();
+
+	int nLow = 0, nHigh = num_xsecs;
+	int platePnts = (num_pnts + 1) / 2;
+
+	if ( degenGeom->getParentGeom()->getTypeStr() == "wing" || degenGeom->getParentGeom()->getTypeStr() == "prop" )
 	{
-		degenPlate.x    	= xMat;
-		degenPlate.nCamber 	= nCamberMat;
-		degenPlate.t		= tMat;
-		degenPlate.zcamber	= zMat;
-		degenGeom->setDegenPlate(degenPlate);
-		return;
+		// Keep only airfoil sections, discard endcap close-out lines
+		nLow  = 1;
+		nHigh = num_xsecs - 1;
 	}
+
+	vector< vector<vec3d>  >	xMat = degenPlate.x;
+	vector< vector<vec3d>  >	nCamberMat = degenPlate.nCamber;
+	vector< vector<double> >	tMat = degenPlate.t;
+	vector< vector<double> >	zMat = degenPlate.zcamber;
+
+	vector<vec3d>	xVec(  platePnts );
+	vector<vec3d>	nCVec( platePnts );
+	vector<vec3d>	nPVec( platePnts );
+	vector<double>	tVec(  platePnts );
+	vector<double>	zVec(  platePnts );
+
+	vec3d  topPnt, botPnt, chordVec, camberPnt, chordPnt, nPlate;
+
 
 	if ( sym_code_in != refl_pnts_xsecs_code )
 	{

@@ -221,6 +221,7 @@ public:
    void createDegenSurface_refl(DegenGeom* degenGeom, int sym_code_in, float refl_mat[4][4]);
 
    void createSurfDegenPlate(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4]);
+   void createSurfDegenPlate_refl(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4]);
    void createBodyDegenPlate(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4]);
    void createSurfDegenStick(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4]);
    void createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4]);
