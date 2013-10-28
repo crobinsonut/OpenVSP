@@ -1403,11 +1403,20 @@ void Xsec_surf::createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 		degenStick.sweep.push_back( NAN );
 	}
 
-	if ( sym_code_in == NO_SYM )
-	{
-		degenGeom->setDegenStick(degenStick);
-		return;
-	}
+	degenGeom->setDegenStick(degenStick);
+
+	if ( sym_code_in != NO_SYM )
+		createBodyDegenStick_refl(degenGeom, sym_code_in, mat, refl_mat);
+
+}
+
+void Xsec_surf::createBodyDegenStick_refl(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4])
+{
+	DegenStick	degenStick = degenGeom->getDegenStick();
+
+	int nLow = 0, nHigh = num_xsecs;
+	int platePnts = (num_pnts + 1) / 2;
+	vec3d chordVec, camberPnt, prevCamberPnt;
 
 	// "Vertical"
 	for ( int i = nLow; i < nHigh; i++ )
@@ -1470,6 +1479,7 @@ void Xsec_surf::createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 	}
 
 	// "Horizontal"
+	int startPnt = (num_pnts - 1) / 4;
 	for ( int i = nLow; i < nHigh; i++ )
 	{
 		vec3d topPnt, botPnt;
