@@ -226,8 +226,8 @@ public:
    void createBodyDegenPlate_refl(DegenGeom* degenGeom, int sym_code_in, float refl_mat[4][4]);
    void createSurfDegenStick(DegenGeom* degenGeom, int sym_code_in, float mat[4][4]);
    void createSurfDegenStick_refl(DegenGeom* degenGeom, int sym_code_in, float refl_mat[4][4]);
-   void createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4]);
-   void createBodyDegenStick_refl(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4]);
+   void createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, float mat[4][4]);
+   void createBodyDegenStick_refl(DegenGeom* degenGeom, int sym_code_in, float refl_mat[4][4]);
 
    vec3d get_xsec_shellCG( int ixs );
    vec3d get_refl_xsec_shellCG( int ixs );

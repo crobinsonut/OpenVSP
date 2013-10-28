@@ -395,9 +395,9 @@ DegenGeom* Xsec_surf::createBodyDegenGeom(Geom* parentGeom, int sym_code_in, flo
 	if ( sym_code_in != NO_SYM )
 		createBodyDegenPlate_refl(degenGeom, sym_code_in, refl_mat);
 
-	createBodyDegenStick(degenGeom, sym_code_in, mat, refl_mat);
+	createBodyDegenStick(degenGeom, sym_code_in, mat);
 	if ( sym_code_in != NO_SYM )
-		createBodyDegenStick_refl(degenGeom, sym_code_in, mat, refl_mat);
+		createBodyDegenStick_refl(degenGeom, sym_code_in, refl_mat);
 
 	return degenGeom;
 }
@@ -1275,7 +1275,7 @@ void Xsec_surf::createSurfDegenStick_refl(DegenGeom* degenGeom, int sym_code_in,
 
 }
 
-void Xsec_surf::createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4])
+void Xsec_surf::createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, float mat[4][4])
 {
 	DegenStick	degenStick = degenGeom->getDegenStick();
 
@@ -1409,7 +1409,7 @@ void Xsec_surf::createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 
 }
 
-void Xsec_surf::createBodyDegenStick_refl(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4])
+void Xsec_surf::createBodyDegenStick_refl(DegenGeom* degenGeom, int sym_code_in, float refl_mat[4][4])
 {
 	DegenStick	degenStick = degenGeom->getDegenStick();
 
