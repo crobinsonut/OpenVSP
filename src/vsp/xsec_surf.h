@@ -219,15 +219,15 @@ public:
    DegenGeom* createBodyDegenGeom(Geom* parentGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4]);
 
    void createDegenSurface(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
-   void createDegenSurface_refl(DegenGeom* degenGeom, int sym_code_in, float refl_mat[4][4], const array_2d<vec3d> &pntsarr);
+   void createDegenSurface_refl(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
    void createSurfDegenPlate(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
-   void createSurfDegenPlate_refl(DegenGeom* degenGeom, int sym_code_in, float refl_mat[4][4], const array_2d<vec3d> &pntsarr);
+   void createSurfDegenPlate_refl(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
    void createBodyDegenPlate(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
-   void createBodyDegenPlate_refl(DegenGeom* degenGeom, int sym_code_in, float refl_mat[4][4], const array_2d<vec3d> &pntsarr);
+   void createBodyDegenPlate_refl(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
    void createSurfDegenStick(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
-   void createSurfDegenStick_refl(DegenGeom* degenGeom, int sym_code_in, float refl_mat[4][4], const array_2d<vec3d> &pntsarr);
+   void createSurfDegenStick_refl(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
    void createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
-   void createBodyDegenStick_refl(DegenGeom* degenGeom, int sym_code_in, float refl_mat[4][4], const array_2d<vec3d> &pntsarr);
+   void createBodyDegenStick_refl(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
 
    vec3d get_xsec_shellCG( int ixs );
    vec3d get_refl_xsec_shellCG( int ixs );
