@@ -372,6 +372,8 @@ DegenGeom* Xsec_surf::createSurfDegenGeom(Geom* parentGeom, int sym_code_in, flo
 		createSurfDegenPlate_refl(degenGeom, sym_code_in, refl_mat);
 
 	createSurfDegenStick(degenGeom, sym_code_in, mat, refl_mat);
+	if ( sym_code_in != NO_SYM )
+		createSurfDegenStick_refl(degenGeom, sym_code_in, mat, refl_mat);
 
 	return degenGeom;
 }
@@ -1156,9 +1158,6 @@ void Xsec_surf::createSurfDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 	degenStick.sweep.push_back( NAN );
 
 	degenGeom->setDegenStick(degenStick);
-
-	if ( sym_code_in != NO_SYM )
-		createSurfDegenStick_refl(degenGeom, sym_code_in, mat, refl_mat);
 
 	return;
 }
