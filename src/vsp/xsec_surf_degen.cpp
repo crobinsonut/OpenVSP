@@ -1342,43 +1342,25 @@ void Xsec_surf::createDegenSurface(DegenGeom* degenGeom, int sym_code_in, float 
 			nLow  = 1;
 			nHigh = num_xsecs - 1;
 		}
-
-		for ( int i = nLow; i < nHigh-1; i++ )
-		{
-			nVec.assign(num_pnts,vec3d(NAN,NAN,NAN));
-
-			for ( int j = 0; j < num_pnts-1; j++ )
-			{
-				vec3d sVec1 = pnts_xsecs(i+1,j).transform(mat) - pnts_xsecs(i,j).transform(mat);
-				vec3d sVec2 = pnts_xsecs(i,j+1).transform(mat) - pnts_xsecs(i,j).transform(mat);
-				nVec[j]     = cross(sVec1,sVec2);
-				nVec[j].normalize();
-			}
-
-			nSurfMat.push_back(nVec);
-		}
-		nVec.assign(num_pnts,vec3d(NAN,NAN,NAN));
-		nSurfMat.push_back(nVec);
 	}
-	else
+
+	for ( int i = nLow; i < nHigh-1; i++ )
 	{
-		for ( int i = nLow; i < nHigh-1; i++ )
-		{
-			nVec.assign(num_pnts,vec3d(NAN,NAN,NAN));
-
-			for ( int j = 0; j < num_pnts-1; j++ )
-			{
-				vec3d sVec1 = pnts_xsecs(i+1,j).transform(mat) - pnts_xsecs(i,j).transform(mat);
-				vec3d sVec2 = pnts_xsecs(i,j+1).transform(mat) - pnts_xsecs(i,j).transform(mat);
-				nVec[j]     = cross(sVec1,sVec2);
-				nVec[j].normalize();
-			}
-
-			nSurfMat.push_back(nVec);
-		}
 		nVec.assign(num_pnts,vec3d(NAN,NAN,NAN));
+
+		for ( int j = 0; j < num_pnts-1; j++ )
+		{
+			vec3d sVec1 = pnts_xsecs(i+1,j).transform(mat) - pnts_xsecs(i,j).transform(mat);
+			vec3d sVec2 = pnts_xsecs(i,j+1).transform(mat) - pnts_xsecs(i,j).transform(mat);
+			nVec[j]     = cross(sVec1,sVec2);
+			nVec[j].normalize();
+		}
+
 		nSurfMat.push_back(nVec);
 	}
+	nVec.assign(num_pnts,vec3d(NAN,NAN,NAN));
+	nSurfMat.push_back(nVec);
+
 
 
 	for ( int i = nLow; i < nHigh; i++ )
@@ -1414,44 +1396,22 @@ void Xsec_surf::createDegenSurface(DegenGeom* degenGeom, int sym_code_in, float 
 		load_refl_pnts_xsecs();
 	}
 
-	if ( degenGeom->getType() == DegenGeom::SURFACE_TYPE )
+	for ( int i = nLow; i < nHigh-1; i++ )
 	{
-		for ( int i = nLow; i < nHigh-1; i++ )
-		{
-			nVec.assign(num_pnts,vec3d(NAN,NAN,NAN));
-
-			for ( int j = 0; j < num_pnts-1; j++ )
-			{
-				vec3d sVec2 = refl_pnts_xsecs(i+1,j).transform(refl_mat) - refl_pnts_xsecs(i,j).transform(refl_mat);
-				vec3d sVec1 = refl_pnts_xsecs(i,j+1).transform(refl_mat) - refl_pnts_xsecs(i,j).transform(refl_mat);
-				nVec[j]     = cross(sVec1,sVec2);
-				nVec[j].normalize();
-			}
-
-			nSurfMat.push_back(nVec);
-		}
 		nVec.assign(num_pnts,vec3d(NAN,NAN,NAN));
+
+		for ( int j = 0; j < num_pnts-1; j++ )
+		{
+			vec3d sVec2 = refl_pnts_xsecs(i+1,j).transform(refl_mat) - refl_pnts_xsecs(i,j).transform(refl_mat);
+			vec3d sVec1 = refl_pnts_xsecs(i,j+1).transform(refl_mat) - refl_pnts_xsecs(i,j).transform(refl_mat);
+			nVec[j]     = cross(sVec1,sVec2);
+			nVec[j].normalize();
+		}
+
 		nSurfMat.push_back(nVec);
 	}
-	else
-	{
-		for ( int i = nLow; i < nHigh-1; i++ )
-		{
-			nVec.assign(num_pnts,vec3d(NAN,NAN,NAN));
-
-			for ( int j = 0; j < num_pnts-1; j++ )
-			{
-				vec3d sVec2 = refl_pnts_xsecs(i+1,j).transform(refl_mat) - refl_pnts_xsecs(i,j).transform(refl_mat);
-				vec3d sVec1 = refl_pnts_xsecs(i,j+1).transform(refl_mat) - refl_pnts_xsecs(i,j).transform(refl_mat);
-				nVec[j]     = cross(sVec1,sVec2);
-				nVec[j].normalize();
-			}
-
-			nSurfMat.push_back(nVec);
-		}
-		nVec.assign(num_pnts,vec3d(NAN,NAN,NAN));
-		nSurfMat.push_back(nVec);
-	}
+	nVec.assign(num_pnts,vec3d(NAN,NAN,NAN));
+	nSurfMat.push_back(nVec);
 
 	for ( int i = nLow; i < nHigh; i++ )
 	{
