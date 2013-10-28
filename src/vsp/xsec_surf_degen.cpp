@@ -363,17 +363,23 @@ DegenGeom* Xsec_surf::createSurfDegenGeom(Geom* parentGeom, int sym_code_in, flo
 	degenGeom->setNumXSecs( num_xsecs );
 	degenGeom->setNumPnts( num_pnts );
 
-	createDegenSurface(degenGeom, sym_code_in, mat);
-	if(sym_code_in != NO_SYM)
-		createDegenSurface_refl(degenGeom, sym_code_in, refl_mat);
+	if ( sym_code_in != refl_pnts_xsecs_code )
+	{
+		refl_pnts_xsecs_code = sym_code_in;
+		load_refl_pnts_xsecs();
+	}
 
-	createSurfDegenPlate(degenGeom, sym_code_in, mat);
+	createDegenSurface(degenGeom, sym_code_in, mat, pnts_xsecs);
 	if(sym_code_in != NO_SYM)
-		createSurfDegenPlate_refl(degenGeom, sym_code_in, refl_mat);
+		createDegenSurface_refl(degenGeom, sym_code_in, refl_mat, refl_pnts_xsecs);
 
-	createSurfDegenStick(degenGeom, sym_code_in, mat);
+	createSurfDegenPlate(degenGeom, sym_code_in, mat, pnts_xsecs);
+	if(sym_code_in != NO_SYM)
+		createSurfDegenPlate_refl(degenGeom, sym_code_in, refl_mat, refl_pnts_xsecs);
+
+	createSurfDegenStick(degenGeom, sym_code_in, mat, pnts_xsecs);
 	if ( sym_code_in != NO_SYM )
-		createSurfDegenStick_refl(degenGeom, sym_code_in, refl_mat);
+		createSurfDegenStick_refl(degenGeom, sym_code_in, refl_mat, refl_pnts_xsecs);
 
 	return degenGeom;
 }
@@ -387,22 +393,28 @@ DegenGeom* Xsec_surf::createBodyDegenGeom(Geom* parentGeom, int sym_code_in, flo
 	degenGeom->setNumXSecs( num_xsecs );
 	degenGeom->setNumPnts( num_pnts );
 
-	createDegenSurface(degenGeom, sym_code_in, mat);
+	if ( sym_code_in != refl_pnts_xsecs_code )
+	{
+		refl_pnts_xsecs_code = sym_code_in;
+		load_refl_pnts_xsecs();
+	}
+
+	createDegenSurface(degenGeom, sym_code_in, mat, pnts_xsecs);
 	if(sym_code_in != NO_SYM)
-		createDegenSurface_refl(degenGeom, sym_code_in, refl_mat);
+		createDegenSurface_refl(degenGeom, sym_code_in, refl_mat, refl_pnts_xsecs);
 
-	createBodyDegenPlate(degenGeom, sym_code_in, mat);
+	createBodyDegenPlate(degenGeom, sym_code_in, mat, pnts_xsecs);
 	if ( sym_code_in != NO_SYM )
-		createBodyDegenPlate_refl(degenGeom, sym_code_in, refl_mat);
+		createBodyDegenPlate_refl(degenGeom, sym_code_in, refl_mat, refl_pnts_xsecs);
 
-	createBodyDegenStick(degenGeom, sym_code_in, mat);
+	createBodyDegenStick(degenGeom, sym_code_in, mat, pnts_xsecs);
 	if ( sym_code_in != NO_SYM )
-		createBodyDegenStick_refl(degenGeom, sym_code_in, refl_mat);
+		createBodyDegenStick_refl(degenGeom, sym_code_in, refl_mat, refl_pnts_xsecs);
 
 	return degenGeom;
 }
 
-void Xsec_surf::createDegenSurface(DegenGeom* degenGeom, int sym_code_in, float mat[4][4])
+void Xsec_surf::createDegenSurface(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
 {
 	DegenSurface	degenSurface = degenGeom->getDegenSurface();
 
@@ -429,8 +441,8 @@ void Xsec_surf::createDegenSurface(DegenGeom* degenGeom, int sym_code_in, float 
 
 		for ( int j = 0; j < num_pnts-1; j++ )
 		{
-			vec3d sVec1 = pnts_xsecs(i+1,j).transform(mat) - pnts_xsecs(i,j).transform(mat);
-			vec3d sVec2 = pnts_xsecs(i,j+1).transform(mat) - pnts_xsecs(i,j).transform(mat);
+			vec3d sVec1 = pntsarr(i+1,j).transform(mat) - pntsarr(i,j).transform(mat);
+			vec3d sVec2 = pntsarr(i,j+1).transform(mat) - pntsarr(i,j).transform(mat);
 			nVec[j]     = cross(sVec1,sVec2);
 			nVec[j].normalize();
 		}
@@ -446,7 +458,7 @@ void Xsec_surf::createDegenSurface(DegenGeom* degenGeom, int sym_code_in, float 
 	{
 		for ( int j = 0; j < num_pnts; j++ )
 		{
-			xVec[j] = pnts_xsecs(i,j).transform(mat);
+			xVec[j] = pntsarr(i,j).transform(mat);
 		}
 
 		degenSurface.u.push_back( uArray[i] );
@@ -467,7 +479,7 @@ void Xsec_surf::createDegenSurface(DegenGeom* degenGeom, int sym_code_in, float 
 	return;
 }
 
-void Xsec_surf::createDegenSurface_refl(DegenGeom* degenGeom, int sym_code_in, float refl_mat[4][4])
+void Xsec_surf::createDegenSurface_refl(DegenGeom* degenGeom, int sym_code_in, float refl_mat[4][4], const array_2d<vec3d> &pntsarr)
 {
 	DegenSurface	degenSurface = degenGeom->getDegenSurface();
 
@@ -500,8 +512,8 @@ void Xsec_surf::createDegenSurface_refl(DegenGeom* degenGeom, int sym_code_in, f
 
 		for ( int j = 0; j < num_pnts-1; j++ )
 		{
-			vec3d sVec2 = refl_pnts_xsecs(i+1,j).transform(refl_mat) - refl_pnts_xsecs(i,j).transform(refl_mat);
-			vec3d sVec1 = refl_pnts_xsecs(i,j+1).transform(refl_mat) - refl_pnts_xsecs(i,j).transform(refl_mat);
+			vec3d sVec2 = pntsarr(i+1,j).transform(refl_mat) - pntsarr(i,j).transform(refl_mat);
+			vec3d sVec1 = pntsarr(i,j+1).transform(refl_mat) - pntsarr(i,j).transform(refl_mat);
 			nVec[j]     = cross(sVec1,sVec2);
 			nVec[j].normalize();
 		}
@@ -515,7 +527,7 @@ void Xsec_surf::createDegenSurface_refl(DegenGeom* degenGeom, int sym_code_in, f
 	{
 		for ( int j = 0; j < num_pnts; j++ )
 		{
-			xVec[j] = refl_pnts_xsecs(i,j).transform(refl_mat);
+			xVec[j] = pntsarr(i,j).transform(refl_mat);
 		}
 
 		degenSurface.u.push_back( uArray[i] );
@@ -535,7 +547,7 @@ void Xsec_surf::createDegenSurface_refl(DegenGeom* degenGeom, int sym_code_in, f
 }
 
 
-void Xsec_surf::createSurfDegenPlate(DegenGeom* degenGeom, int sym_code_in, float mat[4][4])
+void Xsec_surf::createSurfDegenPlate(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
 {
 	DegenPlate	degenPlate = degenGeom->getDegenPlate();
 
@@ -565,20 +577,20 @@ void Xsec_surf::createSurfDegenPlate(DegenGeom* degenGeom, int sym_code_in, floa
 	for ( int i = nLow; i < nHigh; i++ )
 	{
 		// Set first point (trailing edge)
-		xVec[0]  = pnts_xsecs(i,0).transform(mat);
+		xVec[0]  = pntsarr(i,0).transform(mat);
 		nCVec[0] = vec3d(0,0,0); // on camber line
 		tVec[0]  = 0;
 		zVec[0]  = 0;
 
 		// Set last point (leading edge)
-		xVec[platePnts-1]  = pnts_xsecs( i, platePnts-1 ).transform(mat);
+		xVec[platePnts-1]  = pntsarr( i, platePnts-1 ).transform(mat);
 		nCVec[platePnts-1] = vec3d(0,0,0); // on camber line
 		tVec[platePnts-1]  = 0;
 		zVec[platePnts-1]  = 0;
 
 		//== Compute plate normal ==//
 		// rotated chord vector
-		vec3d rcv = pnts_xsecs(i, platePnts-1).transform(mat) - pnts_xsecs(i,0).transform(mat);
+		vec3d rcv = pntsarr(i, platePnts-1).transform(mat) - pntsarr(i,0).transform(mat);
 		// rotated area normal vector
 		vec3d anv = get_area_normal(i).transform(mat) - vec3d(0,0,0).transform(mat);
 		// plate normal vector
@@ -587,17 +599,17 @@ void Xsec_surf::createSurfDegenPlate(DegenGeom* degenGeom, int sym_code_in, floa
 		degenPlate.nPlate.push_back( nPlate );
 
 		// normalized, unrotated chord vector (te->le)
-		chordVec = pnts_xsecs(i, platePnts-1) - pnts_xsecs(i,0);
+		chordVec = pntsarr(i, platePnts-1) - pntsarr(i,0);
 		chordVec.normalize();
 
 		// Set points along af section
 		for ( int j = 1, k = num_pnts-2; j < platePnts-1; j++, k-- )
 		{
-			topPnt = pnts_xsecs(i,j);
-			botPnt = pnts_xsecs(i,k);
+			topPnt = pntsarr(i,j);
+			botPnt = pntsarr(i,k);
 
 			camberPnt = (topPnt + botPnt) / 2;
-			chordPnt  = pnts_xsecs(i,0) + chordVec * dot(camberPnt-pnts_xsecs(i,0),chordVec);
+			chordPnt  = pntsarr(i,0) + chordVec * dot(camberPnt-pntsarr(i,0),chordVec);
 
 			xVec[j]  = chordPnt.transform(mat);
 			nCVec[j] = topPnt.transform(mat)-botPnt.transform(mat);
@@ -633,7 +645,7 @@ void Xsec_surf::createSurfDegenPlate(DegenGeom* degenGeom, int sym_code_in, floa
 }
 
 
-void Xsec_surf::createSurfDegenPlate_refl(DegenGeom* degenGeom, int sym_code_in, float refl_mat[4][4])
+void Xsec_surf::createSurfDegenPlate_refl(DegenGeom* degenGeom, int sym_code_in, float refl_mat[4][4], const array_2d<vec3d> &pntsarr)
 {
 	DegenPlate	degenPlate = degenGeom->getDegenPlate();
 
@@ -670,21 +682,21 @@ void Xsec_surf::createSurfDegenPlate_refl(DegenGeom* degenGeom, int sym_code_in,
 	for ( int i = nLow; i < nHigh; i++ )
 	{
 		// Set first point (trailing edge)
-		xVec[0]  = refl_pnts_xsecs(i,0).transform(refl_mat);
+		xVec[0]  = pntsarr(i,0).transform(refl_mat);
 		nCVec[0] = vec3d(0,0,0); // on camber line
 		tVec[0]  = 0;
 		zVec[0]  = 0;
 
 		// Set last point (leading edge)
-		xVec[platePnts-1]  = refl_pnts_xsecs( i, platePnts-1 ).transform(refl_mat);
+		xVec[platePnts-1]  = pntsarr( i, platePnts-1 ).transform(refl_mat);
 		nCVec[platePnts-1] = vec3d(0,0,0); // on camber line
 		tVec[platePnts-1]  = 0;
 		zVec[platePnts-1]  = 0;
 
 		//== Compute plate normal ==//
 		// rotated chord vector
-		vec3d rcv = refl_pnts_xsecs(i, platePnts-1).transform(refl_mat) \
-				  - refl_pnts_xsecs(i,0).transform(refl_mat);
+		vec3d rcv = pntsarr(i, platePnts-1).transform(refl_mat) \
+				  - pntsarr(i,0).transform(refl_mat);
 		// rotated area normal vector
 		vec3d anv = get_refl_area_normal(i).transform(refl_mat) - vec3d(0,0,0).transform(refl_mat);
 		// plate normal vector
@@ -693,17 +705,17 @@ void Xsec_surf::createSurfDegenPlate_refl(DegenGeom* degenGeom, int sym_code_in,
 		degenPlate.nPlate.push_back( nPlate );
 
 		// normalized, unrotated chord vector (te->le)
-		chordVec = refl_pnts_xsecs(i, platePnts-1) - refl_pnts_xsecs(i,0);
+		chordVec = pntsarr(i, platePnts-1) - pntsarr(i,0);
 		chordVec.normalize();
 
 		// Set points along af section
 		for ( int j = 1, k = num_pnts-2; j < platePnts-1; j++, k-- )
 		{
-			topPnt = refl_pnts_xsecs(i,j);
-			botPnt = refl_pnts_xsecs(i,k);
+			topPnt = pntsarr(i,j);
+			botPnt = pntsarr(i,k);
 
 			camberPnt = (topPnt + botPnt) / 2;
-			chordPnt  = refl_pnts_xsecs(i,0) + chordVec * dot(camberPnt-refl_pnts_xsecs(i,0),chordVec);
+			chordPnt  = pntsarr(i,0) + chordVec * dot(camberPnt-pntsarr(i,0),chordVec);
 
 			xVec[j]  = chordPnt.transform(refl_mat);
 			nCVec[j] = topPnt.transform(refl_mat)-botPnt.transform(refl_mat);
@@ -736,7 +748,7 @@ void Xsec_surf::createSurfDegenPlate_refl(DegenGeom* degenGeom, int sym_code_in,
 	degenGeom->setDegenPlate(degenPlate);
 }
 
-void Xsec_surf::createBodyDegenPlate(DegenGeom* degenGeom, int sym_code_in, float mat[4][4])
+void Xsec_surf::createBodyDegenPlate(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
 {
 	DegenPlate	degenPlate = degenGeom->getDegenPlate();
 
@@ -760,20 +772,20 @@ void Xsec_surf::createBodyDegenPlate(DegenGeom* degenGeom, int sym_code_in, floa
 	for ( int i = nLow; i < nHigh; i++ )
 	{
 		// Set first point (trailing edge)
-		xVec[0]  = pnts_xsecs(i,0).transform(mat);
+		xVec[0]  = pntsarr(i,0).transform(mat);
 		nCVec[0] = vec3d(0,0,0); // on camber line
 		tVec[0]  = 0;
 		zVec[0]  = 0;
 
 		// Set last point (leading edge)
-		xVec[platePnts-1]  = pnts_xsecs( i, platePnts-1 ).transform(mat);
+		xVec[platePnts-1]  = pntsarr( i, platePnts-1 ).transform(mat);
 		nCVec[platePnts-1] = vec3d(0,0,0); // on camber line
 		tVec[platePnts-1]  = 0;
 		zVec[platePnts-1]  = 0;
 
 		//== Compute plate normal ==//
 		// rotated chord vector
-		vec3d rcv = pnts_xsecs(i, platePnts-1).transform(mat) - pnts_xsecs(i,0).transform(mat);
+		vec3d rcv = pntsarr(i, platePnts-1).transform(mat) - pntsarr(i,0).transform(mat);
 		// rotated area normal vector
 		vec3d anv = get_area_normal(i).transform(mat) - vec3d(0,0,0).transform(mat);
 		// plate normal vector
@@ -782,17 +794,17 @@ void Xsec_surf::createBodyDegenPlate(DegenGeom* degenGeom, int sym_code_in, floa
 		degenPlate.nPlate.push_back( nPlate );
 
 		// normalized, unrotated chord vector (te->le)
-		chordVec = pnts_xsecs(i, platePnts-1) - pnts_xsecs(i,0);
+		chordVec = pntsarr(i, platePnts-1) - pntsarr(i,0);
 		chordVec.normalize();
 
 		// Set points along af section
 		for ( int j = 1, k = num_pnts-2; j < platePnts-1; j++, k-- )
 		{
-			topPnt = pnts_xsecs(i,j);
-			botPnt = pnts_xsecs(i,k);
+			topPnt = pntsarr(i,j);
+			botPnt = pntsarr(i,k);
 
 			camberPnt = (topPnt + botPnt) / 2;
-			chordPnt  = pnts_xsecs(i,0) + chordVec * dot(camberPnt-pnts_xsecs(i,0),chordVec);
+			chordPnt  = pntsarr(i,0) + chordVec * dot(camberPnt-pntsarr(i,0),chordVec);
 
 			xVec[j]  = chordPnt.transform(mat);
 			nCVec[j] = topPnt.transform(mat)-botPnt.transform(mat);
@@ -823,21 +835,21 @@ void Xsec_surf::createBodyDegenPlate(DegenGeom* degenGeom, int sym_code_in, floa
 	for ( int i = nLow; i < nHigh; i++ )
 	{
 		// Set first point (trailing edge)
-		xVec[0]  = pnts_xsecs(i,startPnt).transform(mat);
+		xVec[0]  = pntsarr(i,startPnt).transform(mat);
 		nCVec[0] = vec3d(0,0,0); // on camber line
 		tVec[0]  = 0;
 		zVec[0]  = 0;
 
 		// Set last point (leading edge)
-		xVec[platePnts-1]  = pnts_xsecs( i, startPnt+platePnts-1 ).transform(mat);
+		xVec[platePnts-1]  = pntsarr( i, startPnt+platePnts-1 ).transform(mat);
 		nCVec[platePnts-1] = vec3d(0,0,0); // on camber line
 		tVec[platePnts-1]  = 0;
 		zVec[platePnts-1]  = 0;
 
 		//== Compute plate normal ==//
 		// rotated chord vector
-		vec3d rcv = pnts_xsecs(i, startPnt+platePnts-1).transform(mat) \
-				  - pnts_xsecs(i,startPnt).transform(mat);
+		vec3d rcv = pntsarr(i, startPnt+platePnts-1).transform(mat) \
+				  - pntsarr(i,startPnt).transform(mat);
 		// rotated area normal vector
 		vec3d anv = get_area_normal(i).transform(mat) - vec3d(0,0,0).transform(mat);
 		// plate normal vector
@@ -846,17 +858,17 @@ void Xsec_surf::createBodyDegenPlate(DegenGeom* degenGeom, int sym_code_in, floa
 		degenPlate.nPlate.push_back( nPlate );
 
 		// normalized, unrotated chord vector (te->le)
-		chordVec = pnts_xsecs(i, startPnt+platePnts-1) - pnts_xsecs(i,startPnt);
+		chordVec = pntsarr(i, startPnt+platePnts-1) - pntsarr(i,startPnt);
 		chordVec.normalize();
 
 		// Set points along af section
 		for ( int j = 1, k = startPnt+num_pnts-2; j < platePnts-1; j++, k-- )
 		{
-			topPnt = pnts_xsecs(i,startPnt+j);
-			botPnt = pnts_xsecs(i, k % (num_pnts-1) );
+			topPnt = pntsarr(i,startPnt+j);
+			botPnt = pntsarr(i, k % (num_pnts-1) );
 
 			camberPnt = (topPnt + botPnt) / 2;
-			chordPnt  = pnts_xsecs(i,startPnt) + chordVec * dot(camberPnt-pnts_xsecs(i,startPnt),chordVec);
+			chordPnt  = pntsarr(i,startPnt) + chordVec * dot(camberPnt-pntsarr(i,startPnt),chordVec);
 
 			xVec[j]  = chordPnt.transform(mat);
 			nCVec[j] = topPnt.transform(mat)-botPnt.transform(mat);
@@ -892,7 +904,7 @@ void Xsec_surf::createBodyDegenPlate(DegenGeom* degenGeom, int sym_code_in, floa
 	return;
 }
 
-void Xsec_surf::createBodyDegenPlate_refl(DegenGeom* degenGeom, int sym_code_in, float refl_mat[4][4])
+void Xsec_surf::createBodyDegenPlate_refl(DegenGeom* degenGeom, int sym_code_in, float refl_mat[4][4], const array_2d<vec3d> &pntsarr)
 {
 	DegenPlate	degenPlate = degenGeom->getDegenPlate();
 
@@ -922,21 +934,21 @@ void Xsec_surf::createBodyDegenPlate_refl(DegenGeom* degenGeom, int sym_code_in,
 	for ( int i = nLow; i < nHigh; i++ )
 	{
 		// Set first point (trailing edge)
-		xVec[0]  = refl_pnts_xsecs(i,0).transform(refl_mat);
+		xVec[0]  = pntsarr(i,0).transform(refl_mat);
 		nCVec[0] = vec3d(0,0,0); // on camber line
 		tVec[0]  = 0;
 		zVec[0]  = 0;
 
 		// Set last point (leading edge)
-		xVec[platePnts-1]  = refl_pnts_xsecs( i, platePnts-1 ).transform(refl_mat);
+		xVec[platePnts-1]  = pntsarr( i, platePnts-1 ).transform(refl_mat);
 		nCVec[platePnts-1] = vec3d(0,0,0); // on camber line
 		tVec[platePnts-1]  = 0;
 		zVec[platePnts-1]  = 0;
 
 		//== Compute plate normal ==//
 		// rotated chord vector
-		vec3d rcv = refl_pnts_xsecs(i, platePnts-1).transform(refl_mat) \
-				  - refl_pnts_xsecs(i,0).transform(refl_mat);
+		vec3d rcv = pntsarr(i, platePnts-1).transform(refl_mat) \
+				  - pntsarr(i,0).transform(refl_mat);
 		// rotated area normal vector
 		vec3d anv = get_refl_area_normal(i).transform(refl_mat) - vec3d(0,0,0).transform(refl_mat);
 		// plate normal vector
@@ -945,17 +957,17 @@ void Xsec_surf::createBodyDegenPlate_refl(DegenGeom* degenGeom, int sym_code_in,
 		degenPlate.nPlate.push_back( nPlate );
 
 		// normalized, unrotated chord vector (te->le)
-		chordVec = refl_pnts_xsecs(i, platePnts-1) - refl_pnts_xsecs(i,0);
+		chordVec = pntsarr(i, platePnts-1) - pntsarr(i,0);
 		chordVec.normalize();
 
 		// Set points along af section
 		for ( int j = 1, k = num_pnts-2; j < platePnts-1; j++, k-- )
 		{
-			topPnt = refl_pnts_xsecs(i,j);
-			botPnt = refl_pnts_xsecs(i,k);
+			topPnt = pntsarr(i,j);
+			botPnt = pntsarr(i,k);
 
 			camberPnt = (topPnt + botPnt) / 2;
-			chordPnt  = refl_pnts_xsecs(i,0) + chordVec * dot(camberPnt-refl_pnts_xsecs(i,0),chordVec);
+			chordPnt  = pntsarr(i,0) + chordVec * dot(camberPnt-pntsarr(i,0),chordVec);
 
 			xVec[j]  = chordPnt.transform(refl_mat);
 			nCVec[j] = topPnt.transform(refl_mat)-botPnt.transform(refl_mat);
@@ -986,21 +998,21 @@ void Xsec_surf::createBodyDegenPlate_refl(DegenGeom* degenGeom, int sym_code_in,
 	for ( int i = nLow; i < nHigh; i++ )
 	{
 		// Set first point (trailing edge)
-		xVec[0]  = refl_pnts_xsecs(i,startPnt).transform(refl_mat);
+		xVec[0]  = pntsarr(i,startPnt).transform(refl_mat);
 		nCVec[0] = vec3d(0,0,0); // on camber line
 		tVec[0]  = 0;
 		zVec[0]  = 0;
 
 		// Set last point (leading edge)
-		xVec[platePnts-1]  = refl_pnts_xsecs( i, startPnt+platePnts-1 ).transform(refl_mat);
+		xVec[platePnts-1]  = pntsarr( i, startPnt+platePnts-1 ).transform(refl_mat);
 		nCVec[platePnts-1] = vec3d(0,0,0); // on camber line
 		tVec[platePnts-1]  = 0;
 		zVec[platePnts-1]  = 0;
 
 		//== Compute plate normal ==//
 		// rotated chord vector
-		vec3d rcv = refl_pnts_xsecs(i, startPnt+platePnts-1).transform(refl_mat) \
-				  - refl_pnts_xsecs(i,startPnt).transform(refl_mat);
+		vec3d rcv = pntsarr(i, startPnt+platePnts-1).transform(refl_mat) \
+				  - pntsarr(i,startPnt).transform(refl_mat);
 		// rotated area normal vector
 		vec3d anv = get_refl_area_normal(i).transform(refl_mat) - vec3d(0,0,0).transform(refl_mat);
 		// plate normal vector
@@ -1009,17 +1021,17 @@ void Xsec_surf::createBodyDegenPlate_refl(DegenGeom* degenGeom, int sym_code_in,
 		degenPlate.nPlate.push_back( nPlate );
 
 		// normalized, unrotated chord vector (te->le)
-		chordVec = refl_pnts_xsecs(i, startPnt+platePnts-1) - refl_pnts_xsecs(i,startPnt);
+		chordVec = pntsarr(i, startPnt+platePnts-1) - pntsarr(i,startPnt);
 		chordVec.normalize();
 
 		// Set points along af section
 		for ( int j = 1, k = startPnt+num_pnts-2; j < platePnts-1; j++, k-- )
 		{
-			topPnt = refl_pnts_xsecs(i,startPnt+j);
-			botPnt = refl_pnts_xsecs(i, k % (num_pnts-1) );
+			topPnt = pntsarr(i,startPnt+j);
+			botPnt = pntsarr(i, k % (num_pnts-1) );
 
 			camberPnt = (topPnt + botPnt) / 2;
-			chordPnt  = refl_pnts_xsecs(i,startPnt) + chordVec * dot(camberPnt-refl_pnts_xsecs(i,startPnt),chordVec);
+			chordPnt  = pntsarr(i,startPnt) + chordVec * dot(camberPnt-pntsarr(i,startPnt),chordVec);
 
 			xVec[j]  = chordPnt.transform(refl_mat);
 			nCVec[j] = topPnt.transform(refl_mat)-botPnt.transform(refl_mat);
@@ -1052,7 +1064,7 @@ void Xsec_surf::createBodyDegenPlate_refl(DegenGeom* degenGeom, int sym_code_in,
 	degenGeom->setDegenPlate(degenPlate);
 }
 
-void Xsec_surf::createSurfDegenStick(DegenGeom* degenGeom, int sym_code_in, float mat[4][4])
+void Xsec_surf::createSurfDegenStick(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
 {
 	DegenStick	degenStick = degenGeom->getDegenStick();
 
@@ -1074,12 +1086,12 @@ void Xsec_surf::createSurfDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 		int    maxThickIdx[2];
 
 		// normalized, unrotated chord vector (te->le)
-		chordVec = pnts_xsecs(i, platePnts-1) - pnts_xsecs(i,0);
+		chordVec = pntsarr(i, platePnts-1) - pntsarr(i,0);
 		chordVec.normalize();
 
-		degenStick.xle.push_back( pnts_xsecs( i, platePnts-1 ).transform(mat) );
-		degenStick.xte.push_back( pnts_xsecs( i, 0 ).transform(mat) );
-		degenStick.chord.push_back( dist(pnts_xsecs(i, platePnts-1), pnts_xsecs(i, 0)) );
+		degenStick.xle.push_back( pntsarr( i, platePnts-1 ).transform(mat) );
+		degenStick.xte.push_back( pntsarr( i, 0 ).transform(mat) );
+		degenStick.chord.push_back( dist(pntsarr(i, platePnts-1), pntsarr(i, 0)) );
 		degenStick.u.push_back( uArray[i] );
 		degenStick.Ishell.push_back(calculate_shell_inertias_in_plane(i,XZ_PLANE, mat));
 		degenStick.Isolid.push_back(calculate_solid_inertias_in_plane(i,XZ_PLANE, mat));
@@ -1093,8 +1105,8 @@ void Xsec_surf::createSurfDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 
 		for ( int j = 1, k = num_pnts-2; j < platePnts-1; j++, k-- )
 		{
-			topPnt = pnts_xsecs(i,j);
-			botPnt = pnts_xsecs(i,k);
+			topPnt = pntsarr(i,j);
+			botPnt = pntsarr(i,k);
 
 			camberPnt = ( topPnt + botPnt ) / 2;
 
@@ -1104,18 +1116,18 @@ void Xsec_surf::createSurfDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 				maxThickIdx[0] = j;
 				maxThickIdx[1] = k;
 			}
-			perimTop += dist( pnts_xsecs(i,j), pnts_xsecs(i,j-1) );
-			perimBot += dist( pnts_xsecs(i,k), pnts_xsecs(i,k+1) );
+			perimTop += dist( pntsarr(i,j), pntsarr(i,j-1) );
+			perimBot += dist( pntsarr(i,k), pntsarr(i,k+1) );
 
 			prevCamberPnt = camberPnt;
 		}
 
-		camberPnt = ( pnts_xsecs(i,maxThickIdx[0]) + pnts_xsecs(i,maxThickIdx[1]) ) / 2;
-		degenStick.tLoc.push_back( 1 - (dot(camberPnt-pnts_xsecs(i,0),chordVec) / degenStick.chord.back()) );
+		camberPnt = ( pntsarr(i,maxThickIdx[0]) + pntsarr(i,maxThickIdx[1]) ) / 2;
+		degenStick.tLoc.push_back( 1 - (dot(camberPnt-pntsarr(i,0),chordVec) / degenStick.chord.back()) );
 		degenStick.toc.push_back( tempThickness / degenStick.chord.back() );
 
-		perimTop += dist( pnts_xsecs(i, platePnts-1), pnts_xsecs(i, platePnts-2) );
-		perimBot += dist( pnts_xsecs(i, platePnts), pnts_xsecs(i, platePnts-1) );
+		perimTop += dist( pntsarr(i, platePnts-1), pntsarr(i, platePnts-2) );
+		perimBot += dist( pntsarr(i, platePnts), pntsarr(i, platePnts-1) );
 		degenStick.perimTop.push_back( perimTop );
 		degenStick.perimBot.push_back( perimBot );
 	}
@@ -1127,18 +1139,18 @@ void Xsec_surf::createSurfDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 		double chordCurrent, chordNext;
 
 		// Get current section chord vector
-		cvCurrent = pnts_xsecs(i, platePnts-1) - pnts_xsecs(i,0);
+		cvCurrent = pntsarr(i, platePnts-1) - pntsarr(i,0);
 		chordCurrent = cvCurrent.mag();
 		cvCurrent.normalize();
 		// Get current section quarter chord point
-		qcCurrent = (pnts_xsecs(i,0) + cvCurrent*0.75*chordCurrent).transform(mat);
+		qcCurrent = (pntsarr(i,0) + cvCurrent*0.75*chordCurrent).transform(mat);
 
 		// Get next section chord vector
-		cvNext = pnts_xsecs(i+1, platePnts-1) - pnts_xsecs(i+1,0);
+		cvNext = pntsarr(i+1, platePnts-1) - pntsarr(i+1,0);
 		chordNext = cvNext.mag();
 		cvNext.normalize();
 		// Get next section quarter chord point
-		qcNext = (pnts_xsecs(i+1,0) + cvNext*0.75*chordNext).transform(mat);
+		qcNext = (pntsarr(i+1,0) + cvNext*0.75*chordNext).transform(mat);
 
 		// Get vector from current to next quarter chord
 		vec3d qcVec = qcNext - qcCurrent;
@@ -1164,7 +1176,7 @@ void Xsec_surf::createSurfDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 	return;
 }
 
-void Xsec_surf::createSurfDegenStick_refl(DegenGeom* degenGeom, int sym_code_in, float refl_mat[4][4])
+void Xsec_surf::createSurfDegenStick_refl(DegenGeom* degenGeom, int sym_code_in, float refl_mat[4][4], const array_2d<vec3d> &pntsarr)
 {
 	DegenStick	degenStick = degenGeom->getDegenStick();
 
@@ -1186,12 +1198,12 @@ void Xsec_surf::createSurfDegenStick_refl(DegenGeom* degenGeom, int sym_code_in,
 		int    maxThickIdx[2];
 
 		// normalized, unrotated chord vector (te->le)
-		chordVec = refl_pnts_xsecs(i, platePnts-1) - refl_pnts_xsecs(i,0);
+		chordVec = pntsarr(i, platePnts-1) - pntsarr(i,0);
 		chordVec.normalize();
 
-		degenStick.xle.push_back( refl_pnts_xsecs( i, platePnts-1 ).transform(refl_mat) );
-		degenStick.xte.push_back( refl_pnts_xsecs( i, 0 ).transform(refl_mat) );
-		degenStick.chord.push_back( dist(refl_pnts_xsecs(i, platePnts-1), refl_pnts_xsecs(i, 0)) );
+		degenStick.xle.push_back( pntsarr( i, platePnts-1 ).transform(refl_mat) );
+		degenStick.xte.push_back( pntsarr( i, 0 ).transform(refl_mat) );
+		degenStick.chord.push_back( dist(pntsarr(i, platePnts-1), pntsarr(i, 0)) );
 		degenStick.u.push_back( uArray[i] );
 		degenStick.Ishell.push_back(calculate_refl_shell_inertias_in_plane(i,XZ_PLANE, refl_mat));
 		degenStick.Isolid.push_back(calculate_refl_solid_inertias_in_plane(i,XZ_PLANE, refl_mat));
@@ -1205,8 +1217,8 @@ void Xsec_surf::createSurfDegenStick_refl(DegenGeom* degenGeom, int sym_code_in,
 
 		for ( int j = 1, k = num_pnts-2; j < platePnts-1; j++, k-- )
 		{
-			topPnt = refl_pnts_xsecs(i,j);
-			botPnt = refl_pnts_xsecs(i,k);
+			topPnt = pntsarr(i,j);
+			botPnt = pntsarr(i,k);
 
 			camberPnt = ( topPnt + botPnt ) / 2;
 
@@ -1216,18 +1228,18 @@ void Xsec_surf::createSurfDegenStick_refl(DegenGeom* degenGeom, int sym_code_in,
 				maxThickIdx[0] = j;
 				maxThickIdx[1] = k;
 			}
-			perimTop += dist( refl_pnts_xsecs(i,j), refl_pnts_xsecs(i,j-1) );
-			perimBot += dist( refl_pnts_xsecs(i,k), refl_pnts_xsecs(i,k+1) );
+			perimTop += dist( pntsarr(i,j), pntsarr(i,j-1) );
+			perimBot += dist( pntsarr(i,k), pntsarr(i,k+1) );
 
 			prevCamberPnt = camberPnt;
 		}
 
-		camberPnt = ( refl_pnts_xsecs(i,maxThickIdx[0]) + refl_pnts_xsecs(i,maxThickIdx[1]) ) / 2;
-		degenStick.tLoc.push_back( 1 - (dot(camberPnt-refl_pnts_xsecs(i,0),chordVec) / degenStick.chord.back() ) );
+		camberPnt = ( pntsarr(i,maxThickIdx[0]) + pntsarr(i,maxThickIdx[1]) ) / 2;
+		degenStick.tLoc.push_back( 1 - (dot(camberPnt-pntsarr(i,0),chordVec) / degenStick.chord.back() ) );
 		degenStick.toc.push_back( tempThickness / degenStick.chord.back() );
 
-		perimTop += dist( refl_pnts_xsecs(i, platePnts-1), refl_pnts_xsecs(i, platePnts-2) );
-		perimBot += dist( refl_pnts_xsecs(i, platePnts), refl_pnts_xsecs(i, platePnts-1) );
+		perimTop += dist( pntsarr(i, platePnts-1), pntsarr(i, platePnts-2) );
+		perimBot += dist( pntsarr(i, platePnts), pntsarr(i, platePnts-1) );
 		degenStick.perimTop.push_back( perimTop );
 		degenStick.perimBot.push_back( perimBot );
 	}
@@ -1239,18 +1251,18 @@ void Xsec_surf::createSurfDegenStick_refl(DegenGeom* degenGeom, int sym_code_in,
 		double chordCurrent, chordNext;
 
 		// Get current section chord vector
-		cvCurrent = refl_pnts_xsecs(i, platePnts-1) - refl_pnts_xsecs(i,0);
+		cvCurrent = pntsarr(i, platePnts-1) - pntsarr(i,0);
 		chordCurrent = cvCurrent.mag();
 		cvCurrent.normalize();
 		// Get current section quarter chord point
-		qcCurrent = (refl_pnts_xsecs(i,0) + cvCurrent*0.75*chordCurrent).transform(refl_mat);
+		qcCurrent = (pntsarr(i,0) + cvCurrent*0.75*chordCurrent).transform(refl_mat);
 
 		// Get next section chord vector
-		cvNext = refl_pnts_xsecs(i+1, platePnts-1) - refl_pnts_xsecs(i+1,0);
+		cvNext = pntsarr(i+1, platePnts-1) - pntsarr(i+1,0);
 		chordNext = cvNext.mag();
 		cvNext.normalize();
 		// Get next section quarter chord point
-		qcNext = (refl_pnts_xsecs(i+1,0) + cvNext*0.75*chordNext).transform(refl_mat);
+		qcNext = (pntsarr(i+1,0) + cvNext*0.75*chordNext).transform(refl_mat);
 
 		// Get vector from current to next quarter chord
 		vec3d qcVec = qcNext - qcCurrent;
@@ -1275,7 +1287,7 @@ void Xsec_surf::createSurfDegenStick_refl(DegenGeom* degenGeom, int sym_code_in,
 
 }
 
-void Xsec_surf::createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, float mat[4][4])
+void Xsec_surf::createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
 {
 	DegenStick	degenStick = degenGeom->getDegenStick();
 
@@ -1291,12 +1303,12 @@ void Xsec_surf::createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 		int    maxThickIdx[2] = {0,0};
 
 		// normalized, unrotated chord vector (te->le)
-		chordVec = pnts_xsecs(i, platePnts-1) - pnts_xsecs(i,0);
+		chordVec = pntsarr(i, platePnts-1) - pntsarr(i,0);
 		chordVec.normalize();
 
-		degenStick.xle.push_back( pnts_xsecs( i, platePnts-1 ).transform(mat) );
-		degenStick.xte.push_back( pnts_xsecs( i, 0 ).transform(mat) );
-		degenStick.chord.push_back( dist(pnts_xsecs(i, platePnts-1), pnts_xsecs(i, 0)) );
+		degenStick.xle.push_back( pntsarr( i, platePnts-1 ).transform(mat) );
+		degenStick.xte.push_back( pntsarr( i, 0 ).transform(mat) );
+		degenStick.chord.push_back( dist(pntsarr(i, platePnts-1), pntsarr(i, 0)) );
 		degenStick.u.push_back( uArray[i] );
 		degenStick.Ishell.push_back(calculate_shell_inertias_in_plane(i,YZ_PLANE, mat));
 		degenStick.Isolid.push_back(calculate_solid_inertias_in_plane(i,YZ_PLANE, mat));
@@ -1311,8 +1323,8 @@ void Xsec_surf::createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 		for ( int j = 1, k = num_pnts-2; j < platePnts-1; j++, k-- )
 		{
 
-			topPnt = pnts_xsecs(i,j);
-			botPnt = pnts_xsecs(i,k);
+			topPnt = pntsarr(i,j);
+			botPnt = pntsarr(i,k);
 
 			camberPnt = ( topPnt + botPnt ) / 2;
 
@@ -1322,18 +1334,18 @@ void Xsec_surf::createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 				maxThickIdx[0] = j;
 				maxThickIdx[1] = k;
 			}
-			perimTop += dist( pnts_xsecs(i,j), pnts_xsecs(i,j-1) );
-			perimBot += dist( pnts_xsecs(i,k), pnts_xsecs(i,k+1) );
+			perimTop += dist( pntsarr(i,j), pntsarr(i,j-1) );
+			perimBot += dist( pntsarr(i,k), pntsarr(i,k+1) );
 
 			prevCamberPnt = camberPnt;
 		}
 
-		camberPnt = ( pnts_xsecs(i,maxThickIdx[0]) + pnts_xsecs(i,maxThickIdx[1]) ) / 2;
-		degenStick.tLoc.push_back( 1 - (dot(camberPnt-pnts_xsecs(i,0),chordVec) / degenStick.chord.back()) );
+		camberPnt = ( pntsarr(i,maxThickIdx[0]) + pntsarr(i,maxThickIdx[1]) ) / 2;
+		degenStick.tLoc.push_back( 1 - (dot(camberPnt-pntsarr(i,0),chordVec) / degenStick.chord.back()) );
 		degenStick.toc.push_back( tempThickness / degenStick.chord.back() );
 
-		perimTop += dist( pnts_xsecs(i, platePnts-1), pnts_xsecs(i, platePnts-2) );
-		perimBot += dist( pnts_xsecs(i, platePnts), pnts_xsecs(i, platePnts-1) );
+		perimTop += dist( pntsarr(i, platePnts-1), pntsarr(i, platePnts-2) );
+		perimBot += dist( pntsarr(i, platePnts), pntsarr(i, platePnts-1) );
 		degenStick.perimTop.push_back( perimTop );
 		degenStick.perimBot.push_back( perimBot );
 	}
@@ -1353,12 +1365,12 @@ void Xsec_surf::createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 		int    maxThickIdx[2] = {0,0};
 
 		// normalized, unrotated chord vector (te->le)
-		chordVec = pnts_xsecs(i, startPnt+platePnts-1) - pnts_xsecs(i, startPnt);
+		chordVec = pntsarr(i, startPnt+platePnts-1) - pntsarr(i, startPnt);
 		chordVec.normalize();
 
-		degenStick.xle.push_back( pnts_xsecs( i, startPnt+platePnts-1 ).transform(mat) );
-		degenStick.xte.push_back( pnts_xsecs( i, startPnt ).transform(mat) );
-		degenStick.chord.push_back( dist(pnts_xsecs(i, startPnt+platePnts-1), pnts_xsecs(i, startPnt)) );
+		degenStick.xle.push_back( pntsarr( i, startPnt+platePnts-1 ).transform(mat) );
+		degenStick.xte.push_back( pntsarr( i, startPnt ).transform(mat) );
+		degenStick.chord.push_back( dist(pntsarr(i, startPnt+platePnts-1), pntsarr(i, startPnt)) );
 		degenStick.u.push_back( uArray[i] );
 		degenStick.Ishell.push_back(calculate_shell_inertias_in_plane(i,YZ_PLANE, mat));
 		degenStick.Isolid.push_back(calculate_solid_inertias_in_plane(i,YZ_PLANE, mat));
@@ -1372,8 +1384,8 @@ void Xsec_surf::createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 
 		for ( int j = 1, k = startPnt+num_pnts-2; j < platePnts-1; j++, k-- )
 		{
-			topPnt = pnts_xsecs(i,startPnt+j);
-			botPnt = pnts_xsecs(i, k % (num_pnts-1) );
+			topPnt = pntsarr(i,startPnt+j);
+			botPnt = pntsarr(i, k % (num_pnts-1) );
 
 			camberPnt = ( topPnt + botPnt ) / 2;
 
@@ -1383,18 +1395,18 @@ void Xsec_surf::createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 				maxThickIdx[0] = j+startPnt;
 				maxThickIdx[1] = k % (num_pnts-1);
 			}
-			perimTop += dist( pnts_xsecs(i,startPnt+j), pnts_xsecs(i,startPnt+j-1) );
-			perimBot += dist( pnts_xsecs(i, k % (num_pnts-1) ), pnts_xsecs(i, k % (num_pnts-1)+1) );
+			perimTop += dist( pntsarr(i,startPnt+j), pntsarr(i,startPnt+j-1) );
+			perimBot += dist( pntsarr(i, k % (num_pnts-1) ), pntsarr(i, k % (num_pnts-1)+1) );
 
 			prevCamberPnt = camberPnt;
 		}
 
-		camberPnt = ( pnts_xsecs(i,maxThickIdx[0]) + pnts_xsecs(i,maxThickIdx[1]) ) / 2;
-		degenStick.tLoc.push_back( 1 - (dot(camberPnt-pnts_xsecs(i,startPnt),chordVec) / degenStick.chord.back()) );
+		camberPnt = ( pntsarr(i,maxThickIdx[0]) + pntsarr(i,maxThickIdx[1]) ) / 2;
+		degenStick.tLoc.push_back( 1 - (dot(camberPnt-pntsarr(i,startPnt),chordVec) / degenStick.chord.back()) );
 		degenStick.toc.push_back( tempThickness / degenStick.chord.back() );
 
-		perimTop += dist( pnts_xsecs(i, startPnt+platePnts-1), pnts_xsecs(i, startPnt+platePnts-2) );
-		perimBot += dist( pnts_xsecs(i, startPnt+platePnts), pnts_xsecs(i, startPnt+platePnts-1) );
+		perimTop += dist( pntsarr(i, startPnt+platePnts-1), pntsarr(i, startPnt+platePnts-2) );
+		perimBot += dist( pntsarr(i, startPnt+platePnts), pntsarr(i, startPnt+platePnts-1) );
 		degenStick.perimTop.push_back( perimTop );
 		degenStick.perimBot.push_back( perimBot );
 	}
@@ -1409,7 +1421,7 @@ void Xsec_surf::createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 
 }
 
-void Xsec_surf::createBodyDegenStick_refl(DegenGeom* degenGeom, int sym_code_in, float refl_mat[4][4])
+void Xsec_surf::createBodyDegenStick_refl(DegenGeom* degenGeom, int sym_code_in, float refl_mat[4][4], const array_2d<vec3d> &pntsarr)
 {
 	DegenStick	degenStick = degenGeom->getDegenStick();
 
@@ -1425,12 +1437,12 @@ void Xsec_surf::createBodyDegenStick_refl(DegenGeom* degenGeom, int sym_code_in,
 		int    maxThickIdx[2] = {0,0};
 
 		// normalized, unrotated chord vector (te->le)
-		chordVec = refl_pnts_xsecs(i, platePnts-1) - refl_pnts_xsecs(i,0);
+		chordVec = pntsarr(i, platePnts-1) - pntsarr(i,0);
 		chordVec.normalize();
 
-		degenStick.xle.push_back( refl_pnts_xsecs( i, platePnts-1 ).transform(refl_mat) );
-		degenStick.xte.push_back( refl_pnts_xsecs( i, 0 ).transform(refl_mat) );
-		degenStick.chord.push_back( dist(refl_pnts_xsecs(i, platePnts-1), refl_pnts_xsecs(i, 0)) );
+		degenStick.xle.push_back( pntsarr( i, platePnts-1 ).transform(refl_mat) );
+		degenStick.xte.push_back( pntsarr( i, 0 ).transform(refl_mat) );
+		degenStick.chord.push_back( dist(pntsarr(i, platePnts-1), pntsarr(i, 0)) );
 		degenStick.u.push_back( uArray[i] );
 		degenStick.Ishell.push_back(calculate_refl_shell_inertias_in_plane(i,YZ_PLANE, refl_mat));
 		degenStick.Isolid.push_back(calculate_refl_solid_inertias_in_plane(i,YZ_PLANE, refl_mat));
@@ -1444,8 +1456,8 @@ void Xsec_surf::createBodyDegenStick_refl(DegenGeom* degenGeom, int sym_code_in,
 
 		for ( int j = 1, k = num_pnts-2; j < platePnts-1; j++, k-- )
 		{
-			topPnt = refl_pnts_xsecs(i,j);
-			botPnt = refl_pnts_xsecs(i,k);
+			topPnt = pntsarr(i,j);
+			botPnt = pntsarr(i,k);
 
 			camberPnt = ( topPnt + botPnt ) / 2;
 
@@ -1455,18 +1467,18 @@ void Xsec_surf::createBodyDegenStick_refl(DegenGeom* degenGeom, int sym_code_in,
 				maxThickIdx[0] = j;
 				maxThickIdx[1] = k;
 			}
-			perimTop += dist( refl_pnts_xsecs(i,j), refl_pnts_xsecs(i,j-1) );
-			perimBot += dist( refl_pnts_xsecs(i,k), refl_pnts_xsecs(i,k+1) );
+			perimTop += dist( pntsarr(i,j), pntsarr(i,j-1) );
+			perimBot += dist( pntsarr(i,k), pntsarr(i,k+1) );
 
 			prevCamberPnt = camberPnt;
 		}
 
-		camberPnt = ( refl_pnts_xsecs(i,maxThickIdx[0]) + refl_pnts_xsecs(i,maxThickIdx[1]) ) / 2;
-		degenStick.tLoc.push_back( 1 - (dot(camberPnt-refl_pnts_xsecs(i,0),chordVec) / degenStick.chord.back()) );
+		camberPnt = ( pntsarr(i,maxThickIdx[0]) + pntsarr(i,maxThickIdx[1]) ) / 2;
+		degenStick.tLoc.push_back( 1 - (dot(camberPnt-pntsarr(i,0),chordVec) / degenStick.chord.back()) );
 		degenStick.toc.push_back( tempThickness / degenStick.chord.back() );
 
-		perimTop += dist( refl_pnts_xsecs(i, platePnts-1), refl_pnts_xsecs(i, platePnts-2) );
-		perimBot += dist( refl_pnts_xsecs(i, platePnts), refl_pnts_xsecs(i, platePnts-1) );
+		perimTop += dist( pntsarr(i, platePnts-1), pntsarr(i, platePnts-2) );
+		perimBot += dist( pntsarr(i, platePnts), pntsarr(i, platePnts-1) );
 		degenStick.perimTop.push_back( perimTop );
 		degenStick.perimBot.push_back( perimBot );
 	}
@@ -1486,12 +1498,12 @@ void Xsec_surf::createBodyDegenStick_refl(DegenGeom* degenGeom, int sym_code_in,
 		int    maxThickIdx[2] = {0,0};
 
 		// normalized, unrotated chord vector (te->le)
-		chordVec = refl_pnts_xsecs(i, startPnt+platePnts-1) - refl_pnts_xsecs(i, startPnt);
+		chordVec = pntsarr(i, startPnt+platePnts-1) - pntsarr(i, startPnt);
 		chordVec.normalize();
 
-		degenStick.xle.push_back( refl_pnts_xsecs( i, startPnt+platePnts-1 ).transform(refl_mat) );
-		degenStick.xte.push_back( refl_pnts_xsecs( i, startPnt ).transform(refl_mat) );
-		degenStick.chord.push_back( dist(refl_pnts_xsecs(i, startPnt+platePnts-1), refl_pnts_xsecs(i, startPnt)) );
+		degenStick.xle.push_back( pntsarr( i, startPnt+platePnts-1 ).transform(refl_mat) );
+		degenStick.xte.push_back( pntsarr( i, startPnt ).transform(refl_mat) );
+		degenStick.chord.push_back( dist(pntsarr(i, startPnt+platePnts-1), pntsarr(i, startPnt)) );
 		degenStick.u.push_back( uArray[i] );
 		degenStick.Ishell.push_back(calculate_refl_shell_inertias_in_plane(i,YZ_PLANE, refl_mat));
 		degenStick.Isolid.push_back(calculate_refl_solid_inertias_in_plane(i,YZ_PLANE, refl_mat));
@@ -1505,8 +1517,8 @@ void Xsec_surf::createBodyDegenStick_refl(DegenGeom* degenGeom, int sym_code_in,
 
 		for ( int j = 1, k = startPnt+num_pnts-2; j < platePnts-1; j++, k-- )
 		{
-			topPnt = refl_pnts_xsecs(i,startPnt+j);
-			botPnt = refl_pnts_xsecs(i, k % (num_pnts-1) );
+			topPnt = pntsarr(i,startPnt+j);
+			botPnt = pntsarr(i, k % (num_pnts-1) );
 
 			camberPnt = ( topPnt + botPnt ) / 2;
 
@@ -1516,18 +1528,18 @@ void Xsec_surf::createBodyDegenStick_refl(DegenGeom* degenGeom, int sym_code_in,
 				maxThickIdx[0] = j;
 				maxThickIdx[1] = k % (num_pnts-1);
 			}
-			perimTop += dist( refl_pnts_xsecs(i,startPnt+j), refl_pnts_xsecs(i,startPnt+j-1) );
-			perimBot += dist( refl_pnts_xsecs(i, k % (num_pnts-1) ), refl_pnts_xsecs(i, k % (num_pnts-1)+1) );
+			perimTop += dist( pntsarr(i,startPnt+j), pntsarr(i,startPnt+j-1) );
+			perimBot += dist( pntsarr(i, k % (num_pnts-1) ), pntsarr(i, k % (num_pnts-1)+1) );
 
 			prevCamberPnt = camberPnt;
 		}
 
-		camberPnt = ( refl_pnts_xsecs(i,maxThickIdx[0]) + refl_pnts_xsecs(i,maxThickIdx[1]) ) / 2;
-		degenStick.tLoc.push_back( 1 - (dot(camberPnt-refl_pnts_xsecs(i,startPnt),chordVec) / degenStick.chord.back()) );
+		camberPnt = ( pntsarr(i,maxThickIdx[0]) + pntsarr(i,maxThickIdx[1]) ) / 2;
+		degenStick.tLoc.push_back( 1 - (dot(camberPnt-pntsarr(i,startPnt),chordVec) / degenStick.chord.back()) );
 		degenStick.toc.push_back( tempThickness / degenStick.chord.back() );
 
-		perimTop += dist( refl_pnts_xsecs(i, startPnt+platePnts-1), refl_pnts_xsecs(i, startPnt+platePnts-2) );
-		perimBot += dist( refl_pnts_xsecs(i, startPnt+platePnts), refl_pnts_xsecs(i, startPnt+platePnts-1) );
+		perimTop += dist( pntsarr(i, startPnt+platePnts-1), pntsarr(i, startPnt+platePnts-2) );
+		perimBot += dist( pntsarr(i, startPnt+platePnts), pntsarr(i, startPnt+platePnts-1) );
 		degenStick.perimTop.push_back( perimTop );
 		degenStick.perimBot.push_back( perimBot );
 	}
