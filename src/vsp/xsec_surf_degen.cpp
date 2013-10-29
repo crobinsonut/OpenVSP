@@ -20,17 +20,17 @@ vec3d Xsec_surf::get_area_normal( int ixs, const array_2d<vec3d> &pntsarr)
 
 //==== Get Cross Section Area ====//
 // JBB: This only works for PLANAR cross sections.
-double Xsec_surf::get_xsec_area( int ixs )
+double Xsec_surf::get_xsec_area( int ixs, const array_2d<vec3d> &pntsarr )
 {
 	double area = 0;
 	int j;
-	vec3d xAxis(1,0,0), yAxis(0,1,0), zAxis(0,0,1), areaNormal = get_area_normal(ixs, pnts_xsecs);
+	vec3d xAxis(1,0,0), yAxis(0,1,0), zAxis(0,0,1), areaNormal = get_area_normal(ixs, pntsarr);
 	vector<vec3d> pnts;
 
 	// Load cross section points
 	for( int i = 0; i < num_pnts; i++ )
 	{
-		pnts.push_back( pnts_xsecs(ixs,i) );
+		pnts.push_back( pntsarr(ixs,i) );
 	}
 
 	// Get rotation in xy plane to align areaNormal with yaxis
@@ -130,7 +130,7 @@ double Xsec_surf::get_refl_xsec_plane_area( int ixs, int plane, float refl_mat[4
 //==== Get cross section centroid location. Only works for PLANAR cross sections! ====//
 vec3d Xsec_surf::get_xsec_centroid( int ixs )
 {
-	double xcg = 0, zcg = 0, area = get_xsec_area(ixs);
+	double xcg = 0, zcg = 0, area = get_xsec_area(ixs, pnts_xsecs);
 	int j;
 	vec3d xAxis(1,0,0), zAxis(0,0,1), areaNormal = get_area_normal(ixs, pnts_xsecs);
 
@@ -186,7 +186,7 @@ vec3d Xsec_surf::get_xsec_centroid( int ixs )
 //==== Get cross section centroid location. Only works for PLANAR cross sections! ====//
 vec3d Xsec_surf::get_refl_xsec_centroid( int ixs )
 {
-	double xcg = 0, zcg = 0, area = get_xsec_area(ixs);
+	double xcg = 0, zcg = 0, area = get_xsec_area(ixs, refl_pnts_xsecs);
 	int j;
 	vec3d xAxis(1,0,0), zAxis(0,0,1), areaNormal = get_area_normal(ixs, refl_pnts_xsecs);
 
@@ -901,7 +901,7 @@ void Xsec_surf::createSurfDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 		degenStick.Isolid.push_back(calculate_solid_inertias_in_plane(i,XZ_PLANE, mat));
 		degenStick.xcgSolid.push_back( get_xsec_centroid(i).transform(mat) );
 		degenStick.xcgShell.push_back( get_xsec_shellCG(i).transform(mat)  );
-		degenStick.area.push_back( get_xsec_area(i) );
+		degenStick.area.push_back( get_xsec_area(i, pnts_xsecs) );
 
 		vec3d areaNormal = get_area_normal(i, pnts_xsecs).transform(mat) - vec3d(0,0,0).transform(mat);
 		areaNormal.normalize();
@@ -1011,7 +1011,7 @@ void Xsec_surf::createSurfDegenStick_refl(DegenGeom* degenGeom, int sym_code_in,
 		degenStick.Isolid.push_back(calculate_refl_solid_inertias_in_plane(i,XZ_PLANE, mat));
 		degenStick.xcgSolid.push_back( get_refl_xsec_centroid(i).transform(mat) );
 		degenStick.xcgShell.push_back( get_refl_xsec_shellCG(i).transform(mat)  );
-		degenStick.area.push_back( get_xsec_area(i) );
+		degenStick.area.push_back( get_xsec_area(i, refl_pnts_xsecs) );
 
 		vec3d areaNormal = get_area_normal(i, refl_pnts_xsecs).transform(mat) - vec3d(0,0,0).transform(mat);
 		areaNormal.normalize();
@@ -1115,7 +1115,7 @@ void Xsec_surf::createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 		degenStick.Isolid.push_back(calculate_solid_inertias_in_plane(i,YZ_PLANE, mat));
 		degenStick.xcgSolid.push_back( get_xsec_centroid(i).transform(mat) );
 		degenStick.xcgShell.push_back( get_xsec_shellCG(i).transform(mat)  );
-		degenStick.area.push_back( get_xsec_area(i) );
+		degenStick.area.push_back( get_xsec_area(i, pnts_xsecs) );
 
 		vec3d areaNormal = get_area_normal(i, pnts_xsecs).transform(mat) - vec3d(0,0,0).transform(mat);
 		areaNormal.normalize();
@@ -1177,7 +1177,7 @@ void Xsec_surf::createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 		degenStick.Isolid.push_back(calculate_solid_inertias_in_plane(i,YZ_PLANE, mat));
 		degenStick.xcgSolid.push_back( get_xsec_centroid(i).transform(mat) );
 		degenStick.xcgShell.push_back( get_xsec_shellCG(i).transform(mat)  );
-		degenStick.area.push_back( get_xsec_area(i) );
+		degenStick.area.push_back( get_xsec_area(i, pnts_xsecs) );
 
 		vec3d areaNormal = get_area_normal(i, pnts_xsecs).transform(mat) - vec3d(0,0,0).transform(mat);
 		areaNormal.normalize();
@@ -1248,7 +1248,7 @@ void Xsec_surf::createBodyDegenStick_refl(DegenGeom* degenGeom, int sym_code_in,
 		degenStick.Isolid.push_back(calculate_refl_solid_inertias_in_plane(i,YZ_PLANE, mat));
 		degenStick.xcgSolid.push_back( get_refl_xsec_centroid(i).transform(mat) );
 		degenStick.xcgShell.push_back( get_refl_xsec_shellCG(i).transform(mat)  );
-		degenStick.area.push_back( get_xsec_area(i) );
+		degenStick.area.push_back( get_xsec_area(i, refl_pnts_xsecs) );
 
 		vec3d areaNormal = get_area_normal(i, refl_pnts_xsecs).transform(mat) - vec3d(0,0,0).transform(mat);
 		areaNormal.normalize();
@@ -1309,7 +1309,7 @@ void Xsec_surf::createBodyDegenStick_refl(DegenGeom* degenGeom, int sym_code_in,
 		degenStick.Isolid.push_back(calculate_refl_solid_inertias_in_plane(i,YZ_PLANE, mat));
 		degenStick.xcgSolid.push_back( get_refl_xsec_centroid(i).transform(mat) );
 		degenStick.xcgShell.push_back( get_refl_xsec_shellCG(i).transform(mat)  );
-		degenStick.area.push_back( get_xsec_area(i) );
+		degenStick.area.push_back( get_xsec_area(i, refl_pnts_xsecs) );
 
 		vec3d areaNormal = get_area_normal(i, refl_pnts_xsecs).transform(mat) - vec3d(0,0,0).transform(mat);
 		areaNormal.normalize();
@@ -1355,7 +1355,7 @@ void Xsec_surf::createBodyDegenStick_refl(DegenGeom* degenGeom, int sym_code_in,
 
 vec3d Xsec_surf::get_xsec_shellCG( int ixs )
 {
-	double xcg = 0, zcg = 0, area = get_xsec_area(ixs);
+	double xcg = 0, zcg = 0, area = get_xsec_area(ixs, pnts_xsecs);
 	int j;
 	vec3d xAxis(1,0,0), zAxis(0,0,1), areaNormal = get_area_normal(ixs, pnts_xsecs);
 
@@ -1424,7 +1424,7 @@ vec3d Xsec_surf::get_xsec_shellCG( int ixs )
 
 vec3d Xsec_surf::get_refl_xsec_shellCG( int ixs )
 {
-	double xcg = 0, zcg = 0, area = get_xsec_area(ixs);
+	double xcg = 0, zcg = 0, area = get_xsec_area(ixs, refl_pnts_xsecs);
 	int j;
 	vec3d xAxis(1,0,0), zAxis(0,0,1), areaNormal = get_area_normal(ixs, refl_pnts_xsecs);
 
@@ -1748,7 +1748,7 @@ vector<double> Xsec_surf::calculate_solid_inertias( int ixs )
 {
 	vector<double> inertias(2,0), inertiasCG(3,0);
 	int j;
-	double area = get_xsec_area(ixs);
+	double area = get_xsec_area(ixs, pnts_xsecs);
 	vec3d xAxis(1,0,0), zAxis(0,0,1);
 	vec3d areaNormal = get_area_normal(ixs, pnts_xsecs);
 	vec3d centroid   = get_xsec_centroid(ixs);
