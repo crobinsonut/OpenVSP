@@ -921,7 +921,7 @@ void Xsec_surf::createBodyDegenStick_refl(DegenGeom* degenGeom, int sym_code_in,
 			if( dist(topPnt, botPnt) > tempThickness)
 			{
 				tempThickness  = dist(topPnt, botPnt);
-				maxThickIdx[0] = j;
+				maxThickIdx[0] = j+startPnt;
 				maxThickIdx[1] = k % (num_pnts-1);
 			}
 			perimTop += dist( pntsarr(i,startPnt+j), pntsarr(i,startPnt+j-1) );
