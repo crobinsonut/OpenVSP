@@ -218,7 +218,6 @@ public:
    void createSurfDegenPlate(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
    void createBodyDegenPlate(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
    void createSurfDegenStick(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
-   void createSurfDegenStick_refl(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
    void createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
    void createBodyDegenStick_refl(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
 
