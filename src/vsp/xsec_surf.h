@@ -223,8 +223,7 @@ public:
    void createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
    void createBodyDegenStick_refl(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
 
-   vec3d get_xsec_shellCG( int ixs );
-   vec3d get_refl_xsec_shellCG( int ixs );
+   vec3d get_xsec_shellCG( int ixs, const array_2d<vec3d> &pntsarr );
 
    vector<double> calculate_shell_inertias(int ixs);
    vector<double> calculate_refl_shell_inertias(int ixs);
