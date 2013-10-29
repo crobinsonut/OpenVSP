@@ -209,8 +209,7 @@ public:
    double get_xsec_area( int ixs, const array_2d<vec3d> &pntsarr );
    double get_xsec_plane_area( int ixs, int plane, float mat[4][4], const array_2d<vec3d> &pntsarr );
    vec3d  get_xsec_centroid( int ixs, const array_2d<vec3d> &pntsarr );
-   vec2d  get_xsec_centroid_in_plane(int ixs, int plane, float mat[4][4]);
-   vec2d  get_refl_xsec_centroid_in_plane(int ixs, int plane, float refl_mat[4][4]);
+   vec2d  get_xsec_centroid_in_plane(int ixs, int plane, float mat[4][4], const array_2d<vec3d> &pntsarr);
 
    DegenGeom* createSurfDegenGeom(Geom* parentGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4]);
    DegenGeom* createBodyDegenGeom(Geom* parentGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4]);

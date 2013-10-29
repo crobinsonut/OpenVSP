@@ -149,9 +149,9 @@ vec3d Xsec_surf::get_xsec_centroid( int ixs, const array_2d<vec3d> &pntsarr )
 	return cgLoc;
 }
 
-vec2d Xsec_surf::get_xsec_centroid_in_plane(int ixs, int plane, float mat[4][4])
+vec2d Xsec_surf::get_xsec_centroid_in_plane(int ixs, int plane, float mat[4][4], const array_2d<vec3d> &pntsarr)
 {
-	double xcg = 0, ycg = 0, area = get_xsec_plane_area(ixs, plane, mat, pnts_xsecs);
+	double xcg = 0, ycg = 0, area = get_xsec_plane_area(ixs, plane, mat, pntsarr);
 	int j;
 	vector<vec2d> pnts;
 	vec2d tmpPnts;
@@ -161,71 +161,21 @@ vec2d Xsec_surf::get_xsec_centroid_in_plane(int ixs, int plane, float mat[4][4])
 	case XY_PLANE:
 		for ( int i = 0; i < num_pnts; i++ )
 		{
-			tmpPnts.set_xy( pnts_xsecs(ixs,i).transform(mat).x(), pnts_xsecs(ixs,i).transform(mat).y() );
+			tmpPnts.set_xy( pntsarr(ixs,i).transform(mat).x(), pntsarr(ixs,i).transform(mat).y() );
 			pnts.push_back(tmpPnts);
 		}
 		break;
 	case XZ_PLANE:
 		for ( int i = 0; i < num_pnts; i++ )
 		{
-			tmpPnts.set_xy( pnts_xsecs(ixs,i).transform(mat).x(), pnts_xsecs(ixs,i).transform(mat).z() );
+			tmpPnts.set_xy( pntsarr(ixs,i).transform(mat).x(), pntsarr(ixs,i).transform(mat).z() );
 			pnts.push_back(tmpPnts);
 		}
 		break;
 	case YZ_PLANE:
 		for ( int i = 0; i < num_pnts; i++ )
 		{
-			tmpPnts.set_xy( pnts_xsecs(ixs,i).transform(mat).y(), pnts_xsecs(ixs,i).transform(mat).z() );
-			pnts.push_back(tmpPnts);
-		}
-		break;
-	}
-
-	for ( j = 1; j < num_pnts; j++ )
-	{
-		xcg += (pnts[j-1].x()*pnts[j].y() - pnts[j].x()*pnts[j-1].y()) \
-				* ( pnts[j-1].x() + pnts[j].x() );
-		ycg += (pnts[j-1].x()*pnts[j].y() - pnts[j].x()*pnts[j-1].y()) \
-				* ( pnts[j-1].y() + pnts[j].y() );
-	}
-	xcg += (pnts[j-1].x()*pnts[0].y() - pnts[0].x()*pnts[j-1].y()) \
-			* ( pnts[j-1].x() + pnts[0].x() );
-	ycg += (pnts[j-1].x()*pnts[0].y() - pnts[0].x()*pnts[j-1].y()) \
-			* ( pnts[j-1].y() + pnts[0].y() );
-	xcg /= (6*area);
-	ycg /= (6*area);
-
-	vec2d cgLoc( xcg, ycg );
-	return cgLoc;
-}
-
-vec2d Xsec_surf::get_refl_xsec_centroid_in_plane(int ixs, int plane, float refl_mat[4][4])
-{
-	double xcg = 0, ycg = 0, area = get_xsec_plane_area(ixs, plane, refl_mat, refl_pnts_xsecs);
-	int j;
-	vector<vec2d> pnts;
-	vec2d tmpPnts;
-
-	switch(plane)
-	{
-	case XY_PLANE:
-		for ( int i = 0; i < num_pnts; i++ )
-		{
-			tmpPnts.set_xy( refl_pnts_xsecs(ixs,i).transform(refl_mat).x(), refl_pnts_xsecs(ixs,i).transform(refl_mat).y() );
-			pnts.push_back(tmpPnts);
-		}
-		break;
-	case XZ_PLANE:
-		for ( int i = 0; i < num_pnts; i++ )
-		{
-			tmpPnts.set_xy( refl_pnts_xsecs(ixs,i).transform(refl_mat).x(), refl_pnts_xsecs(ixs,i).transform(refl_mat).z() );
-			pnts.push_back(tmpPnts);
-		}
-		break;
-	case YZ_PLANE:
-		for ( int i = 0; i < num_pnts; i++ )
-		{
-			tmpPnts.set_xy( refl_pnts_xsecs(ixs,i).transform(refl_mat).y(), refl_pnts_xsecs(ixs,i).transform(refl_mat).z() );
+			tmpPnts.set_xy( pntsarr(ixs,i).transform(mat).y(), pntsarr(ixs,i).transform(mat).z() );
 			pnts.push_back(tmpPnts);
 		}
 		break;
@@ -1523,7 +1473,7 @@ vector<double> Xsec_surf::calculate_shell_inertias_in_plane(int ixs, int plane, 
 	}
 
 	vec2d segVec, chordVec = pnts[0] - pnts[platePnts-1];
-	vec2d distToCG, cg, CG = get_xsec_centroid_in_plane(ixs, plane, mat);
+	vec2d distToCG, cg, CG = get_xsec_centroid_in_plane(ixs, plane, mat, pnts_xsecs);
 	chordVec.normalize();
 	double segLen, phi;
 
@@ -1605,7 +1555,7 @@ vector<double> Xsec_surf::calculate_refl_shell_inertias_in_plane(int ixs, int pl
 	}
 
 	vec2d segVec, chordVec = pnts[0] - pnts[platePnts-1];
-	vec2d distToCG, cg, CG = get_refl_xsec_centroid_in_plane(ixs, plane, refl_mat);
+	vec2d distToCG, cg, CG = get_xsec_centroid_in_plane(ixs, plane, refl_mat, refl_pnts_xsecs);
 	chordVec.normalize();
 	double segLen, phi;
 
@@ -1719,7 +1669,7 @@ vector<double> Xsec_surf::calculate_solid_inertias_in_plane(int ixs, int plane, 
 	vector<double> inertias(2,0), inertiasCG(3,0);
 	int j;
 	double area = get_xsec_plane_area(ixs, plane, mat, pnts_xsecs);
-	vec2d tmpPnts, cg = get_xsec_centroid_in_plane(ixs, plane, mat);
+	vec2d tmpPnts, cg = get_xsec_centroid_in_plane(ixs, plane, mat, pnts_xsecs);
 	vector<vec2d> pnts;
 
 	switch(plane)
@@ -1773,7 +1723,7 @@ vector<double> Xsec_surf::calculate_refl_solid_inertias_in_plane(int ixs, int pl
 	vector<double> inertias(2,0), inertiasCG(3,0);
 	int j;
 	double area = get_xsec_plane_area(ixs, plane, refl_mat, refl_pnts_xsecs);
-	vec2d tmpPnts, cg = get_refl_xsec_centroid_in_plane(ixs, plane, refl_mat);
+	vec2d tmpPnts, cg = get_xsec_centroid_in_plane(ixs, plane, refl_mat, refl_pnts_xsecs);
 	vector<vec2d> pnts;
 
 	switch(plane)
