@@ -360,7 +360,7 @@ DegenGeom* Xsec_surf::createSurfDegenGeom(Geom* parentGeom, int sym_code_in, flo
 
 	createSurfDegenPlate(degenGeom, sym_code_in, mat, pnts_xsecs);
 	if(sym_code_in != NO_SYM)
-		createSurfDegenPlate_refl(degenGeom, sym_code_in, refl_mat, refl_pnts_xsecs);
+		createSurfDegenPlate(degenGeom, sym_code_in, refl_mat, refl_pnts_xsecs);
 
 	createSurfDegenStick(degenGeom, sym_code_in, mat, pnts_xsecs);
 	if ( sym_code_in != NO_SYM )
@@ -479,102 +479,6 @@ void Xsec_surf::createSurfDegenPlate(DegenGeom* degenGeom, int sym_code_in, floa
 		nHigh = num_xsecs - 1;
 	}
 
-	vector< vector<vec3d>  >	xMat;
-	vector< vector<vec3d>  >	nCamberMat;
-	vector< vector<double> >	tMat;
-	vector< vector<double> >	zMat;
-
-	vector<vec3d>	xVec(  platePnts );
-	vector<vec3d>	nCVec( platePnts );
-	vector<vec3d>	nPVec( platePnts );
-	vector<double>	tVec(  platePnts );
-	vector<double>	zVec(  platePnts );
-
-	vec3d  topPnt, botPnt, chordVec, camberPnt, chordPnt, nPlate;
-
-	for ( int i = nLow; i < nHigh; i++ )
-	{
-		// Set first point (trailing edge)
-		xVec[0]  = pntsarr(i,0).transform(mat);
-		nCVec[0] = vec3d(0,0,0); // on camber line
-		tVec[0]  = 0;
-		zVec[0]  = 0;
-
-		// Set last point (leading edge)
-		xVec[platePnts-1]  = pntsarr( i, platePnts-1 ).transform(mat);
-		nCVec[platePnts-1] = vec3d(0,0,0); // on camber line
-		tVec[platePnts-1]  = 0;
-		zVec[platePnts-1]  = 0;
-
-		//== Compute plate normal ==//
-		// rotated chord vector
-		vec3d rcv = pntsarr(i, platePnts-1).transform(mat) - pntsarr(i,0).transform(mat);
-		// rotated area normal vector
-		vec3d anv = get_area_normal(i, pnts_xsecs).transform(mat) - vec3d(0,0,0).transform(mat);
-		// plate normal vector
-		nPlate = cross(rcv,anv);
-		nPlate.normalize();
-		degenPlate.nPlate.push_back( nPlate );
-
-		// normalized, unrotated chord vector (te->le)
-		chordVec = pntsarr(i, platePnts-1) - pntsarr(i,0);
-		chordVec.normalize();
-
-		// Set points along af section
-		for ( int j = 1, k = num_pnts-2; j < platePnts-1; j++, k-- )
-		{
-			topPnt = pntsarr(i,j);
-			botPnt = pntsarr(i,k);
-
-			camberPnt = (topPnt + botPnt) / 2;
-			chordPnt  = pntsarr(i,0) + chordVec * dot(camberPnt-pntsarr(i,0),chordVec);
-
-			xVec[j]  = chordPnt.transform(mat);
-			nCVec[j] = topPnt.transform(mat)-botPnt.transform(mat);
-			nCVec[j].normalize();
-			tVec[j]  = dist(topPnt,botPnt);
-			zVec[j]  = dist(camberPnt,chordPnt);
-			if ( angle(camberPnt - chordPnt, nPlate) != 0) zVec[j] *= -1;
-		}
-
-		xMat.push_back(xVec);
-		nCamberMat.push_back(nCVec);
-		tMat.push_back(tVec);
-		zMat.push_back(zVec);
-
-		degenPlate.u.push_back( uArray[i] );
-	}
-
-	for ( int j = 0, k = num_pnts-1; j < platePnts-1; j++, k-- )
-	{
-		degenPlate.wTop.push_back( wArray[j] );
-		degenPlate.wBot.push_back( wArray[k] );
-	}
-	degenPlate.wTop.push_back( wArray[platePnts-1] );
-	degenPlate.wBot.push_back( wArray[platePnts-1] );
-
-	degenPlate.x    	= xMat;
-	degenPlate.nCamber 	= nCamberMat;
-	degenPlate.t		= tMat;
-	degenPlate.zcamber	= zMat;
-	degenGeom->setDegenPlate(degenPlate);
-}
-
-
-void Xsec_surf::createSurfDegenPlate_refl(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
-{
-	DegenPlate	degenPlate = degenGeom->getDegenPlate();
-
-	int nLow = 0, nHigh = num_xsecs;
-	int platePnts = (num_pnts + 1) / 2;
-
-	if ( degenGeom->getParentGeom()->getTypeStr() == "wing" || degenGeom->getParentGeom()->getTypeStr() == "prop" )
-	{
-		// Keep only airfoil sections, discard endcap close-out lines
-		nLow  = 1;
-		nHigh = num_xsecs - 1;
-	}
-
 	vector< vector<vec3d>  >	xMat = degenPlate.x;
 	vector< vector<vec3d>  >	nCamberMat = degenPlate.nCamber;
 	vector< vector<double> >	tMat = degenPlate.t;
@@ -604,10 +508,9 @@ void Xsec_surf::createSurfDegenPlate_refl(DegenGeom* degenGeom, int sym_code_in,
 
 		//== Compute plate normal ==//
 		// rotated chord vector
-		vec3d rcv = pntsarr(i, platePnts-1).transform(mat) \
-				  - pntsarr(i,0).transform(mat);
+		vec3d rcv = pntsarr(i, platePnts-1).transform(mat) - pntsarr(i,0).transform(mat);
 		// rotated area normal vector
-		vec3d anv = get_area_normal(i, refl_pnts_xsecs).transform(mat) - vec3d(0,0,0).transform(mat);
+		vec3d anv = get_area_normal(i, pntsarr).transform(mat) - vec3d(0,0,0).transform(mat);
 		// plate normal vector
 		nPlate = cross(rcv,anv);
 		nPlate.normalize();
