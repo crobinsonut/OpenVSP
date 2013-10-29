@@ -254,7 +254,7 @@ DegenGeom* Xsec_surf::createBodyDegenGeom(Geom* parentGeom, int sym_code_in, flo
 
 	createBodyDegenStick(degenGeom, sym_code_in, mat, pnts_xsecs);
 	if ( sym_code_in != NO_SYM )
-		createBodyDegenStick_refl(degenGeom, sym_code_in, refl_mat, refl_pnts_xsecs);
+		createBodyDegenStick(degenGeom, sym_code_in, refl_mat, refl_pnts_xsecs);
 
 	return degenGeom;
 }
@@ -707,13 +707,13 @@ void Xsec_surf::createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 		degenStick.xte.push_back( pntsarr( i, 0 ).transform(mat) );
 		degenStick.chord.push_back( dist(pntsarr(i, platePnts-1), pntsarr(i, 0)) );
 		degenStick.u.push_back( uArray[i] );
-		degenStick.Ishell.push_back(calculate_shell_inertias_in_plane(i,YZ_PLANE, mat, pnts_xsecs));
-		degenStick.Isolid.push_back(calculate_solid_inertias_in_plane(i,YZ_PLANE, mat, pnts_xsecs));
-		degenStick.xcgSolid.push_back( get_xsec_centroid(i, pnts_xsecs).transform(mat) );
-		degenStick.xcgShell.push_back( get_xsec_shellCG(i, pnts_xsecs).transform(mat)  );
-		degenStick.area.push_back( get_xsec_area(i, pnts_xsecs) );
+		degenStick.Ishell.push_back(calculate_shell_inertias_in_plane(i,YZ_PLANE, mat, pntsarr));
+		degenStick.Isolid.push_back(calculate_solid_inertias_in_plane(i,YZ_PLANE, mat, pntsarr));
+		degenStick.xcgSolid.push_back( get_xsec_centroid(i, pntsarr).transform(mat) );
+		degenStick.xcgShell.push_back( get_xsec_shellCG(i, pntsarr).transform(mat)  );
+		degenStick.area.push_back( get_xsec_area(i, pntsarr) );
 
-		vec3d areaNormal = get_area_normal(i, pnts_xsecs).transform(mat) - vec3d(0,0,0).transform(mat);
+		vec3d areaNormal = get_area_normal(i, pntsarr).transform(mat) - vec3d(0,0,0).transform(mat);
 		areaNormal.normalize();
 		degenStick.areaNormal.push_back( areaNormal );
 
@@ -769,13 +769,13 @@ void Xsec_surf::createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 		degenStick.xte.push_back( pntsarr( i, startPnt ).transform(mat) );
 		degenStick.chord.push_back( dist(pntsarr(i, startPnt+platePnts-1), pntsarr(i, startPnt)) );
 		degenStick.u.push_back( uArray[i] );
-		degenStick.Ishell.push_back(calculate_shell_inertias_in_plane(i,YZ_PLANE, mat, pnts_xsecs));
-		degenStick.Isolid.push_back(calculate_solid_inertias_in_plane(i,YZ_PLANE, mat, pnts_xsecs));
-		degenStick.xcgSolid.push_back( get_xsec_centroid(i, pnts_xsecs).transform(mat) );
-		degenStick.xcgShell.push_back( get_xsec_shellCG(i, pnts_xsecs).transform(mat)  );
-		degenStick.area.push_back( get_xsec_area(i, pnts_xsecs) );
+		degenStick.Ishell.push_back(calculate_shell_inertias_in_plane(i,YZ_PLANE, mat, pntsarr));
+		degenStick.Isolid.push_back(calculate_solid_inertias_in_plane(i,YZ_PLANE, mat, pntsarr));
+		degenStick.xcgSolid.push_back( get_xsec_centroid(i, pntsarr).transform(mat) );
+		degenStick.xcgShell.push_back( get_xsec_shellCG(i, pntsarr).transform(mat)  );
+		degenStick.area.push_back( get_xsec_area(i, pntsarr) );
 
-		vec3d areaNormal = get_area_normal(i, pnts_xsecs).transform(mat) - vec3d(0,0,0).transform(mat);
+		vec3d areaNormal = get_area_normal(i, pntsarr).transform(mat) - vec3d(0,0,0).transform(mat);
 		areaNormal.normalize();
 		degenStick.areaNormal.push_back( areaNormal );
 
@@ -815,138 +815,6 @@ void Xsec_surf::createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 	}
 
 	degenGeom->setDegenStick(degenStick);
-}
-
-void Xsec_surf::createBodyDegenStick_refl(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
-{
-	DegenStick	degenStick = degenGeom->getDegenStick();
-
-	int nLow = 0, nHigh = num_xsecs;
-	int platePnts = (num_pnts + 1) / 2;
-	vec3d chordVec, camberPnt, prevCamberPnt;
-
-	// "Vertical"
-	for ( int i = nLow; i < nHigh; i++ )
-	{
-		vec3d topPnt, botPnt;
-		double tempThickness = 0, perimTop = 0, perimBot = 0;
-		int    maxThickIdx[2] = {0,0};
-
-		// normalized, unrotated chord vector (te->le)
-		chordVec = pntsarr(i, platePnts-1) - pntsarr(i,0);
-		chordVec.normalize();
-
-		degenStick.xle.push_back( pntsarr( i, platePnts-1 ).transform(mat) );
-		degenStick.xte.push_back( pntsarr( i, 0 ).transform(mat) );
-		degenStick.chord.push_back( dist(pntsarr(i, platePnts-1), pntsarr(i, 0)) );
-		degenStick.u.push_back( uArray[i] );
-		degenStick.Ishell.push_back(calculate_shell_inertias_in_plane(i,YZ_PLANE, mat, refl_pnts_xsecs));
-		degenStick.Isolid.push_back(calculate_solid_inertias_in_plane(i,YZ_PLANE, mat, refl_pnts_xsecs));
-		degenStick.xcgSolid.push_back( get_xsec_centroid(i, refl_pnts_xsecs).transform(mat) );
-		degenStick.xcgShell.push_back( get_xsec_shellCG(i, refl_pnts_xsecs).transform(mat)  );
-		degenStick.area.push_back( get_xsec_area(i, refl_pnts_xsecs) );
-
-		vec3d areaNormal = get_area_normal(i, refl_pnts_xsecs).transform(mat) - vec3d(0,0,0).transform(mat);
-		areaNormal.normalize();
-		degenStick.areaNormal.push_back( areaNormal );
-
-		for ( int j = 1, k = num_pnts-2; j < platePnts-1; j++, k-- )
-		{
-			topPnt = pntsarr(i,j);
-			botPnt = pntsarr(i,k);
-
-			camberPnt = ( topPnt + botPnt ) / 2;
-
-			if( dist(topPnt, botPnt) > tempThickness)
-			{
-				tempThickness  = dist(topPnt, botPnt);
-				maxThickIdx[0] = j;
-				maxThickIdx[1] = k;
-			}
-			perimTop += dist( pntsarr(i,j), pntsarr(i,j-1) );
-			perimBot += dist( pntsarr(i,k), pntsarr(i,k+1) );
-
-			prevCamberPnt = camberPnt;
-		}
-
-		camberPnt = ( pntsarr(i,maxThickIdx[0]) + pntsarr(i,maxThickIdx[1]) ) / 2;
-		degenStick.tLoc.push_back( 1 - (dot(camberPnt-pntsarr(i,0),chordVec) / degenStick.chord.back()) );
-		degenStick.toc.push_back( tempThickness / degenStick.chord.back() );
-
-		perimTop += dist( pntsarr(i, platePnts-1), pntsarr(i, platePnts-2) );
-		perimBot += dist( pntsarr(i, platePnts), pntsarr(i, platePnts-1) );
-		degenStick.perimTop.push_back( perimTop );
-		degenStick.perimBot.push_back( perimBot );
-	}
-
-	// Calculate sweep angle
-	for( int i = nLow; i < nHigh; i++ )
-	{
-		degenStick.sweep.push_back( NAN );
-	}
-
-	// "Horizontal"
-	int startPnt = (num_pnts - 1) / 4;
-	for ( int i = nLow; i < nHigh; i++ )
-	{
-		vec3d topPnt, botPnt;
-		double tempThickness = 0, perimTop = 0, perimBot = 0;
-		int    maxThickIdx[2] = {0,0};
-
-		// normalized, unrotated chord vector (te->le)
-		chordVec = pntsarr(i, startPnt+platePnts-1) - pntsarr(i, startPnt);
-		chordVec.normalize();
-
-		degenStick.xle.push_back( pntsarr( i, startPnt+platePnts-1 ).transform(mat) );
-		degenStick.xte.push_back( pntsarr( i, startPnt ).transform(mat) );
-		degenStick.chord.push_back( dist(pntsarr(i, startPnt+platePnts-1), pntsarr(i, startPnt)) );
-		degenStick.u.push_back( uArray[i] );
-		degenStick.Ishell.push_back(calculate_shell_inertias_in_plane(i,YZ_PLANE, mat, refl_pnts_xsecs));
-		degenStick.Isolid.push_back(calculate_solid_inertias_in_plane(i,YZ_PLANE, mat, refl_pnts_xsecs));
-		degenStick.xcgSolid.push_back( get_xsec_centroid(i, refl_pnts_xsecs).transform(mat) );
-		degenStick.xcgShell.push_back( get_xsec_shellCG(i, refl_pnts_xsecs).transform(mat)  );
-		degenStick.area.push_back( get_xsec_area(i, refl_pnts_xsecs) );
-
-		vec3d areaNormal = get_area_normal(i, refl_pnts_xsecs).transform(mat) - vec3d(0,0,0).transform(mat);
-		areaNormal.normalize();
-		degenStick.areaNormal.push_back( areaNormal );
-
-		for ( int j = 1, k = startPnt+num_pnts-2; j < platePnts-1; j++, k-- )
-		{
-			topPnt = pntsarr(i,startPnt+j);
-			botPnt = pntsarr(i, k % (num_pnts-1) );
-
-			camberPnt = ( topPnt + botPnt ) / 2;
-
-			if( dist(topPnt, botPnt) > tempThickness)
-			{
-				tempThickness  = dist(topPnt, botPnt);
-				maxThickIdx[0] = j+startPnt;
-				maxThickIdx[1] = k % (num_pnts-1);
-			}
-			perimTop += dist( pntsarr(i,startPnt+j), pntsarr(i,startPnt+j-1) );
-			perimBot += dist( pntsarr(i, k % (num_pnts-1) ), pntsarr(i, k % (num_pnts-1)+1) );
-
-			prevCamberPnt = camberPnt;
-		}
-
-		camberPnt = ( pntsarr(i,maxThickIdx[0]) + pntsarr(i,maxThickIdx[1]) ) / 2;
-		degenStick.tLoc.push_back( 1 - (dot(camberPnt-pntsarr(i,startPnt),chordVec) / degenStick.chord.back()) );
-		degenStick.toc.push_back( tempThickness / degenStick.chord.back() );
-
-		perimTop += dist( pntsarr(i, startPnt+platePnts-1), pntsarr(i, startPnt+platePnts-2) );
-		perimBot += dist( pntsarr(i, startPnt+platePnts), pntsarr(i, startPnt+platePnts-1) );
-		degenStick.perimTop.push_back( perimTop );
-		degenStick.perimBot.push_back( perimBot );
-	}
-
-	// Calculate sweep angle
-	for( int i = nLow; i < nHigh; i++ )
-	{
-		degenStick.sweep.push_back( NAN );
-	}
-
-	degenGeom->setDegenStick( degenStick );
 }
 
 vec3d Xsec_surf::get_xsec_shellCG( int ixs, const array_2d<vec3d> &pntsarr )
