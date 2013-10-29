@@ -758,7 +758,7 @@ void Xsec_surf::createSurfDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 		degenStick.chord.push_back( dist(pntsarr(i, platePnts-1), pntsarr(i, 0)) );
 		degenStick.u.push_back( uArray[i] );
 		degenStick.Ishell.push_back(calculate_shell_inertias_in_plane(i,XZ_PLANE, mat, pnts_xsecs));
-		degenStick.Isolid.push_back(calculate_solid_inertias_in_plane(i,XZ_PLANE, mat));
+		degenStick.Isolid.push_back(calculate_solid_inertias_in_plane(i,XZ_PLANE, mat, pnts_xsecs));
 		degenStick.xcgSolid.push_back( get_xsec_centroid(i, pnts_xsecs).transform(mat) );
 		degenStick.xcgShell.push_back( get_xsec_shellCG(i, pnts_xsecs).transform(mat)  );
 		degenStick.area.push_back( get_xsec_area(i, pnts_xsecs) );
@@ -868,7 +868,7 @@ void Xsec_surf::createSurfDegenStick_refl(DegenGeom* degenGeom, int sym_code_in,
 		degenStick.chord.push_back( dist(pntsarr(i, platePnts-1), pntsarr(i, 0)) );
 		degenStick.u.push_back( uArray[i] );
 		degenStick.Ishell.push_back(calculate_shell_inertias_in_plane(i,XZ_PLANE, mat, refl_pnts_xsecs));
-		degenStick.Isolid.push_back(calculate_refl_solid_inertias_in_plane(i,XZ_PLANE, mat));
+		degenStick.Isolid.push_back(calculate_solid_inertias_in_plane(i,XZ_PLANE, mat, refl_pnts_xsecs));
 		degenStick.xcgSolid.push_back( get_xsec_centroid(i, refl_pnts_xsecs).transform(mat) );
 		degenStick.xcgShell.push_back( get_xsec_shellCG(i, refl_pnts_xsecs).transform(mat)  );
 		degenStick.area.push_back( get_xsec_area(i, refl_pnts_xsecs) );
@@ -972,7 +972,7 @@ void Xsec_surf::createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 		degenStick.chord.push_back( dist(pntsarr(i, platePnts-1), pntsarr(i, 0)) );
 		degenStick.u.push_back( uArray[i] );
 		degenStick.Ishell.push_back(calculate_shell_inertias_in_plane(i,YZ_PLANE, mat, pnts_xsecs));
-		degenStick.Isolid.push_back(calculate_solid_inertias_in_plane(i,YZ_PLANE, mat));
+		degenStick.Isolid.push_back(calculate_solid_inertias_in_plane(i,YZ_PLANE, mat, pnts_xsecs));
 		degenStick.xcgSolid.push_back( get_xsec_centroid(i, pnts_xsecs).transform(mat) );
 		degenStick.xcgShell.push_back( get_xsec_shellCG(i, pnts_xsecs).transform(mat)  );
 		degenStick.area.push_back( get_xsec_area(i, pnts_xsecs) );
@@ -1034,7 +1034,7 @@ void Xsec_surf::createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 		degenStick.chord.push_back( dist(pntsarr(i, startPnt+platePnts-1), pntsarr(i, startPnt)) );
 		degenStick.u.push_back( uArray[i] );
 		degenStick.Ishell.push_back(calculate_shell_inertias_in_plane(i,YZ_PLANE, mat, pnts_xsecs));
-		degenStick.Isolid.push_back(calculate_solid_inertias_in_plane(i,YZ_PLANE, mat));
+		degenStick.Isolid.push_back(calculate_solid_inertias_in_plane(i,YZ_PLANE, mat, pnts_xsecs));
 		degenStick.xcgSolid.push_back( get_xsec_centroid(i, pnts_xsecs).transform(mat) );
 		degenStick.xcgShell.push_back( get_xsec_shellCG(i, pnts_xsecs).transform(mat)  );
 		degenStick.area.push_back( get_xsec_area(i, pnts_xsecs) );
@@ -1105,7 +1105,7 @@ void Xsec_surf::createBodyDegenStick_refl(DegenGeom* degenGeom, int sym_code_in,
 		degenStick.chord.push_back( dist(pntsarr(i, platePnts-1), pntsarr(i, 0)) );
 		degenStick.u.push_back( uArray[i] );
 		degenStick.Ishell.push_back(calculate_shell_inertias_in_plane(i,YZ_PLANE, mat, refl_pnts_xsecs));
-		degenStick.Isolid.push_back(calculate_refl_solid_inertias_in_plane(i,YZ_PLANE, mat));
+		degenStick.Isolid.push_back(calculate_solid_inertias_in_plane(i,YZ_PLANE, mat, refl_pnts_xsecs));
 		degenStick.xcgSolid.push_back( get_xsec_centroid(i, refl_pnts_xsecs).transform(mat) );
 		degenStick.xcgShell.push_back( get_xsec_shellCG(i, refl_pnts_xsecs).transform(mat)  );
 		degenStick.area.push_back( get_xsec_area(i, refl_pnts_xsecs) );
@@ -1166,7 +1166,7 @@ void Xsec_surf::createBodyDegenStick_refl(DegenGeom* degenGeom, int sym_code_in,
 		degenStick.chord.push_back( dist(pntsarr(i, startPnt+platePnts-1), pntsarr(i, startPnt)) );
 		degenStick.u.push_back( uArray[i] );
 		degenStick.Ishell.push_back(calculate_shell_inertias_in_plane(i,YZ_PLANE, mat, refl_pnts_xsecs));
-		degenStick.Isolid.push_back(calculate_refl_solid_inertias_in_plane(i,YZ_PLANE, mat));
+		degenStick.Isolid.push_back(calculate_solid_inertias_in_plane(i,YZ_PLANE, mat, refl_pnts_xsecs));
 		degenStick.xcgSolid.push_back( get_xsec_centroid(i, refl_pnts_xsecs).transform(mat) );
 		degenStick.xcgShell.push_back( get_xsec_shellCG(i, refl_pnts_xsecs).transform(mat)  );
 		degenStick.area.push_back( get_xsec_area(i, refl_pnts_xsecs) );
@@ -1513,12 +1513,12 @@ vector<double> Xsec_surf::calculate_solid_inertias( int ixs )
 	return inertiasCG;
 }
 
-vector<double> Xsec_surf::calculate_solid_inertias_in_plane(int ixs, int plane, float mat[4][4])
+vector<double> Xsec_surf::calculate_solid_inertias_in_plane(int ixs, int plane, float mat[4][4], const array_2d<vec3d> &pntsarr)
 {
 	vector<double> inertias(2,0), inertiasCG(3,0);
 	int j;
-	double area = get_xsec_plane_area(ixs, plane, mat, pnts_xsecs);
-	vec2d tmpPnts, cg = get_xsec_centroid_in_plane(ixs, plane, mat, pnts_xsecs);
+	double area = get_xsec_plane_area(ixs, plane, mat, pntsarr);
+	vec2d tmpPnts, cg = get_xsec_centroid_in_plane(ixs, plane, mat, pntsarr);
 	vector<vec2d> pnts;
 
 	switch(plane)
@@ -1526,21 +1526,21 @@ vector<double> Xsec_surf::calculate_solid_inertias_in_plane(int ixs, int plane, 
 	case XY_PLANE:
 		for ( int i = 0; i < num_pnts; i++ )
 		{
-			tmpPnts.set_xy( pnts_xsecs(ixs,i).transform(mat).x(), pnts_xsecs(ixs,i).transform(mat).y() );
+			tmpPnts.set_xy( pntsarr(ixs,i).transform(mat).x(), pntsarr(ixs,i).transform(mat).y() );
 			pnts.push_back(tmpPnts);
 		}
 		break;
 	case XZ_PLANE:
 		for ( int i = 0; i < num_pnts; i++ )
 		{
-			tmpPnts.set_xy( pnts_xsecs(ixs,i).transform(mat).x(), pnts_xsecs(ixs,i).transform(mat).z() );
+			tmpPnts.set_xy( pntsarr(ixs,i).transform(mat).x(), pntsarr(ixs,i).transform(mat).z() );
 			pnts.push_back(tmpPnts);
 		}
 		break;
 	case YZ_PLANE:
 		for ( int i = 0; i < num_pnts; i++ )
 		{
-			tmpPnts.set_xy( pnts_xsecs(ixs,i).transform(mat).y(), pnts_xsecs(ixs,i).transform(mat).z() );
+			tmpPnts.set_xy( pntsarr(ixs,i).transform(mat).y(), pntsarr(ixs,i).transform(mat).z() );
 			pnts.push_back(tmpPnts);
 		}
 		break;
@@ -1562,60 +1562,6 @@ vector<double> Xsec_surf::calculate_solid_inertias_in_plane(int ixs, int plane, 
 
 	inertiasCG[0] = ( inertias[0] - pow(cg.y(),2) ) * abs(area);
 	inertiasCG[1] = ( inertias[1] - pow(cg.x(),2) ) * abs(area);
-	inertiasCG[2] = inertiasCG[0] + inertiasCG[1];
-
-	return inertiasCG;
-}
-
-vector<double> Xsec_surf::calculate_refl_solid_inertias_in_plane(int ixs, int plane, float refl_mat[4][4])
-{
-	vector<double> inertias(2,0), inertiasCG(3,0);
-	int j;
-	double area = get_xsec_plane_area(ixs, plane, refl_mat, refl_pnts_xsecs);
-	vec2d tmpPnts, cg = get_xsec_centroid_in_plane(ixs, plane, refl_mat, refl_pnts_xsecs);
-	vector<vec2d> pnts;
-
-	switch(plane)
-	{
-	case XY_PLANE:
-		for ( int i = 0; i < num_pnts; i++ )
-		{
-			tmpPnts.set_xy( refl_pnts_xsecs(ixs,i).transform(refl_mat).x(), refl_pnts_xsecs(ixs,i).transform(refl_mat).y() );
-			pnts.push_back(tmpPnts);
-		}
-		break;
-	case XZ_PLANE:
-		for ( int i = 0; i < num_pnts; i++ )
-		{
-			tmpPnts.set_xy( refl_pnts_xsecs(ixs,i).transform(refl_mat).x(), refl_pnts_xsecs(ixs,i).transform(refl_mat).z() );
-			pnts.push_back(tmpPnts);
-		}
-		break;
-	case YZ_PLANE:
-		for ( int i = 0; i < num_pnts; i++ )
-		{
-			tmpPnts.set_xy( refl_pnts_xsecs(ixs,i).transform(refl_mat).y(), refl_pnts_xsecs(ixs,i).transform(refl_mat).z() );
-			pnts.push_back(tmpPnts);
-		}
-		break;
-	}
-
-	for ( j = 1; j < num_pnts; j++ )
-	{
-		inertias[0] += ( pnts[j-1].x()*pnts[j].y() - pnts[j].x()*pnts[j-1].y() ) \
-				* ( pow( pnts[j-1].y(), 2) + pnts[j-1].y()*pnts[j].y() + pow( pnts[j].y(), 2) );
-		inertias[1] += ( pnts[j-1].x()*pnts[j].y() - pnts[j].x()*pnts[j-1].y() ) \
-				* ( pow( pnts[j-1].x(), 2) + pnts[j-1].x()*pnts[j].x() + pow( pnts[j].x(), 2) );
-	}
-	inertias[0] += (pnts[j-1].x()*pnts[0].y() - pnts[0].x()*pnts[j-1].y()) \
-			* (pow(pnts[j-1].y(),2) + pnts[j-1].y()*pnts[0].y() + pow(pnts[0].y(),2));
-	inertias[1] += (pnts[j-1].x()*pnts[0].y() - pnts[0].x()*pnts[j-1].y()) \
-			* (pow(pnts[j-1].x(),2) + pnts[j-1].x()*pnts[0].x() + pow(pnts[0].x(),2));
-	inertias[0] /= (12*area);
-	inertias[1] /= (12*area);
-
-	inertiasCG[0] = ( inertias[0] - pow(cg.y(),2) ) * area;
-	inertiasCG[1] = ( inertias[1] - pow(cg.x(),2) ) * area;
 	inertiasCG[2] = inertiasCG[0] + inertiasCG[1];
 
 	return inertiasCG;
