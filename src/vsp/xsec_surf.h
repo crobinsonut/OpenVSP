@@ -207,8 +207,7 @@ public:
    // xsec_surf_degen.cpp
    vec3d  get_area_normal( int ixs, const array_2d<vec3d> &pntsarr );
    double get_xsec_area( int ixs, const array_2d<vec3d> &pntsarr );
-   double get_xsec_plane_area( int ixs, int plane, float mat[4][4] );
-   double get_refl_xsec_plane_area( int ixs, int plane, float refl_mat[4][4] );
+   double get_xsec_plane_area( int ixs, int plane, float mat[4][4], const array_2d<vec3d> &pntsarr );
    vec3d  get_xsec_centroid( int ixs );
    vec3d  get_refl_xsec_centroid( int ixs );
    vec2d  get_xsec_centroid_in_plane(int ixs, int plane, float mat[4][4]);

@@ -60,7 +60,7 @@ double Xsec_surf::get_xsec_area( int ixs, const array_2d<vec3d> &pntsarr )
 }
 
 //==== Cross sectional area in a given plane. ====//
-double Xsec_surf::get_xsec_plane_area( int ixs, int plane, float mat[4][4] )
+double Xsec_surf::get_xsec_plane_area( int ixs, int plane, float tmat[4][4], const array_2d<vec3d> &pntsarr )
 {
 	double area = 0;
 	int j;
@@ -68,41 +68,7 @@ double Xsec_surf::get_xsec_plane_area( int ixs, int plane, float mat[4][4] )
 
 	for ( int i = 0; i < num_pnts; i++ )
 	{
-		pnts.push_back( pnts_xsecs(ixs,i).transform(mat) );
-	}
-
-	switch (plane)
-	{
-	case XY_PLANE:
-		for( j = 1; j < num_pnts; j++ )
-			area += pnts[j-1].x()*pnts[j].y() - pnts[j].x()*pnts[j-1].y();
-		area += pnts[j-1].x()*pnts[0].y() - pnts[0].x()*pnts[j-1].y();
-		break;
-	case XZ_PLANE:
-		for( j = 1; j < num_pnts; j++ )
-			area += pnts[j-1].x()*pnts[j].z() - pnts[j].x()*pnts[j-1].z();
-		area += pnts[j-1].x()*pnts[0].z() - pnts[0].x()*pnts[j-1].z();
-		break;
-	case YZ_PLANE:
-		for( j = 1; j < num_pnts; j++ )
-			area += pnts[j-1].y()*pnts[j].z() - pnts[j].y()*pnts[j-1].z();
-		area += pnts[j-1].y()*pnts[0].z() - pnts[0].y()*pnts[j-1].z();
-		break;
-	}
-
-	return (0.5 * area);
-}
-
-//==== Cross sectional area in a given plane. ====//
-double Xsec_surf::get_refl_xsec_plane_area( int ixs, int plane, float refl_mat[4][4] )
-{
-	double area = 0;
-	int j;
-	vector<vec3d> pnts;
-
-	for ( int i = 0; i < num_pnts; i++ )
-	{
-		pnts.push_back( refl_pnts_xsecs(ixs,i).transform(refl_mat) );
+		pnts.push_back( pntsarr(ixs,i).transform(tmat) );
 	}
 
 	switch (plane)
@@ -241,7 +207,7 @@ vec3d Xsec_surf::get_refl_xsec_centroid( int ixs )
 
 vec2d Xsec_surf::get_xsec_centroid_in_plane(int ixs, int plane, float mat[4][4])
 {
-	double xcg = 0, ycg = 0, area = get_xsec_plane_area(ixs, plane, mat);
+	double xcg = 0, ycg = 0, area = get_xsec_plane_area(ixs, plane, mat, pnts_xsecs);
 	int j;
 	vector<vec2d> pnts;
 	vec2d tmpPnts;
@@ -291,7 +257,7 @@ vec2d Xsec_surf::get_xsec_centroid_in_plane(int ixs, int plane, float mat[4][4])
 
 vec2d Xsec_surf::get_refl_xsec_centroid_in_plane(int ixs, int plane, float refl_mat[4][4])
 {
-	double xcg = 0, ycg = 0, area = get_refl_xsec_plane_area(ixs, plane, refl_mat);
+	double xcg = 0, ycg = 0, area = get_xsec_plane_area(ixs, plane, refl_mat, refl_pnts_xsecs);
 	int j;
 	vector<vec2d> pnts;
 	vec2d tmpPnts;
@@ -1808,7 +1774,7 @@ vector<double> Xsec_surf::calculate_solid_inertias_in_plane(int ixs, int plane, 
 {
 	vector<double> inertias(2,0), inertiasCG(3,0);
 	int j;
-	double area = get_xsec_plane_area(ixs, plane, mat);
+	double area = get_xsec_plane_area(ixs, plane, mat, pnts_xsecs);
 	vec2d tmpPnts, cg = get_xsec_centroid_in_plane(ixs, plane, mat);
 	vector<vec2d> pnts;
 
@@ -1862,7 +1828,7 @@ vector<double> Xsec_surf::calculate_refl_solid_inertias_in_plane(int ixs, int pl
 {
 	vector<double> inertias(2,0), inertiasCG(3,0);
 	int j;
-	double area = get_refl_xsec_plane_area(ixs, plane, refl_mat);
+	double area = get_xsec_plane_area(ixs, plane, refl_mat, refl_pnts_xsecs);
 	vec2d tmpPnts, cg = get_refl_xsec_centroid_in_plane(ixs, plane, refl_mat);
 	vector<vec2d> pnts;
 
