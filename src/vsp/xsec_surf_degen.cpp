@@ -4,28 +4,13 @@
 #include <cmath>
 
 //==== Get area normal vector for PLANAR cross section ====//
-vec3d Xsec_surf::get_area_normal( int ixs )
+vec3d Xsec_surf::get_area_normal( int ixs, const array_2d<vec3d> &pntsarr)
 {
 	vec3d areaNormal, refVec1, refVec2;
 	int halfPnts = (num_pnts + 1) / 2;
 
-	refVec1 = pnts_xsecs(ixs, halfPnts - 1) - pnts_xsecs(ixs, 0);
-	refVec2 = pnts_xsecs(ixs, 1) - pnts_xsecs(ixs, num_pnts - 2);
-
-	areaNormal = cross(refVec2, refVec1);
-	areaNormal.normalize();
-
-	return areaNormal;
-}
-
-//==== Get reflected area normal vector for PLANAR cross section ====//
-vec3d Xsec_surf::get_refl_area_normal( int ixs )
-{
-	vec3d areaNormal, refVec1, refVec2;
-	int halfPnts = (num_pnts + 1) / 2;
-
-	refVec1 = refl_pnts_xsecs(ixs, halfPnts - 1) - refl_pnts_xsecs(ixs, 0);
-	refVec2 = refl_pnts_xsecs(ixs, 1) - refl_pnts_xsecs(ixs, num_pnts - 2);
+	refVec1 = pntsarr(ixs, halfPnts - 1) - pntsarr(ixs, 0);
+	refVec2 = pntsarr(ixs, 1) - pntsarr(ixs, num_pnts - 2);
 
 	areaNormal = cross(refVec2, refVec1);
 	areaNormal.normalize();
@@ -39,7 +24,7 @@ double Xsec_surf::get_xsec_area( int ixs )
 {
 	double area = 0;
 	int j;
-	vec3d xAxis(1,0,0), yAxis(0,1,0), zAxis(0,0,1), areaNormal = get_area_normal(ixs);
+	vec3d xAxis(1,0,0), yAxis(0,1,0), zAxis(0,0,1), areaNormal = get_area_normal(ixs, pnts_xsecs);
 	vector<vec3d> pnts;
 
 	// Load cross section points
@@ -147,7 +132,7 @@ vec3d Xsec_surf::get_xsec_centroid( int ixs )
 {
 	double xcg = 0, zcg = 0, area = get_xsec_area(ixs);
 	int j;
-	vec3d xAxis(1,0,0), zAxis(0,0,1), areaNormal = get_area_normal(ixs);
+	vec3d xAxis(1,0,0), zAxis(0,0,1), areaNormal = get_area_normal(ixs, pnts_xsecs);
 
 	vector<vec3d> pnts;
 	// Load cross section points
@@ -203,7 +188,7 @@ vec3d Xsec_surf::get_refl_xsec_centroid( int ixs )
 {
 	double xcg = 0, zcg = 0, area = get_xsec_area(ixs);
 	int j;
-	vec3d xAxis(1,0,0), zAxis(0,0,1), areaNormal = get_refl_area_normal(ixs);
+	vec3d xAxis(1,0,0), zAxis(0,0,1), areaNormal = get_area_normal(ixs, refl_pnts_xsecs);
 
 	vector<vec3d> pnts;
 	// Load cross section points
@@ -525,7 +510,7 @@ void Xsec_surf::createSurfDegenPlate(DegenGeom* degenGeom, int sym_code_in, floa
 		// rotated chord vector
 		vec3d rcv = pntsarr(i, platePnts-1).transform(mat) - pntsarr(i,0).transform(mat);
 		// rotated area normal vector
-		vec3d anv = get_area_normal(i).transform(mat) - vec3d(0,0,0).transform(mat);
+		vec3d anv = get_area_normal(i, pnts_xsecs).transform(mat) - vec3d(0,0,0).transform(mat);
 		// plate normal vector
 		nPlate = cross(rcv,anv);
 		nPlate.normalize();
@@ -622,7 +607,7 @@ void Xsec_surf::createSurfDegenPlate_refl(DegenGeom* degenGeom, int sym_code_in,
 		vec3d rcv = pntsarr(i, platePnts-1).transform(mat) \
 				  - pntsarr(i,0).transform(mat);
 		// rotated area normal vector
-		vec3d anv = get_refl_area_normal(i).transform(mat) - vec3d(0,0,0).transform(mat);
+		vec3d anv = get_area_normal(i, refl_pnts_xsecs).transform(mat) - vec3d(0,0,0).transform(mat);
 		// plate normal vector
 		nPlate = cross(rcv,anv);
 		nPlate.normalize();
@@ -711,7 +696,7 @@ void Xsec_surf::createBodyDegenPlate(DegenGeom* degenGeom, int sym_code_in, floa
 		// rotated chord vector
 		vec3d rcv = pntsarr(i, platePnts-1).transform(mat) - pntsarr(i,0).transform(mat);
 		// rotated area normal vector
-		vec3d anv = get_area_normal(i).transform(mat) - vec3d(0,0,0).transform(mat);
+		vec3d anv = get_area_normal(i, pnts_xsecs).transform(mat) - vec3d(0,0,0).transform(mat);
 		// plate normal vector
 		nPlate = cross(rcv,anv);
 		nPlate.normalize();
@@ -775,7 +760,7 @@ void Xsec_surf::createBodyDegenPlate(DegenGeom* degenGeom, int sym_code_in, floa
 		vec3d rcv = pntsarr(i, startPnt+platePnts-1).transform(mat) \
 				  - pntsarr(i,startPnt).transform(mat);
 		// rotated area normal vector
-		vec3d anv = get_area_normal(i).transform(mat) - vec3d(0,0,0).transform(mat);
+		vec3d anv = get_area_normal(i, pnts_xsecs).transform(mat) - vec3d(0,0,0).transform(mat);
 		// plate normal vector
 		nPlate = cross(rcv,anv);
 		nPlate.normalize();
@@ -866,7 +851,7 @@ void Xsec_surf::createBodyDegenPlate_refl(DegenGeom* degenGeom, int sym_code_in,
 		vec3d rcv = pntsarr(i, platePnts-1).transform(mat) \
 				  - pntsarr(i,0).transform(mat);
 		// rotated area normal vector
-		vec3d anv = get_refl_area_normal(i).transform(mat) - vec3d(0,0,0).transform(mat);
+		vec3d anv = get_area_normal(i, refl_pnts_xsecs).transform(mat) - vec3d(0,0,0).transform(mat);
 		// plate normal vector
 		nPlate = cross(rcv,anv);
 		nPlate.normalize();
@@ -930,7 +915,7 @@ void Xsec_surf::createBodyDegenPlate_refl(DegenGeom* degenGeom, int sym_code_in,
 		vec3d rcv = pntsarr(i, startPnt+platePnts-1).transform(mat) \
 				  - pntsarr(i,startPnt).transform(mat);
 		// rotated area normal vector
-		vec3d anv = get_refl_area_normal(i).transform(mat) - vec3d(0,0,0).transform(mat);
+		vec3d anv = get_area_normal(i, refl_pnts_xsecs).transform(mat) - vec3d(0,0,0).transform(mat);
 		// plate normal vector
 		nPlate = cross(rcv,anv);
 		nPlate.normalize();
@@ -1015,7 +1000,7 @@ void Xsec_surf::createSurfDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 		degenStick.xcgShell.push_back( get_xsec_shellCG(i).transform(mat)  );
 		degenStick.area.push_back( get_xsec_area(i) );
 
-		vec3d areaNormal = get_area_normal(i).transform(mat) - vec3d(0,0,0).transform(mat);
+		vec3d areaNormal = get_area_normal(i, pnts_xsecs).transform(mat) - vec3d(0,0,0).transform(mat);
 		areaNormal.normalize();
 		degenStick.areaNormal.push_back( areaNormal );
 
@@ -1125,7 +1110,7 @@ void Xsec_surf::createSurfDegenStick_refl(DegenGeom* degenGeom, int sym_code_in,
 		degenStick.xcgShell.push_back( get_refl_xsec_shellCG(i).transform(mat)  );
 		degenStick.area.push_back( get_xsec_area(i) );
 
-		vec3d areaNormal = get_refl_area_normal(i).transform(mat) - vec3d(0,0,0).transform(mat);
+		vec3d areaNormal = get_area_normal(i, refl_pnts_xsecs).transform(mat) - vec3d(0,0,0).transform(mat);
 		areaNormal.normalize();
 		degenStick.areaNormal.push_back( areaNormal );
 
@@ -1229,7 +1214,7 @@ void Xsec_surf::createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 		degenStick.xcgShell.push_back( get_xsec_shellCG(i).transform(mat)  );
 		degenStick.area.push_back( get_xsec_area(i) );
 
-		vec3d areaNormal = get_area_normal(i).transform(mat) - vec3d(0,0,0).transform(mat);
+		vec3d areaNormal = get_area_normal(i, pnts_xsecs).transform(mat) - vec3d(0,0,0).transform(mat);
 		areaNormal.normalize();
 		degenStick.areaNormal.push_back( areaNormal );
 
@@ -1291,7 +1276,7 @@ void Xsec_surf::createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 		degenStick.xcgShell.push_back( get_xsec_shellCG(i).transform(mat)  );
 		degenStick.area.push_back( get_xsec_area(i) );
 
-		vec3d areaNormal = get_area_normal(i).transform(mat) - vec3d(0,0,0).transform(mat);
+		vec3d areaNormal = get_area_normal(i, pnts_xsecs).transform(mat) - vec3d(0,0,0).transform(mat);
 		areaNormal.normalize();
 		degenStick.areaNormal.push_back( areaNormal );
 
@@ -1362,7 +1347,7 @@ void Xsec_surf::createBodyDegenStick_refl(DegenGeom* degenGeom, int sym_code_in,
 		degenStick.xcgShell.push_back( get_refl_xsec_shellCG(i).transform(mat)  );
 		degenStick.area.push_back( get_xsec_area(i) );
 
-		vec3d areaNormal = get_refl_area_normal(i).transform(mat) - vec3d(0,0,0).transform(mat);
+		vec3d areaNormal = get_area_normal(i, refl_pnts_xsecs).transform(mat) - vec3d(0,0,0).transform(mat);
 		areaNormal.normalize();
 		degenStick.areaNormal.push_back( areaNormal );
 
@@ -1423,7 +1408,7 @@ void Xsec_surf::createBodyDegenStick_refl(DegenGeom* degenGeom, int sym_code_in,
 		degenStick.xcgShell.push_back( get_refl_xsec_shellCG(i).transform(mat)  );
 		degenStick.area.push_back( get_xsec_area(i) );
 
-		vec3d areaNormal = get_refl_area_normal(i).transform(mat) - vec3d(0,0,0).transform(mat);
+		vec3d areaNormal = get_area_normal(i, refl_pnts_xsecs).transform(mat) - vec3d(0,0,0).transform(mat);
 		areaNormal.normalize();
 		degenStick.areaNormal.push_back( areaNormal );
 
@@ -1469,7 +1454,7 @@ vec3d Xsec_surf::get_xsec_shellCG( int ixs )
 {
 	double xcg = 0, zcg = 0, area = get_xsec_area(ixs);
 	int j;
-	vec3d xAxis(1,0,0), zAxis(0,0,1), areaNormal = get_area_normal(ixs);
+	vec3d xAxis(1,0,0), zAxis(0,0,1), areaNormal = get_area_normal(ixs, pnts_xsecs);
 
 	vector<vec3d> pnts;
 	// Load cross section points
@@ -1538,7 +1523,7 @@ vec3d Xsec_surf::get_refl_xsec_shellCG( int ixs )
 {
 	double xcg = 0, zcg = 0, area = get_xsec_area(ixs);
 	int j;
-	vec3d xAxis(1,0,0), zAxis(0,0,1), areaNormal = get_refl_area_normal(ixs);
+	vec3d xAxis(1,0,0), zAxis(0,0,1), areaNormal = get_area_normal(ixs, refl_pnts_xsecs);
 
 	vector<vec3d> pnts;
 	// Load cross section points
@@ -1610,7 +1595,7 @@ vector<double> Xsec_surf::calculate_shell_inertias(int ixs)
 	int j, platePnts = (num_pnts + 1) / 2;
 	vector<double> inertias(6,0);
 	vec3d xAxis(1,0,0), zAxis(0,0,1);
-	vec3d areaNormal = get_area_normal(ixs), CG = get_xsec_centroid(ixs);
+	vec3d areaNormal = get_area_normal(ixs, pnts_xsecs), CG = get_xsec_centroid(ixs);
 
 	vector<vec3d> pnts;
 	// Load cross section points
@@ -1862,7 +1847,7 @@ vector<double> Xsec_surf::calculate_solid_inertias( int ixs )
 	int j;
 	double area = get_xsec_area(ixs);
 	vec3d xAxis(1,0,0), zAxis(0,0,1);
-	vec3d areaNormal = get_area_normal(ixs);
+	vec3d areaNormal = get_area_normal(ixs, pnts_xsecs);
 	vec3d centroid   = get_xsec_centroid(ixs);
 
 	vector<vec3d> pnts;
