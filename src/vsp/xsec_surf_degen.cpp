@@ -1284,18 +1284,18 @@ vec3d Xsec_surf::get_xsec_shellCG( int ixs, const array_2d<vec3d> &pntsarr )
 
 //===== Jxx, Jzz, Jyy coefficients. Use Jxx = inertias[0]*t^3 + inertias[1]*t, =====================//
 //===== Jzz = inertias[2]*t^3 + inertias[3]*t, etc with t as shell thickness to get inertias. =====//
-vector<double> Xsec_surf::calculate_shell_inertias(int ixs)
+vector<double> Xsec_surf::calculate_shell_inertias(int ixs, const array_2d<vec3d> &pntsarr )
 {
 	int j, platePnts = (num_pnts + 1) / 2;
 	vector<double> inertias(6,0);
 	vec3d xAxis(1,0,0), zAxis(0,0,1);
-	vec3d areaNormal = get_area_normal(ixs, pnts_xsecs), CG = get_xsec_centroid(ixs, pnts_xsecs);
+	vec3d areaNormal = get_area_normal(ixs, pntsarr), CG = get_xsec_centroid(ixs, pntsarr);
 
 	vector<vec3d> pnts;
 	// Load cross section points
 	for( int i = 0; i < num_pnts; i++ )
 	{
-		pnts.push_back( pnts_xsecs(ixs,i) );
+		pnts.push_back( pntsarr(ixs,i) );
 	}
 
 	// Get rotation in xy plane to align areaNormal with yaxis
@@ -1453,20 +1453,20 @@ vector<double> Xsec_surf::calculate_shell_inertias_in_plane(int ixs, int plane, 
 	return inertias;
 }
 
-vector<double> Xsec_surf::calculate_solid_inertias( int ixs )
+vector<double> Xsec_surf::calculate_solid_inertias( int ixs, const array_2d<vec3d> &pntsarr )
 {
 	vector<double> inertias(2,0), inertiasCG(3,0);
 	int j;
-	double area = get_xsec_area(ixs, pnts_xsecs);
+	double area = get_xsec_area(ixs, pntsarr);
 	vec3d xAxis(1,0,0), zAxis(0,0,1);
-	vec3d areaNormal = get_area_normal(ixs, pnts_xsecs);
-	vec3d centroid   = get_xsec_centroid(ixs, pnts_xsecs);
+	vec3d areaNormal = get_area_normal(ixs, pntsarr);
+	vec3d centroid   = get_xsec_centroid(ixs, pntsarr);
 
 	vector<vec3d> pnts;
 	// Load cross section points
 	for( int i = 0; i < num_pnts; i++ )
 	{
-		pnts.push_back( pnts_xsecs(ixs,i) );
+		pnts.push_back( pntsarr(ixs,i) );
 	}
 
 	// Get rotation in xy plane to align areaNormal with yaxis

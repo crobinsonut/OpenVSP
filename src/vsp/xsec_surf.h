@@ -225,9 +225,9 @@ public:
 
    vec3d get_xsec_shellCG( int ixs, const array_2d<vec3d> &pntsarr );
 
-   vector<double> calculate_shell_inertias(int ixs);
+   vector<double> calculate_shell_inertias(int ixs, const array_2d<vec3d> &pntsarr);
    vector<double> calculate_shell_inertias_in_plane(int ixs, int plane, float mat[4][4], const array_2d<vec3d> &pntsarr);
-   vector<double> calculate_solid_inertias(int ixs);
+   vector<double> calculate_solid_inertias(int ixs, const array_2d<vec3d> &pntsarr);
    vector<double> calculate_solid_inertias_in_plane(int ixs, int plane, float mat[4][4], const array_2d<vec3d> &pntsarr);
    // End of degenerate geometry stuff.
 };   
