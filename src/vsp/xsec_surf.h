@@ -91,8 +91,6 @@ protected:
 
 public:
 
-   enum{ XY_PLANE, XZ_PLANE, YZ_PLANE };
-
    Xsec_surf();
    virtual ~Xsec_surf();
 
@@ -205,27 +203,12 @@ public:
 
    // Degenerate geometry stuff found in:
    // xsec_surf_degen.cpp
-   vec3d  get_area_normal( int ixs, const array_2d<vec3d> &pntsarr );
-   double get_xsec_area( int ixs, const array_2d<vec3d> &pntsarr );
-   double get_xsec_plane_area( int ixs, int plane, float mat[4][4], const array_2d<vec3d> &pntsarr );
-   vec3d  get_xsec_centroid( int ixs, const array_2d<vec3d> &pntsarr );
-   vec2d  get_xsec_centroid_in_plane(int ixs, int plane, float mat[4][4], const array_2d<vec3d> &pntsarr);
+
 
    DegenGeom* createSurfDegenGeom(Geom* parentGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4]);
    DegenGeom* createBodyDegenGeom(Geom* parentGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4]);
 
-   void createDegenSurface(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, bool refl);
-   void createSurfDegenPlate(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
-   void createBodyDegenPlate(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
-   void createSurfDegenStick(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
-   void createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
 
-   vec3d get_xsec_shellCG( int ixs, const array_2d<vec3d> &pntsarr );
-
-   vector<double> calculate_shell_inertias(int ixs, const array_2d<vec3d> &pntsarr);
-   vector<double> calculate_shell_inertias_in_plane(int ixs, int plane, float mat[4][4], const array_2d<vec3d> &pntsarr);
-   vector<double> calculate_solid_inertias(int ixs, const array_2d<vec3d> &pntsarr);
-   vector<double> calculate_solid_inertias_in_plane(int ixs, int plane, float mat[4][4], const array_2d<vec3d> &pntsarr);
    // End of degenerate geometry stuff.
 };   
 

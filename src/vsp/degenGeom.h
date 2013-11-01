@@ -11,6 +11,8 @@
 #include <vector>
 #include "vec3d.h"
 #include "vec2d.h"
+#include "array_2d.h"
+
 
 class Geom;
 
@@ -65,6 +67,8 @@ typedef struct {
 class DegenGeom
 {
 public:
+	enum{ XY_PLANE, XZ_PLANE, YZ_PLANE };
+
 	enum { SURFACE_TYPE, BODY_TYPE };
 
 	DegenGeom(){};
@@ -83,8 +87,11 @@ public:
 	int getNumXSecs()	{ return num_xsecs; };
 	int getNumPnts()	{ return num_pnts; };
 
-	void setNumXSecs( int nxss )		{ num_xsecs = nxss; }
-	void setNumPnts( int npts )		{ num_pnts = npts; }
+	void setNumXSecs( const int &nxss )		{ num_xsecs = nxss; }
+	void setNumPnts( const int &npts )		{ num_pnts = npts; }
+
+	void setUarray( const vector< double > &uarr )	{ uArray = uarr; }
+	void setWarray( const vector< double > &warr )	{ wArray = warr; }
 
 	Geom* getParentGeom()				{ return parentGeom; }
 	void  setParentGeom( Geom* geom )	{ parentGeom = geom; }
@@ -98,6 +105,26 @@ public:
 	void write_degenGeomM_file(FILE* file_id);
 	void write_refl_degenGeomM_file(FILE* file_id);
 
+
+	vec3d  get_area_normal( int ixs, const array_2d<vec3d> &pntsarr );
+	double get_xsec_area( int ixs, const array_2d<vec3d> &pntsarr );
+	double get_xsec_plane_area( int ixs, int plane, float mat[4][4], const array_2d<vec3d> &pntsarr );
+	vec3d  get_xsec_centroid( int ixs, const array_2d<vec3d> &pntsarr );
+	vec2d  get_xsec_centroid_in_plane(int ixs, int plane, float mat[4][4], const array_2d<vec3d> &pntsarr);
+
+	void createDegenSurface(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, bool refl);
+	void createSurfDegenPlate(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
+	void createBodyDegenPlate(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
+	void createSurfDegenStick(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
+	void createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
+
+	vec3d get_xsec_shellCG( int ixs, const array_2d<vec3d> &pntsarr );
+
+	vector<double> calculate_shell_inertias(int ixs, const array_2d<vec3d> &pntsarr);
+	vector<double> calculate_shell_inertias_in_plane(int ixs, int plane, float mat[4][4], const array_2d<vec3d> &pntsarr);
+	vector<double> calculate_solid_inertias(int ixs, const array_2d<vec3d> &pntsarr);
+	vector<double> calculate_solid_inertias_in_plane(int ixs, int plane, float mat[4][4], const array_2d<vec3d> &pntsarr);
+
 protected:
 
 	DegenSurface degenSurface;
@@ -108,9 +135,14 @@ protected:
 	int num_xsecs;
 	int num_pnts;
 
+	vector< double > uArray;
+	vector< double > wArray;
+
 	Geom* parentGeom;
 	int   type;
 
 };
+
+
 
 #endif
