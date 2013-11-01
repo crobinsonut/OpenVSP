@@ -201,8 +201,6 @@ vec2d DegenGeom::get_xsec_centroid_in_plane(int ixs, int plane, float mat[4][4],
 
 void DegenGeom::createDegenSurface(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, bool refl)
 {
-	DegenSurface	degenSurface = getDegenSurface();
-
 	int nLow = 0, nHigh = num_xsecs;
 
 	vector< vector<vec3d> > xSurfMat = degenSurface.x;
@@ -262,13 +260,10 @@ void DegenGeom::createDegenSurface(int sym_code_in, float mat[4][4], const array
 
 	degenSurface.x    = xSurfMat;
 	degenSurface.nvec = nSurfMat;
-	setDegenSurface(degenSurface);
 }
 
 void DegenGeom::createSurfDegenPlate(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
 {
-	DegenPlate	degenPlate = getDegenPlate();
-
 	int nLow = 0, nHigh = num_xsecs;
 	int platePnts = (num_pnts + 1) / 2;
 
@@ -357,13 +352,10 @@ void DegenGeom::createSurfDegenPlate(int sym_code_in, float mat[4][4], const arr
 	degenPlate.nCamber 	= nCamberMat;
 	degenPlate.t		= tMat;
 	degenPlate.zcamber	= zMat;
-	setDegenPlate(degenPlate);
 }
 
 void DegenGeom::createBodyDegenPlate(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
 {
-	DegenPlate	degenPlate = getDegenPlate();
-
 	int nLow = 0, nHigh = num_xsecs;
 	int platePnts = (num_pnts + 1) / 2;
 
@@ -511,13 +503,10 @@ void DegenGeom::createBodyDegenPlate(int sym_code_in, float mat[4][4], const arr
 	degenPlate.nCamber 	= nCamberMat;
 	degenPlate.t		= tMat;
 	degenPlate.zcamber	= zMat;
-	setDegenPlate(degenPlate);
 }
 
 void DegenGeom::createSurfDegenStick(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
 {
-	DegenStick	degenStick = getDegenStick();
-
 	int nLow = 0, nHigh = num_xsecs;
 	int platePnts = (num_pnts + 1) / 2;
 	vec3d chordVec, camberPnt, prevCamberPnt;
@@ -620,14 +609,10 @@ void DegenGeom::createSurfDegenStick(int sym_code_in, float mat[4][4], const arr
 		degenStick.sweep.push_back( lambda );
 	}
 	degenStick.sweep.push_back( NAN );
-
-	setDegenStick(degenStick);
 }
 
 void DegenGeom::createBodyDegenStick(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
 {
-	DegenStick	degenStick = getDegenStick();
-
 	int nLow = 0, nHigh = num_xsecs;
 	int platePnts = (num_pnts + 1) / 2;
 	vec3d chordVec, camberPnt, prevCamberPnt;
@@ -754,7 +739,6 @@ void DegenGeom::createBodyDegenStick(int sym_code_in, float mat[4][4], const arr
 		degenStick.sweep.push_back( NAN );
 	}
 
-	setDegenStick(degenStick);
 }
 
 vec3d DegenGeom::get_xsec_shellCG( int ixs, const array_2d<vec3d> &pntsarr )

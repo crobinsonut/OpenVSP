@@ -74,14 +74,8 @@ public:
 	DegenGeom(){};
 	virtual ~DegenGeom(){};
 
-	DegenSurface getDegenSurface()  { return degenSurface; }
-	DegenPlate   getDegenPlate()    { return degenPlate;   }
-	DegenStick   getDegenStick()    { return degenStick;   }
 	DegenPoint   getDegenPoint()    { return degenPoint;   }
 
-	void setDegenSurface( DegenSurface degenSurface )	{ this->degenSurface = degenSurface; }
-	void setDegenPlate(   DegenPlate   degenPlate )	{ this->degenPlate   = degenPlate;   }
-	void setDegenStick(   DegenStick   degenStick )	{ this->degenStick   = degenStick;   }
 	void setDegenPoint(   DegenPoint   degenPoint )	{ this->degenPoint   = degenPoint;   }
 
 	int getNumXSecs()	{ return num_xsecs; };
