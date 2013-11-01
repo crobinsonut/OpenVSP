@@ -199,9 +199,9 @@ vec2d DegenGeom::get_xsec_centroid_in_plane(int ixs, int plane, float mat[4][4],
 }
 
 
-void DegenGeom::createDegenSurface(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, bool refl)
+void DegenGeom::createDegenSurface(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, bool refl)
 {
-	DegenSurface	degenSurface = degenGeom->getDegenSurface();
+	DegenSurface	degenSurface = getDegenSurface();
 
 	int nLow = 0, nHigh = num_xsecs;
 
@@ -211,9 +211,9 @@ void DegenGeom::createDegenSurface(DegenGeom* degenGeom, int sym_code_in, float 
 	vector<vec3d> xVec( num_pnts );
 	vector<vec3d> nVec( num_pnts );
 
-	if ( degenGeom->getType() == DegenGeom::SURFACE_TYPE )
+	if ( getType() == DegenGeom::SURFACE_TYPE )
 	{
-		if ( degenGeom->getParentGeom()->getTypeStr() == "wing" || degenGeom->getParentGeom()->getTypeStr() == "prop" )
+		if ( getParentGeom()->getTypeStr() == "wing" || getParentGeom()->getTypeStr() == "prop" )
 		{
 			nLow  = 1;
 			nHigh = num_xsecs - 1;
@@ -262,17 +262,17 @@ void DegenGeom::createDegenSurface(DegenGeom* degenGeom, int sym_code_in, float 
 
 	degenSurface.x    = xSurfMat;
 	degenSurface.nvec = nSurfMat;
-	degenGeom->setDegenSurface(degenSurface);
+	setDegenSurface(degenSurface);
 }
 
-void DegenGeom::createSurfDegenPlate(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
+void DegenGeom::createSurfDegenPlate(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
 {
-	DegenPlate	degenPlate = degenGeom->getDegenPlate();
+	DegenPlate	degenPlate = getDegenPlate();
 
 	int nLow = 0, nHigh = num_xsecs;
 	int platePnts = (num_pnts + 1) / 2;
 
-	if ( degenGeom->getParentGeom()->getTypeStr() == "wing" || degenGeom->getParentGeom()->getTypeStr() == "prop" )
+	if ( getParentGeom()->getTypeStr() == "wing" || getParentGeom()->getTypeStr() == "prop" )
 	{
 		// Keep only airfoil sections, discard endcap close-out lines
 		nLow  = 1;
@@ -357,12 +357,12 @@ void DegenGeom::createSurfDegenPlate(DegenGeom* degenGeom, int sym_code_in, floa
 	degenPlate.nCamber 	= nCamberMat;
 	degenPlate.t		= tMat;
 	degenPlate.zcamber	= zMat;
-	degenGeom->setDegenPlate(degenPlate);
+	setDegenPlate(degenPlate);
 }
 
-void DegenGeom::createBodyDegenPlate(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
+void DegenGeom::createBodyDegenPlate(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
 {
-	DegenPlate	degenPlate = degenGeom->getDegenPlate();
+	DegenPlate	degenPlate = getDegenPlate();
 
 	int nLow = 0, nHigh = num_xsecs;
 	int platePnts = (num_pnts + 1) / 2;
@@ -511,18 +511,18 @@ void DegenGeom::createBodyDegenPlate(DegenGeom* degenGeom, int sym_code_in, floa
 	degenPlate.nCamber 	= nCamberMat;
 	degenPlate.t		= tMat;
 	degenPlate.zcamber	= zMat;
-	degenGeom->setDegenPlate(degenPlate);
+	setDegenPlate(degenPlate);
 }
 
-void DegenGeom::createSurfDegenStick(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
+void DegenGeom::createSurfDegenStick(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
 {
-	DegenStick	degenStick = degenGeom->getDegenStick();
+	DegenStick	degenStick = getDegenStick();
 
 	int nLow = 0, nHigh = num_xsecs;
 	int platePnts = (num_pnts + 1) / 2;
 	vec3d chordVec, camberPnt, prevCamberPnt;
 
-	if ( degenGeom->getParentGeom()->getTypeStr() == "wing" || degenGeom->getParentGeom()->getTypeStr() == "prop" )
+	if ( getParentGeom()->getTypeStr() == "wing" || getParentGeom()->getTypeStr() == "prop" )
 	{
 		// Keep only airfoil sections, discard endcap close-out lines
 		nLow  = 1;
@@ -621,12 +621,12 @@ void DegenGeom::createSurfDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 	}
 	degenStick.sweep.push_back( NAN );
 
-	degenGeom->setDegenStick(degenStick);
+	setDegenStick(degenStick);
 }
 
-void DegenGeom::createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
+void DegenGeom::createBodyDegenStick(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
 {
-	DegenStick	degenStick = degenGeom->getDegenStick();
+	DegenStick	degenStick = getDegenStick();
 
 	int nLow = 0, nHigh = num_xsecs;
 	int platePnts = (num_pnts + 1) / 2;
@@ -754,7 +754,7 @@ void DegenGeom::createBodyDegenStick(DegenGeom* degenGeom, int sym_code_in, floa
 		degenStick.sweep.push_back( NAN );
 	}
 
-	degenGeom->setDegenStick(degenStick);
+	setDegenStick(degenStick);
 }
 
 vec3d DegenGeom::get_xsec_shellCG( int ixs, const array_2d<vec3d> &pntsarr )

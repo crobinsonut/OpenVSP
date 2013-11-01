@@ -21,17 +21,17 @@ DegenGeom* Xsec_surf::createSurfDegenGeom(Geom* parentGeom, int sym_code_in, flo
 		load_refl_pnts_xsecs();
 	}
 
-	degenGeom->createDegenSurface(degenGeom, sym_code_in, mat, pnts_xsecs, false);
+	degenGeom->createDegenSurface(sym_code_in, mat, pnts_xsecs, false);
 	if(sym_code_in != NO_SYM)
-		degenGeom->createDegenSurface(degenGeom, sym_code_in, refl_mat, refl_pnts_xsecs, true);
+		degenGeom->createDegenSurface(sym_code_in, refl_mat, refl_pnts_xsecs, true);
 
-	degenGeom->createSurfDegenPlate(degenGeom, sym_code_in, mat, pnts_xsecs);
+	degenGeom->createSurfDegenPlate(sym_code_in, mat, pnts_xsecs);
 	if(sym_code_in != NO_SYM)
-		degenGeom->createSurfDegenPlate(degenGeom, sym_code_in, refl_mat, refl_pnts_xsecs);
+		degenGeom->createSurfDegenPlate(sym_code_in, refl_mat, refl_pnts_xsecs);
 
-	degenGeom->createSurfDegenStick(degenGeom, sym_code_in, mat, pnts_xsecs);
+	degenGeom->createSurfDegenStick(sym_code_in, mat, pnts_xsecs);
 	if ( sym_code_in != NO_SYM )
-		degenGeom->createSurfDegenStick(degenGeom, sym_code_in, refl_mat, refl_pnts_xsecs);
+		degenGeom->createSurfDegenStick(sym_code_in, refl_mat, refl_pnts_xsecs);
 
 	return degenGeom;
 }
@@ -53,17 +53,17 @@ DegenGeom* Xsec_surf::createBodyDegenGeom(Geom* parentGeom, int sym_code_in, flo
 		load_refl_pnts_xsecs();
 	}
 
-	degenGeom->createDegenSurface(degenGeom, sym_code_in, mat, pnts_xsecs, false);
+	degenGeom->createDegenSurface(sym_code_in, mat, pnts_xsecs, false);
 	if(sym_code_in != NO_SYM)
-		degenGeom->createDegenSurface(degenGeom, sym_code_in, refl_mat, refl_pnts_xsecs, true);
+		degenGeom->createDegenSurface(sym_code_in, refl_mat, refl_pnts_xsecs, true);
 
-	degenGeom->createBodyDegenPlate(degenGeom, sym_code_in, mat, pnts_xsecs);
+	degenGeom->createBodyDegenPlate(sym_code_in, mat, pnts_xsecs);
 	if ( sym_code_in != NO_SYM )
-		degenGeom->createBodyDegenPlate(degenGeom, sym_code_in, refl_mat, refl_pnts_xsecs);
+		degenGeom->createBodyDegenPlate(sym_code_in, refl_mat, refl_pnts_xsecs);
 
-	degenGeom->createBodyDegenStick(degenGeom, sym_code_in, mat, pnts_xsecs);
+	degenGeom->createBodyDegenStick(sym_code_in, mat, pnts_xsecs);
 	if ( sym_code_in != NO_SYM )
-		degenGeom->createBodyDegenStick(degenGeom, sym_code_in, refl_mat, refl_pnts_xsecs);
+		degenGeom->createBodyDegenStick(sym_code_in, refl_mat, refl_pnts_xsecs);
 
 	return degenGeom;
 }
