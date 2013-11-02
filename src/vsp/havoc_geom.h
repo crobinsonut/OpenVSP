@@ -185,7 +185,7 @@ public:
    void dump_xsec_file(int, FILE* );
 
    //===== Degen Geom =====//
-   DegenGeom* createDegenGeom();
+   virtual void createDegenGeom( vector<DegenGeom> &dgs);
 
    double get_area();
    double get_span();

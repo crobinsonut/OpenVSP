@@ -582,11 +582,10 @@ void PropGeom::write(FILE* file_id)
 }
 
 //==== Create Degenerate Geometry ====//
-DegenGeom* PropGeom::createDegenGeom()
+void PropGeom::createDegenGeom(vector<DegenGeom> &dgs)
 {
-	DegenGeom *dg = bladeVec[0].createSurfDegenGeom(this, sym_code, model_mat, reflect_mat);
-	createDegenProp( dg );
-	return dg;
+	bladeVec[0].createSurfDegenGeom(this, sym_code, model_mat, reflect_mat, dgs);
+	createDegenProp( &dgs.back() );
 }
 
 void PropGeom::createDegenProp( DegenGeom *dg )

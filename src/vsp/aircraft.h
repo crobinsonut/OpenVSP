@@ -180,7 +180,7 @@ public:
 
 	//==== Degenerate Geometry ====//
 	void createDegenGeom();
-	vector< DegenGeom* > getDegenGeomVec()	{ return degenGeom; }
+	vector< DegenGeom > getDegenGeomVec()	{ return degenGeom; }
 	string writeDegenGeomFile();
 
 	int getGeomIndex(Geom * geom); //used for saving labels
@@ -275,7 +275,7 @@ private:
 	vector< Geom* > activeGeomVec;			// Vector of Active Geoms
 	vector< Geom* > geomVec;				// Vector of All Geoms
 	vector< Geom* > topGeomVec;				// Top Level (ie no parents )
-	vector< DegenGeom* > degenGeom;			// Vector of components in degenerate representation
+	vector< DegenGeom > degenGeom;			// Vector of components in degenerate representation
 
 	vector< LabelGeom* > labelVec;				// Vector of All Label Objects
 	vector< LabelGeom* > activeLabelVec;		// Vector of All Active Label Objects

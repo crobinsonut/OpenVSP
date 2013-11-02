@@ -150,10 +150,10 @@ public:
 
    //==== Intersection, Splitting and Trimming ====//
    virtual void intersectTrim(int meshFlag, int halfFlag = 0 );
-   virtual void degenGeomIntersectTrim(vector< DegenGeom* > degenGeom );
+   virtual void degenGeomIntersectTrim(vector< DegenGeom > &degenGeom );
    virtual void sliceX(int numSlice);
    virtual void massSliceX(int numSlice);
-   virtual void degenGeomMassSliceX(vector< DegenGeom* > degenGeom );
+   virtual void degenGeomMassSliceX(vector< DegenGeom > &degenGeom );
    virtual void newSlice(int style, int numSlices, double sliceAngle, double coneSections, Stringc filename);
    virtual vector<vec3d> tessTriangles(vector<vec3d> &tri);
    virtual vector<vec3d> tessTri(vec3d t1, vec3d t2, vec3d t3, int iterations);

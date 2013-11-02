@@ -608,9 +608,9 @@ void DuctGeom::dump_xsec_file(int geom_no, FILE* dump_file)
 }
 
 //==== Create Degenerate Geometry ====//
-DegenGeom* DuctGeom::createDegenGeom()
+void DuctGeom::createDegenGeom(vector<DegenGeom> &dgs)
 {
-	return surf.createSurfDegenGeom(this, sym_code, model_mat, reflect_mat);
+	surf.createSurfDegenGeom(this, sym_code, model_mat, reflect_mat, dgs);
 }
 
 //==== Return Number Of Felisa Surface Written Out ====//

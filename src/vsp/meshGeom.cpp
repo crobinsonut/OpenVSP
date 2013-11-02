@@ -1493,7 +1493,7 @@ void MeshGeom::intersectTrim(int meshf, int halfFlag )
 	}
 }
 
-void MeshGeom::degenGeomIntersectTrim(vector< DegenGeom* > degenGeom )
+void MeshGeom::degenGeomIntersectTrim(vector< DegenGeom > &degenGeom )
 {
 	int i, j;
 
@@ -1670,11 +1670,11 @@ void MeshGeom::degenGeomIntersectTrim(vector< DegenGeom* > degenGeom )
 	for ( i = 0; i < (int)degenGeom.size(); i++ )
 	{
 		matchFlag = false;
-		DegenPoint degenPoint = degenGeom[i]->getDegenPoint();
+		DegenPoint degenPoint = degenGeom[i].getDegenPoint();
 
 		for ( j = 0; j < (int)tMeshCompVec.size(); j++ )
 		{
-			if ( degenGeom[i]->getParentGeom()->getPtrID() == tMeshCompVec[j][0]->ptr_id )
+			if ( degenGeom[i].getParentGeom()->getPtrID() == tMeshCompVec[j][0]->ptr_id )
 			{
 				matchFlag = true;
 				degenPoint.area.push_back(tMeshCompVec[j][0]->theoArea);
@@ -1682,7 +1682,7 @@ void MeshGeom::degenGeomIntersectTrim(vector< DegenGeom* > degenGeom )
 				degenPoint.vol.push_back(tMeshCompVec[j][0]->theoVol);
 				degenPoint.volWet.push_back(tMeshCompVec[j][0]->wetVol);
 
-				if ( degenGeom[i]->getParentGeom()->getSymCode() != NO_SYM )
+				if ( degenGeom[i].getParentGeom()->getSymCode() != NO_SYM )
 				{
 					j++;
 					degenPoint.area.push_back(tMeshCompVec[j][0]->theoArea);
@@ -1699,7 +1699,7 @@ void MeshGeom::degenGeomIntersectTrim(vector< DegenGeom* > degenGeom )
 			degenPoint.vol.push_back(NAN);
 			degenPoint.volWet.push_back(NAN);
 
-			if ( degenGeom[i]->getParentGeom()->getSymCode() != NO_SYM )
+			if ( degenGeom[i].getParentGeom()->getSymCode() != NO_SYM )
 			{
 				degenPoint.area.push_back(NAN);
 				degenPoint.areaWet.push_back(NAN);
@@ -1708,7 +1708,7 @@ void MeshGeom::degenGeomIntersectTrim(vector< DegenGeom* > degenGeom )
 			}
 		}
 
-		degenGeom[i]->setDegenPoint(degenPoint);
+		degenGeom[i].setDegenPoint(degenPoint);
 	}
 
 
@@ -2685,7 +2685,7 @@ void MeshGeom::massSliceX(int numSlices)
 }
 
 
-void MeshGeom::degenGeomMassSliceX(vector< DegenGeom* > degenGeom)
+void MeshGeom::degenGeomMassSliceX(vector< DegenGeom > &degenGeom)
 {
 	int i, j, s, numSlices = 250;
 
@@ -2980,13 +2980,13 @@ void MeshGeom::degenGeomMassSliceX(vector< DegenGeom* > degenGeom)
 	for ( i = 0, j = 0; i < (int)degenGeom.size(); i++, j++ )
 	{
 		matchFlag = false;
-		DegenPoint degenPoint = degenGeom[i]->getDegenPoint();
+		DegenPoint degenPoint = degenGeom[i].getDegenPoint();
 
 		// Loop through tmesh vector
 		for ( j = 0; j < tMeshVecPtrId.size(); j++ )
 		{
 			// If its pointer id matches the current degenGeom
-			if ( degenGeom[i]->getParentGeom()->getPtrID() == tMeshVecPtrId[j] )
+			if ( degenGeom[i].getParentGeom()->getPtrID() == tMeshVecPtrId[j] )
 			{
 				// Then there is a match, fill in current degenPoint info
 				matchFlag = true;
@@ -2995,7 +2995,7 @@ void MeshGeom::degenGeomMassSliceX(vector< DegenGeom* > degenGeom)
 				degenPoint.xcgSolid.push_back(compSolidCg[j]);
 				degenPoint.xcgShell.push_back(compShellCg[j]);
 
-				if ( degenGeom[i]->getParentGeom()->getSymCode() != NO_SYM )
+				if ( degenGeom[i].getParentGeom()->getSymCode() != NO_SYM )
 				{
 					j++;
 					degenPoint.Isolid.push_back(compSolidI[j]);
@@ -3025,7 +3025,7 @@ void MeshGeom::degenGeomMassSliceX(vector< DegenGeom* > degenGeom)
 			degenPoint.xcgShell.push_back( vec3d(NAN,NAN,NAN) );
 		}
 
-		degenGeom[i]->setDegenPoint(degenPoint);
+		degenGeom[i].setDegenPoint(degenPoint);
 	}
 
 	//==== Clean Up Mess ====//

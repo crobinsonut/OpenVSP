@@ -243,7 +243,7 @@ public:
 	virtual void writeX3D( xmlNodePtr node );
 
 	//===== Degenerate Geometry =====//
-	virtual DegenGeom* createDegenGeom();
+	virtual void createDegenGeom( vector<DegenGeom> &dgs);
 
 	//===== Felisa Functions =====
 	virtual int write_felisa_file(int geom_no, FILE*)		{ return(geom_no); }
@@ -540,7 +540,7 @@ public:
 	virtual void dump_xsec_file(int geom_no, FILE* dump_file);
 
 	//===== Degenerate Geometry =====//
-	virtual DegenGeom* createDegenGeom();
+	virtual void createDegenGeom( vector<DegenGeom> &dgs);
 
 
     virtual vec3d getVertex3d(int surf, double x, double p, int r)	{ return body_surf.get_vertex(x, p, r); }

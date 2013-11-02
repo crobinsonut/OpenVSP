@@ -1768,9 +1768,9 @@ void Ms_wing_geom::dump_xsec_file(int geom_no, FILE* dump_file)
 }
 
 //==== Create Degenerate Geometry ====//
-DegenGeom* Ms_wing_geom::createDegenGeom()
+void Ms_wing_geom::createDegenGeom(vector<DegenGeom> &dgs)
 {
-	return mwing_surf.createSurfDegenGeom(this, sym_code, model_mat, reflect_mat);
+	mwing_surf.createSurfDegenGeom(this, sym_code, model_mat, reflect_mat, dgs);
 }
 
 

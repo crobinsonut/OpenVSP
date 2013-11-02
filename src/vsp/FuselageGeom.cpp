@@ -1149,9 +1149,9 @@ void FuselageGeom::dump_xsec_file(int geom_no, FILE* dump_file)
 }
 
 //==== Create Degenerate Geometry ====//
-DegenGeom* FuselageGeom::createDegenGeom()
+void FuselageGeom::createDegenGeom(vector<DegenGeom> &dgs)
 {
-	return surf.createBodyDegenGeom(this, sym_code, model_mat, reflect_mat);
+	surf.createBodyDegenGeom(this, sym_code, model_mat, reflect_mat, dgs);
 }
 
 //==== Return Number Of Felisa Surfaces Written Out ====//

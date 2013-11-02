@@ -765,9 +765,9 @@ void EngineGeom::write(FILE* file_id)
 }
 
 //==== Create Degenerate Geometry ====//
-DegenGeom* EngineGeom::createDegenGeom()
+void EngineGeom::createDegenGeom(vector<DegenGeom> &dgs)
 {
-	return engine_surf.createBodyDegenGeom(this, sym_code, model_mat, reflect_mat);
+	engine_surf.createBodyDegenGeom(this, sym_code, model_mat, reflect_mat, dgs);
 }
 
 //==== Read Fuse File ====//

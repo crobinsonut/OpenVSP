@@ -1367,9 +1367,9 @@ void Havoc_geom::dump_xsec_file(int geom_no, FILE* dump_file)
 }
 
 //==== Create Degenerate Geometry ====//
-DegenGeom* Havoc_geom::createDegenGeom()
+void Havoc_geom::createDegenGeom(vector<DegenGeom> &dgs)
 {
-	return body_surf.createBodyDegenGeom(this, sym_code, model_mat, reflect_mat);
+	body_surf.createBodyDegenGeom(this, sym_code, model_mat, reflect_mat, dgs);
 }
 
 //==== Aero Ref Parameters ====//

@@ -205,8 +205,8 @@ public:
    // xsec_surf_degen.cpp
 
 
-   DegenGeom* createSurfDegenGeom(Geom* parentGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4]);
-   DegenGeom* createBodyDegenGeom(Geom* parentGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4]);
+   void createSurfDegenGeom(Geom* parentGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4], vector<DegenGeom> &dgs);
+   void createBodyDegenGeom(Geom* parentGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4], vector<DegenGeom> &dgs);
 
 
    // End of degenerate geometry stuff.

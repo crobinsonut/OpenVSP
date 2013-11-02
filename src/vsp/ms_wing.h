@@ -358,7 +358,7 @@ public:
    virtual void dump_xsec_file(int, FILE*);
 
    //===== Degen Geom =====//
-   DegenGeom* createDegenGeom();
+   virtual void createDegenGeom( vector<DegenGeom> &dgs);
 
    //===== Aero Functions =====
    virtual void write_aero_file(FILE* aero_file, int aero_id_num);

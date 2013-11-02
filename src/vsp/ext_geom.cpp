@@ -386,9 +386,9 @@ void Ext_geom::write(FILE* file_id)
 }
 
 //==== Create Degenerate Geometry ====//
-DegenGeom* Ext_geom::createDegenGeom()
+void Ext_geom::createDegenGeom(vector<DegenGeom> &dgs)
 {
-	return body_surf.createBodyDegenGeom(this, sym_code, model_mat, reflect_mat);
+	body_surf.createBodyDegenGeom(this, sym_code, model_mat, reflect_mat, dgs);
 }
 
 //==== Write External File ====//

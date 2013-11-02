@@ -172,7 +172,7 @@ public:
    virtual void dump_xsec_file(int geom_no, FILE* dump_file);
 
    //===== Degen Geom =====//
-  DegenGeom* createDegenGeom();
+   virtual void createDegenGeom( vector<DegenGeom> &dgs);
 	
    virtual int write_felisa_file(int geom_no, FILE* dump_file);
    virtual void write_bco_info(FILE*, int&, int&);

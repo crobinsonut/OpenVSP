@@ -1711,9 +1711,9 @@ void Fuse_geom::dump_xsec_file(int geom_no, FILE* dump_file)
 }
 
 //==== Create Degenerate Geometry ====//
-DegenGeom* Fuse_geom::createDegenGeom()
+void Fuse_geom::createDegenGeom(vector<DegenGeom> &dgs)
 {
-	return oml_surf.createBodyDegenGeom(this, sym_code, model_mat, reflect_mat);
+	oml_surf.createBodyDegenGeom(this, sym_code, model_mat, reflect_mat, dgs);
 }
 
 //==== Return Number Of Felisa Surfaces Written Out ====//
