@@ -76,7 +76,14 @@ public:
 
 	enum { SURFACE_TYPE, BODY_TYPE };
 
-	DegenGeom(){};
+	DegenGeom()
+	{
+		reflected_flag = false;
+		type = BODY_TYPE;
+		num_pnts = 0;
+		num_xsecs = 0;
+		parentGeom = NULL;
+	};
 	virtual ~DegenGeom(){};
 
 	DegenPoint   getDegenPoint()    { return degenPoint;   }
@@ -95,6 +102,11 @@ public:
 	void setWarray( const vector< double > &warr )	{ wArray = warr; }
 
 	void setName( char* namein)			{ name = string(namein); }
+	string getName()					{ return name; }
+
+	void setRefl( bool ref )			{ reflected_flag = ref; }
+	bool getRefl()						{ return reflected_flag; }
+
 
 	Geom* getParentGeom()				{ return parentGeom; }
 	void  setParentGeom( Geom* geom )	{ parentGeom = geom; }
@@ -103,10 +115,7 @@ public:
 	void setType( int geomType)	{ type = geomType; }
 
 	void write_degenGeomCsv_file(FILE* file_id);
-	void write_refl_degenGeomCsv_file(FILE* file_id);
-
 	void write_degenGeomM_file(FILE* file_id);
-	void write_refl_degenGeomM_file(FILE* file_id);
 
 
 	vec3d  get_area_normal( int ixs, const array_2d<vec3d> &pntsarr );
@@ -146,6 +155,8 @@ protected:
 
 	Geom* parentGeom;
 	int   type;
+
+	bool reflected_flag;
 
 };
 

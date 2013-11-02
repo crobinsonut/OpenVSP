@@ -2938,9 +2938,6 @@ string Aircraft::writeDegenGeomFile()
 
 			degenGeom[i].write_degenGeomCsv_file( file_id );
 
-			if ( degenGeom[i].getParentGeom()->getSymCode() != NO_SYM )
-				degenGeom[i].write_refl_degenGeomCsv_file( file_id );
-
 			if ( degenGeom[i].getParentGeom()->getType() == MS_WING_GEOM_TYPE )
 				((Ms_wing_geom*)degenGeom[i].getParentGeom())->set_round_end_cap_flag(roundEndCapFlag);
 
@@ -2998,8 +2995,6 @@ string Aircraft::writeDegenGeomFile()
 				}
 
 				degenGeom[i].write_degenGeomM_file(file_id);
-				if ( degenGeom[i].getParentGeom()->getSymCode() != NO_SYM )
-					degenGeom[i].write_refl_degenGeomM_file(file_id);
 
 				if ( degenGeom[i].getParentGeom()->getType() == MS_WING_GEOM_TYPE )
 					((Ms_wing_geom*)degenGeom[i].getParentGeom())->set_round_end_cap_flag(roundEndCapFlag);

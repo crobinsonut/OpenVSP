@@ -1665,53 +1665,17 @@ void MeshGeom::degenGeomIntersectTrim(vector< DegenGeom > &degenGeom )
 			leftOverCnt = 0;
 	}
 
-
-	bool matchFlag;
 	for ( i = 0; i < (int)degenGeom.size(); i++ )
 	{
-		matchFlag = false;
 		DegenPoint degenPoint = degenGeom[i].getDegenPoint();
 
-		for ( j = 0; j < (int)tMeshCompVec.size(); j++ )
-		{
-			if ( degenGeom[i].getParentGeom()->getPtrID() == tMeshCompVec[j][0]->ptr_id )
-			{
-				matchFlag = true;
-				degenPoint.area.push_back(tMeshCompVec[j][0]->theoArea);
-				degenPoint.areaWet.push_back(tMeshCompVec[j][0]->wetArea);
-				degenPoint.vol.push_back(tMeshCompVec[j][0]->theoVol);
-				degenPoint.volWet.push_back(tMeshCompVec[j][0]->wetVol);
-
-				if ( degenGeom[i].getParentGeom()->getSymCode() != NO_SYM )
-				{
-					j++;
-					degenPoint.area.push_back(tMeshCompVec[j][0]->theoArea);
-					degenPoint.areaWet.push_back(tMeshCompVec[j][0]->wetArea);
-					degenPoint.vol.push_back(tMeshCompVec[j][0]->theoVol);
-					degenPoint.volWet.push_back(tMeshCompVec[j][0]->wetVol);
-				}
-			}
-		}
-		if ( !matchFlag )
-		{
-			degenPoint.area.push_back(NAN);
-			degenPoint.areaWet.push_back(NAN);
-			degenPoint.vol.push_back(NAN);
-			degenPoint.volWet.push_back(NAN);
-
-			if ( degenGeom[i].getParentGeom()->getSymCode() != NO_SYM )
-			{
-				degenPoint.area.push_back(NAN);
-				degenPoint.areaWet.push_back(NAN);
-				degenPoint.vol.push_back(NAN);
-				degenPoint.volWet.push_back(NAN);
-			}
-		}
+		degenPoint.area.push_back(tMeshCompVec[i][0]->theoArea);
+		degenPoint.areaWet.push_back(tMeshCompVec[i][0]->wetArea);
+		degenPoint.vol.push_back(tMeshCompVec[i][0]->theoVol);
+		degenPoint.volWet.push_back(tMeshCompVec[i][0]->wetVol);
 
 		degenGeom[i].setDegenPoint(degenPoint);
 	}
-
-
 }
 
 //==== Call After BndBoxes Have Been Create But Before Intersect ====//
@@ -2693,19 +2657,6 @@ void MeshGeom::degenGeomMassSliceX(vector< DegenGeom > &degenGeom)
 	MeshInfo info;
 	mergeRemoveOpenMeshes( &info );
 
-	//==== Count Components ====//
-	vector< int > compIdVec;
-	for ( i = 0 ; i < (int)tMeshVec.size() ; i++ )
-	{
-		int id = tMeshVec[i]->ptr_id;
-		vector<int>::iterator iter;
-
-		iter = find(compIdVec.begin(), compIdVec.end(), id );
-
-		if ( iter == compIdVec.end() )
-			compIdVec.push_back( id );
-	}
-
 	//==== Create Bnd Box for  Mesh Geoms ====//
 	for ( i = 0 ; i < (int)tMeshVec.size() ; i++ )
 	{
@@ -2873,13 +2824,12 @@ void MeshGeom::degenGeomMassSliceX(vector< DegenGeom > &degenGeom)
 
 	vector<vec3d> compSolidCg, compShellCg;
 	vector< vector<double> > compSolidI, compShellI;
-	vector<int> tMeshVecPtrId;
 
-	for ( s = 0, j = 0 ; s < (int)tMeshVec.size() ; s++, j++ )
+
+	for ( s = 0 ; s < (int)tMeshVec.size() ; s++ )
 	{
 		TMesh* tm = tMeshVec[s];
 		int id = tm->ptr_id;
-		tMeshVecPtrId.push_back(id);
 
 		vec3d cgSolid(0,0,0), cgShell(0,0,0);
 		double compMassSolid = 0.0, compMassShell = 0.0;
@@ -2983,45 +2933,39 @@ void MeshGeom::degenGeomMassSliceX(vector< DegenGeom > &degenGeom)
 		DegenPoint degenPoint = degenGeom[i].getDegenPoint();
 
 		// Loop through tmesh vector
-		for ( j = 0; j < tMeshVecPtrId.size(); j++ )
+		for ( j = 0; j < tMeshVec.size(); j++ )
 		{
 			// If its pointer id matches the current degenGeom
-			if ( degenGeom[i].getParentGeom()->getPtrID() == tMeshVecPtrId[j] )
+			bool thismatch = false;
+			if( tMeshVec[j]->reflected_flag == true )
 			{
-				// Then there is a match, fill in current degenPoint info
-				matchFlag = true;
+				if ( (degenGeom[i].getParentGeom()->getPtrID() == -tMeshVec[j]->ptr_id) && (degenGeom[i].getRefl() == tMeshVec[j]->reflected_flag) )
+				{
+					thismatch = true;
+				}
+			}
+			else
+			{
+				if ( (degenGeom[i].getParentGeom()->getPtrID() == tMeshVec[j]->ptr_id) && (degenGeom[i].getRefl() == tMeshVec[j]->reflected_flag) )
+				{
+					thismatch = true;
+				}
+			}
+
+			if(thismatch)
+			{
 				degenPoint.Isolid.push_back(compSolidI[j]);
 				degenPoint.Ishell.push_back(compShellI[j]);
 				degenPoint.xcgSolid.push_back(compSolidCg[j]);
 				degenPoint.xcgShell.push_back(compShellCg[j]);
-
-				if ( degenGeom[i].getParentGeom()->getSymCode() != NO_SYM )
-				{
-					j++;
-					degenPoint.Isolid.push_back(compSolidI[j]);
-					degenPoint.Ishell.push_back(compShellI[j]);
-					degenPoint.xcgSolid.push_back(compSolidCg[j]);
-					degenPoint.xcgShell.push_back(compShellCg[j]);
-				}
+				matchFlag = true;
 			}
 		}
-		// No tmesh was created for this degenGeom, meaning it's probably an open component
 		if ( !matchFlag )
 		{
-			// Push back everything twice in case it was reflected. This doesn't positively or
-			// negatively affect a component that didn't in fact have reflected symmetry since write
-			// routines only would look for the first line. If it was reflected however, write
-			// routines will look for the second line, causing a seg fault if it's not there.
 			degenPoint.Isolid.push_back( vector<double>(6,NAN) );
-			degenPoint.Isolid.push_back( vector<double>(6,NAN) );
-
 			degenPoint.Ishell.push_back( vector<double>(6,NAN) );
-			degenPoint.Ishell.push_back( vector<double>(6,NAN) );
-
 			degenPoint.xcgSolid.push_back( vec3d(NAN,NAN,NAN) );
-			degenPoint.xcgSolid.push_back( vec3d(NAN,NAN,NAN) );
-
-			degenPoint.xcgShell.push_back( vec3d(NAN,NAN,NAN) );
 			degenPoint.xcgShell.push_back( vec3d(NAN,NAN,NAN) );
 		}
 

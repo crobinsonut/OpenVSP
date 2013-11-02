@@ -300,6 +300,8 @@ void TMesh::copy( TMesh* m )
 
 	drag_factors = m->drag_factors;
 
+	reflected_flag = m->reflected_flag;
+
 	tVec.clear();
 	nVec.clear();
 

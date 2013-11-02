@@ -2265,26 +2265,39 @@ void Xsec_surf::createSurfDegenGeom(Geom* parentGeom, int sym_code_in, float mat
 	degenGeom.setUarray( uArray );
 	degenGeom.setWarray( wArray );
 	degenGeom.setName( parentGeom->getName() );
-
-	if ( sym_code_in != refl_pnts_xsecs_code )
-	{
-		refl_pnts_xsecs_code = sym_code_in;
-		load_refl_pnts_xsecs();
-	}
+	degenGeom.setRefl( false );
 
 	degenGeom.createDegenSurface(sym_code_in, mat, pnts_xsecs, false);
-	if(sym_code_in != NO_SYM)
-		degenGeom.createDegenSurface(sym_code_in, refl_mat, refl_pnts_xsecs, true);
-
 	degenGeom.createSurfDegenPlate(sym_code_in, mat, pnts_xsecs);
-	if(sym_code_in != NO_SYM)
-		degenGeom.createSurfDegenPlate(sym_code_in, refl_mat, refl_pnts_xsecs);
-
 	degenGeom.createSurfDegenStick(sym_code_in, mat, pnts_xsecs);
-	if ( sym_code_in != NO_SYM )
-		degenGeom.createSurfDegenStick(sym_code_in, refl_mat, refl_pnts_xsecs);
 
-    dgs.push_back(degenGeom);
+	dgs.push_back(degenGeom);
+
+	if ( sym_code_in != NO_SYM )
+	{
+		DegenGeom degenGeomsym;
+		degenGeomsym.setParentGeom(parentGeom);
+		degenGeomsym.setType(DegenGeom::SURFACE_TYPE);
+
+		degenGeomsym.setNumXSecs( num_xsecs );
+		degenGeomsym.setNumPnts( num_pnts );
+		degenGeomsym.setUarray( uArray );
+		degenGeomsym.setWarray( wArray );
+		degenGeomsym.setName( parentGeom->getName() );
+		degenGeomsym.setRefl( true );
+
+		if ( sym_code_in != refl_pnts_xsecs_code )
+		{
+			refl_pnts_xsecs_code = sym_code_in;
+			load_refl_pnts_xsecs();
+		}
+
+		degenGeomsym.createDegenSurface(sym_code_in, refl_mat, refl_pnts_xsecs, true);
+		degenGeomsym.createSurfDegenPlate(sym_code_in, refl_mat, refl_pnts_xsecs);
+		degenGeomsym.createSurfDegenStick(sym_code_in, refl_mat, refl_pnts_xsecs);
+
+	    dgs.push_back(degenGeomsym);
+	}
 }
 
 void Xsec_surf::createBodyDegenGeom(Geom* parentGeom, int sym_code_in, float mat[4][4], float refl_mat[4][4], vector<DegenGeom> &dgs)
@@ -2298,26 +2311,39 @@ void Xsec_surf::createBodyDegenGeom(Geom* parentGeom, int sym_code_in, float mat
 	degenGeom.setUarray( uArray );
 	degenGeom.setWarray( wArray );
 	degenGeom.setName( parentGeom->getName() );
-
-	if ( sym_code_in != refl_pnts_xsecs_code )
-	{
-		refl_pnts_xsecs_code = sym_code_in;
-		load_refl_pnts_xsecs();
-	}
+	degenGeom.setRefl( false );
 
 	degenGeom.createDegenSurface(sym_code_in, mat, pnts_xsecs, false);
-	if(sym_code_in != NO_SYM)
-		degenGeom.createDegenSurface(sym_code_in, refl_mat, refl_pnts_xsecs, true);
-
 	degenGeom.createBodyDegenPlate(sym_code_in, mat, pnts_xsecs);
-	if ( sym_code_in != NO_SYM )
-		degenGeom.createBodyDegenPlate(sym_code_in, refl_mat, refl_pnts_xsecs);
-
 	degenGeom.createBodyDegenStick(sym_code_in, mat, pnts_xsecs);
-	if ( sym_code_in != NO_SYM )
-		degenGeom.createBodyDegenStick(sym_code_in, refl_mat, refl_pnts_xsecs);
 
     dgs.push_back(degenGeom);
+
+	if ( sym_code_in != NO_SYM )
+	{
+		DegenGeom degenGeomsym;
+		degenGeomsym.setParentGeom(parentGeom);
+		degenGeomsym.setType(DegenGeom::BODY_TYPE);
+
+		degenGeomsym.setNumXSecs( num_xsecs );
+		degenGeomsym.setNumPnts( num_pnts );
+		degenGeomsym.setUarray( uArray );
+		degenGeomsym.setWarray( wArray );
+		degenGeomsym.setName( parentGeom->getName() );
+		degenGeomsym.setRefl( true );
+
+		if ( sym_code_in != refl_pnts_xsecs_code )
+		{
+			refl_pnts_xsecs_code = sym_code_in;
+			load_refl_pnts_xsecs();
+		}
+
+		degenGeomsym.createDegenSurface(sym_code_in, refl_mat, refl_pnts_xsecs, true);
+		degenGeomsym.createBodyDegenPlate(sym_code_in, refl_mat, refl_pnts_xsecs);
+		degenGeomsym.createBodyDegenStick(sym_code_in, refl_mat, refl_pnts_xsecs);
+
+		dgs.push_back(degenGeomsym);
+	}
 }
 
 
