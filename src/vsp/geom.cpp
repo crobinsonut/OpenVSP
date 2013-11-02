@@ -1437,17 +1437,6 @@ void Geom::dump_xsec_file(int geom_no, FILE* dump_file)
 
 }
 
-//==== Write DegenGeom File(s) ====//
-void Geom::write_degenGeomCsv_file(DegenGeom* degenGeom, FILE* file_id)
-{
-
-}
-
-void Geom::write_degenGeomM_file(DegenGeom* degenGeom, FILE* file_id)
-{
-
-}
-
 //==== Create Degenerate Geometry ====//
 DegenGeom* Geom::createDegenGeom()
 {
@@ -2354,31 +2343,6 @@ void PodGeom::dump_xsec_file(int geom_no, FILE* dump_file)
       body_surf.write_refl_xsec(sym_code, i, reflect_mat, dump_file);
     }
 
-}
-
-//==== Write DegenGeom File(s) ====//
-void PodGeom::write_degenGeomCsv_file(DegenGeom* degenGeom, FILE* file_id)
-{
-	fprintf(file_id, "\nBODY,%s\n", (char*) getName());
-	degenGeom->write_degenGeomCsv_file(file_id);
-
-	if( sym_code == NO_SYM ) return;
-
-	fprintf(file_id, "\nBODY,%s_refl\n", (char*) getName());
-	degenGeom->write_refl_degenGeomCsv_file(file_id);
-}
-
-void PodGeom::write_degenGeomM_file(DegenGeom* degenGeom, FILE* file_id)
-{
-	fprintf(file_id, "\ndegenGeom(end+1).type = 'BODY';");
-	fprintf(file_id, "\ndegenGeom(end).name = '%s';", (char*) getName());
-	degenGeom->write_degenGeomM_file(file_id);
-
-	if ( sym_code == NO_SYM ) return;
-
-	fprintf(file_id, "\ndegenGeom(end+1).type = 'BODY';");
-	fprintf(file_id, "\ndegenGeom(end).name = '%s_refl';", (char*) getName());
-	degenGeom->write_refl_degenGeomM_file(file_id);
 }
 
 //==== Create Degenerate Geometry ====//

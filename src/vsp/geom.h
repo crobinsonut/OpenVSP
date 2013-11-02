@@ -244,8 +244,6 @@ public:
 
 	//===== Degenerate Geometry =====//
 	virtual DegenGeom* createDegenGeom();
-	virtual void write_degenGeomCsv_file(DegenGeom* degenGeom, FILE* file_id);
-	virtual void write_degenGeomM_file(DegenGeom* degenGeom, FILE* file_id);
 
 	//===== Felisa Functions =====
 	virtual int write_felisa_file(int geom_no, FILE*)		{ return(geom_no); }
@@ -543,8 +541,6 @@ public:
 
 	//===== Degenerate Geometry =====//
 	virtual DegenGeom* createDegenGeom();
-	virtual void write_degenGeomCsv_file(DegenGeom* degenGeom, FILE* file_id);
-	virtual void write_degenGeomM_file(DegenGeom* degenGeom, FILE* file_id);
 
 
     virtual vec3d getVertex3d(int surf, double x, double p, int r)	{ return body_surf.get_vertex(x, p, r); }

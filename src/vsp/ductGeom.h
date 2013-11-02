@@ -78,8 +78,6 @@ public:
    virtual void dump_xsec_file(int geom_no, FILE* dump_file);
 
    //===== Degen Geom =====//
-   void write_degenGeomCsv_file(DegenGeom* degenGeom, FILE* file_id);
-   void write_degenGeomM_file(DegenGeom* degenGeom, FILE* file_id);
    DegenGeom* createDegenGeom();
 
    virtual void computeCenter();

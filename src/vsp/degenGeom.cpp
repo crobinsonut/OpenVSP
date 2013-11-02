@@ -1100,6 +1100,24 @@ void DegenGeom::write_degenGeomCsv_file(FILE* file_id)
 {
 	int nxsecs = num_xsecs;
 
+	if( type == SURFACE_TYPE )
+		fprintf(file_id, "\nSURFACE,%s\n", name.c_str() );
+	else
+		fprintf(file_id, "\nBODY,%s\n", name.c_str() );
+
+	if ( parentGeom->getTypeStr() == "prop" )
+	{
+		fprintf(file_id, "# Propeller, Num Blades, Diameter, xLoc, yLoc, zLoc, nRotX, nRotY, nRotZ\n");
+		fprintf(file_id, "PROP, %d, %f, %f, %f, %f, %f, %f, %f\n",  degenProp.nblade,	\
+																	degenProp.d,		\
+																	degenProp.x.x(),	\
+																	degenProp.x.y(),	\
+																	degenProp.x.z(),	\
+																	degenProp.nvec.x(),	\
+																	degenProp.nvec.y(),	\
+																	degenProp.nvec.z()	);
+	}
+
 	if ( parentGeom->getTypeStr() == "wing" || parentGeom->getTypeStr() == "prop" )
 		nxsecs -= 2;
 	int nxsecsOrig = nxsecs;
@@ -1222,7 +1240,7 @@ void DegenGeom::write_degenGeomCsv_file(FILE* file_id)
 	fprintf(file_id, "POINT\n");
 	fprintf(file_id, "# vol,volWet,area,areaWet,IxxShell,IyyShell,IzzShell,IxyShell,");
 	fprintf(file_id, "IxzShell,IyzShell,IxxSolid,IyySolid,IzzSolid,IxySolid,IxzSolid,");
-	fprintf(file_id, "IyzSolid,xcgShell,ycgShell,zcgShell,xcgSolid,ycgSolid,zcgSolid\n");
+	fprintf(file_id, "IyzSolid,xcgShell,ycgShell,zcgShell,xcgSolid,ycgSolid,zcgSolid\n"); // Need newline below.  Omitting for diff-consistency.
 	fprintf(	file_id, "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f",\
 			degenPoint.vol[0],			\
 			degenPoint.volWet[0],		\
@@ -1251,6 +1269,24 @@ void DegenGeom::write_degenGeomCsv_file(FILE* file_id)
 void DegenGeom::write_refl_degenGeomCsv_file(FILE* file_id)
 {
 	int nxsecs = num_xsecs;
+
+	if( type == SURFACE_TYPE )
+		fprintf(file_id, "\nSURFACE,%s\n", (name + "_refl").c_str() );
+	else
+		fprintf(file_id, "\nBODY,%s\n", (name + "_refl").c_str() );
+
+	if ( parentGeom->getTypeStr() == "prop" )
+	{
+		fprintf(file_id, "# Propeller, Num Blades, Diameter, xLoc, yLoc, zLoc, nRotX, nRotY, nRotZ\n");
+		fprintf(file_id, "PROP, %d, %f, %f, %f, %f, %f, %f, %f\n",  degenProp.nblade,	\
+																	degenProp.d,		\
+																	degenProp.x.x(),	\
+																	degenProp.x.y(),	\
+																	degenProp.x.z(),	\
+																	degenProp.nvec.x(),	\
+																	degenProp.nvec.y(),	\
+																	degenProp.nvec.z()	);
+	}
 
 	if ( parentGeom->getTypeStr() == "wing" || parentGeom->getTypeStr() == "prop" )
 		nxsecs -= 2;
@@ -1373,7 +1409,7 @@ void DegenGeom::write_refl_degenGeomCsv_file(FILE* file_id)
 	fprintf(file_id, "POINT\n");
 	fprintf(file_id, "# vol,volWet,area,areaWet,IxxShell,IyyShell,IzzShell,IxyShell,");
 	fprintf(file_id, "IxzShell,IyzShell,IxxSolid,IyySolid,IzzSolid,IxySolid,IxzSolid,");
-	fprintf(file_id, "IyzSolid,xcgShell,ycgShell,zcgShell,xcgSolid,ycgSolid,zcgSolid\n");
+	fprintf(file_id, "IyzSolid,xcgShell,ycgShell,zcgShell,xcgSolid,ycgSolid,zcgSolid\n");// Need newline below.  Omitting for diff-consistency.
 	fprintf(	file_id, "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f",\
 			degenPoint.vol[1],			\
 			degenPoint.volWet[1],		\
@@ -1402,6 +1438,29 @@ void DegenGeom::write_refl_degenGeomCsv_file(FILE* file_id)
 void DegenGeom::write_degenGeomM_file(FILE* file_id)
 {
 	int nxsecs = num_xsecs;
+
+	if( type == SURFACE_TYPE )
+	{
+		fprintf(file_id, "\ndegenGeom(end+1).type = 'SURFACE';");
+		fprintf(file_id, "\ndegenGeom(end).name = '%s';", name.c_str() );
+	}
+	else
+	{
+		fprintf(file_id, "\ndegenGeom(end+1).type = 'BODY';");
+		fprintf(file_id, "\ndegenGeom(end).name = '%s';", name.c_str() );
+	}
+
+	if ( parentGeom->getTypeStr() == "prop" )
+	{
+		fprintf(file_id, "\npropGeom(end).numBlades = %d;", degenProp.nblade);
+		fprintf(file_id, "\npropGeom(end).diameter = %f;", degenProp.d);
+		fprintf(file_id, "\npropGeom(end).rotCenter = [%f, %f, %f];",	degenProp.x.x(),	\
+																		degenProp.x.y(),	\
+																		degenProp.x.z()	);
+		fprintf(file_id, "\npropGeom(end).rotVec = [%f, %f, %f];",		degenProp.nvec.x(),	\
+																		degenProp.nvec.y(), \
+																		degenProp.nvec.z()	);
+	}
 
 	if ( parentGeom->getTypeStr() == "wing" || parentGeom->getTypeStr() == "prop" )
 		nxsecs -= 2;
@@ -1722,6 +1781,29 @@ void DegenGeom::write_degenGeomM_file(FILE* file_id)
 void DegenGeom::write_refl_degenGeomM_file(FILE* file_id)
 {
 	int nxsecs = num_xsecs;
+
+	if( type == SURFACE_TYPE )
+	{
+		fprintf(file_id, "\ndegenGeom(end+1).type = 'SURFACE';");
+		fprintf(file_id, "\ndegenGeom(end).name = '%s';", (name + "_refl").c_str() );
+	}
+	else
+	{
+		fprintf(file_id, "\ndegenGeom(end+1).type = 'BODY';");
+		fprintf(file_id, "\ndegenGeom(end).name = '%s';", (name + "_refl").c_str() );
+	}
+
+	if ( parentGeom->getTypeStr() == "prop" )
+	{
+		fprintf(file_id, "\npropGeom(end).numBlades = %d;", degenProp.nblade);
+		fprintf(file_id, "\npropGeom(end).diameter = %f;", degenProp.d);
+		fprintf(file_id, "\npropGeom(end).rotCenter = [%f, %f, %f];",	degenProp.x.x(),	\
+																		degenProp.x.y(),	\
+																		degenProp.x.z()	);
+		fprintf(file_id, "\npropGeom(end).rotVec = [%f, %f, %f];",		degenProp.nvec.x(),	\
+																		degenProp.nvec.y(), \
+																		degenProp.nvec.z()	);
+	}
 
 	if ( parentGeom->getTypeStr() == "wing" || parentGeom->getTypeStr() == "prop" )
 		nxsecs -= 2;

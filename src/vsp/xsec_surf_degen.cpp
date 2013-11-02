@@ -14,6 +14,7 @@ DegenGeom* Xsec_surf::createSurfDegenGeom(Geom* parentGeom, int sym_code_in, flo
 	degenGeom->setNumPnts( num_pnts );
 	degenGeom->setUarray( uArray );
 	degenGeom->setWarray( wArray );
+	degenGeom->setName( parentGeom->getName() );
 
 	if ( sym_code_in != refl_pnts_xsecs_code )
 	{
@@ -46,6 +47,7 @@ DegenGeom* Xsec_surf::createBodyDegenGeom(Geom* parentGeom, int sym_code_in, flo
 	degenGeom->setNumPnts( num_pnts );
 	degenGeom->setUarray( uArray );
 	degenGeom->setWarray( wArray );
+	degenGeom->setName( parentGeom->getName() );
 
 	if ( sym_code_in != refl_pnts_xsecs_code )
 	{

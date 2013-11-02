@@ -2933,17 +2933,21 @@ string Aircraft::writeDegenGeomFile()
 
 		for ( int i = 0; i < (int)degenGeom.size(); i++ )
 		{
+			bool roundEndCapFlag;
 			if ( degenGeom[i]->getParentGeom()->getType() == MS_WING_GEOM_TYPE )
 			{
-				bool roundEndCapFlag = ((Ms_wing_geom*)degenGeom[i]->getParentGeom())->get_round_end_cap_flag();
+				roundEndCapFlag = ((Ms_wing_geom*)degenGeom[i]->getParentGeom())->get_round_end_cap_flag();
 				((Ms_wing_geom*)degenGeom[i]->getParentGeom())->set_round_end_cap_flag(false);
-				degenGeom[i]->getParentGeom()->write_degenGeomCsv_file( degenGeom[i] , file_id );
+			}
+
+			degenGeom[i]->write_degenGeomCsv_file( file_id );
+
+			if ( degenGeom[i]->getParentGeom()->getSymCode() != NO_SYM )
+				degenGeom[i]->write_refl_degenGeomCsv_file( file_id );
+
+			if ( degenGeom[i]->getParentGeom()->getType() == MS_WING_GEOM_TYPE )
 				((Ms_wing_geom*)degenGeom[i]->getParentGeom())->set_round_end_cap_flag(roundEndCapFlag);
-			}
-			else
-			{
-				degenGeom[i]->getParentGeom()->write_degenGeomCsv_file( degenGeom[i] , file_id );
-			}
+
 		}
 
 		fclose(file_id);
@@ -2984,23 +2988,30 @@ string Aircraft::writeDegenGeomFile()
 
 			for ( int i = 0, propIdx = 1; i < (int)degenGeom.size(); i++, propIdx++ )
 			{
+				bool roundEndCapFlag;
+
 				if ( degenGeom[i]->getParentGeom()->getType() == MS_WING_GEOM_TYPE )
 				{
-					bool roundEndCapFlag = ((Ms_wing_geom*)degenGeom[i]->getParentGeom())->get_round_end_cap_flag();
+					roundEndCapFlag = ((Ms_wing_geom*)degenGeom[i]->getParentGeom())->get_round_end_cap_flag();
 					((Ms_wing_geom*)degenGeom[i]->getParentGeom())->set_round_end_cap_flag(false);
-					degenGeom[i]->getParentGeom()->write_degenGeomM_file( degenGeom[i] , file_id );
-					((Ms_wing_geom*)degenGeom[i]->getParentGeom())->set_round_end_cap_flag(roundEndCapFlag);
 				}
 				else if(degenGeom[i]->getParentGeom()->getType() == PROP_GEOM_TYPE)
 				{
 					fprintf(file_id,"\nif ~exist('propGeom','var'); propGeom = []; end;");
 					fprintf(file_id,"\npropGeom(end+1).idx = %d;",propIdx);
-					degenGeom[i]->getParentGeom()->write_degenGeomM_file( degenGeom[i] , file_id );
 				}
-				else
-				{
-					degenGeom[i]->getParentGeom()->write_degenGeomM_file( degenGeom[i] , file_id );
-				}
+
+
+				degenGeom[i]->write_degenGeomM_file(file_id);
+				if ( degenGeom[i]->getParentGeom()->getSymCode() != NO_SYM )
+					degenGeom[i]->write_refl_degenGeomM_file(file_id);
+
+
+				if ( degenGeom[i]->getParentGeom()->getType() == MS_WING_GEOM_TYPE )
+					((Ms_wing_geom*)degenGeom[i]->getParentGeom())->set_round_end_cap_flag(roundEndCapFlag);
+
+
+
 				// Keep a counter to index into degenGeom for propeller components.
 				// Increment if reflected symmetry.
 				if ( degenGeom[i]->getParentGeom()->getSymCode() != NO_SYM ) propIdx++;

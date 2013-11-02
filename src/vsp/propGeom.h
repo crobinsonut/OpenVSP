@@ -115,9 +115,9 @@ public:
    virtual void dump_xsec_file(int, FILE* );
 
    //===== Degen Geom =====//
-   void write_degenGeomCsv_file(DegenGeom* degenGeom, FILE* file_id);
-   void write_degenGeomM_file(DegenGeom* degenGeom, FILE* file_id);
    DegenGeom* createDegenGeom();
+
+   void createDegenProp( DegenGeom *dg );
 
    virtual void write_rhino_file(ON_BinaryFile* archive, ON_3dmObjectAttributes* attributes );
    virtual vector< TMesh* > createTMeshVec();

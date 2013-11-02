@@ -1148,31 +1148,6 @@ void FuselageGeom::dump_xsec_file(int geom_no, FILE* dump_file)
     }
 }
 
-//==== Write DegenGeom File(s) ====//
-void FuselageGeom::write_degenGeomCsv_file(DegenGeom* degenGeom, FILE* file_id)
-{
-	fprintf(file_id, "\nBODY,%s\n", (char*) getName());
-	degenGeom->write_degenGeomCsv_file(file_id);
-
-	if ( sym_code == NO_SYM ) return;
-
-	fprintf(file_id, "\nBODY,%s_refl\n", (char*) getName());
-	degenGeom->write_refl_degenGeomCsv_file(file_id);
-}
-
-void FuselageGeom::write_degenGeomM_file(DegenGeom* degenGeom, FILE* file_id)
-{
-	fprintf(file_id, "\ndegenGeom(end+1).type = 'BODY';");
-	fprintf(file_id, "\ndegenGeom(end).name = '%s';", (char*) getName());
-	degenGeom->write_degenGeomM_file(file_id);
-
-	if ( sym_code == NO_SYM ) return;
-
-	fprintf(file_id, "\ndegenGeom(end+1).type = 'BODY';");
-	fprintf(file_id, "\ndegenGeom(end).name = '%s_refl';", (char*) getName());
-	degenGeom->write_refl_degenGeomM_file(file_id);
-}
-
 //==== Create Degenerate Geometry ====//
 DegenGeom* FuselageGeom::createDegenGeom()
 {

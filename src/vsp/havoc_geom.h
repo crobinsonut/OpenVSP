@@ -185,8 +185,6 @@ public:
    void dump_xsec_file(int, FILE* );
 
    //===== Degen Geom =====//
-   void write_degenGeomCsv_file(DegenGeom* degenGeom, FILE* file_id);
-   void write_degenGeomM_file(DegenGeom* degenGeom, FILE* file_id);
    DegenGeom* createDegenGeom();
 
    double get_area();

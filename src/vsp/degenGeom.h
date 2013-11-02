@@ -13,7 +13,6 @@
 #include "vec2d.h"
 #include "array_2d.h"
 
-
 class Geom;
 
 typedef struct {
@@ -63,6 +62,12 @@ typedef struct {
     vector< vec3d >			 	xcgSolid;	//!
 } DegenPoint;
 
+typedef struct {
+	int							nblade;
+	double						d;
+	vec3d						x;
+	vec3d						nvec;
+} DegenProp;
 
 class DegenGeom
 {
@@ -75,8 +80,10 @@ public:
 	virtual ~DegenGeom(){};
 
 	DegenPoint   getDegenPoint()    { return degenPoint;   }
+	DegenProp	getDegenProp()		{ return degenProp;	}
 
 	void setDegenPoint(   DegenPoint   degenPoint )	{ this->degenPoint   = degenPoint;   }
+	void setDegenProp( DegenProp degenProp ) {this->degenProp = degenProp; }
 
 	int getNumXSecs()	{ return num_xsecs; };
 	int getNumPnts()	{ return num_pnts; };
@@ -86,6 +93,8 @@ public:
 
 	void setUarray( const vector< double > &uarr )	{ uArray = uarr; }
 	void setWarray( const vector< double > &warr )	{ wArray = warr; }
+
+	void setName( char* namein)			{ name = string(namein); }
 
 	Geom* getParentGeom()				{ return parentGeom; }
 	void  setParentGeom( Geom* geom )	{ parentGeom = geom; }
@@ -125,12 +134,15 @@ protected:
 	DegenPlate   degenPlate;
 	DegenStick   degenStick;
 	DegenPoint   degenPoint;
+	DegenProp    degenProp;
 
 	int num_xsecs;
 	int num_pnts;
 
 	vector< double > uArray;
 	vector< double > wArray;
+
+	string name;
 
 	Geom* parentGeom;
 	int   type;

@@ -223,8 +223,6 @@ public:
    void dump_xsec_file(int geom_no, FILE* dump_file);
 
    //===== Degen Geom =====//
-   void write_degenGeomCsv_file(DegenGeom* degenGeom, FILE* file_id);
-   void write_degenGeomM_file(DegenGeom* degenGeom, FILE* file_id);
    DegenGeom* createDegenGeom();
 
    virtual int write_felisa_file(int geom_no, FILE* dump_file);
