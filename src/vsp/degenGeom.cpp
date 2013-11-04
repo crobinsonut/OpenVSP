@@ -1101,7 +1101,7 @@ void DegenGeom::write_degenGeomCsv_file(FILE* file_id)
 	int nxsecs = num_xsecs;
 
 	if( type == SURFACE_TYPE )
-		fprintf(file_id, "\nSURFACE,%s\n", name.c_str() );
+		fprintf(file_id, "\nLIFTING_SURFACE,%s\n", name.c_str() );
 	else
 		fprintf(file_id, "\nBODY,%s\n", name.c_str() );
 
@@ -1123,7 +1123,7 @@ void DegenGeom::write_degenGeomCsv_file(FILE* file_id)
 	int nxsecsOrig = nxsecs;
 
 	fprintf(file_id, "# DegenGeom Type,nXsecs, nPnts/Xsec\n");
-	fprintf(file_id, "FULL_SURFACE,%d,%d\n", nxsecs, num_pnts);
+	fprintf(file_id, "SURFACE_NODE,%d,%d\n", nxsecs, num_pnts);
 	fprintf(file_id, "# x,y,z,xn,yn,zn,u,w\n");
 
 	for ( int i = 0; i < nxsecs; i++ )
@@ -1272,7 +1272,7 @@ void DegenGeom::write_degenGeomM_file(FILE* file_id)
 
 	if( type == SURFACE_TYPE )
 	{
-		fprintf(file_id, "\ndegenGeom(end+1).type = 'SURFACE';");
+		fprintf(file_id, "\ndegenGeom(end+1).type = 'LIFTING_SURFACE';");
 		fprintf(file_id, "\ndegenGeom(end).name = '%s';", name.c_str() );
 	}
 	else
