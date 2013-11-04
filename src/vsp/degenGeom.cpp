@@ -1298,36 +1298,71 @@ void DegenGeom::write_degenGeomM_file(FILE* file_id)
 	int nxsecsOrig = nxsecs;
 
 	//============================= DegenSurf =============================//
+	fprintf(file_id, "\ndegenGeom(end).surf.x = [");
 	for ( int i = 0; i < nxsecs; i++ )
 	{
-		fprintf(file_id, "\ndegenGeom(end).surf.sect(%d).X = [", (i+1));
 		for ( int j = 0; j < num_pnts-1; j++ )
-		{
-			fprintf(	file_id, "%f, %f, %f;\n",						\
-					degenSurface.x[i][j].x(),		\
-					degenSurface.x[i][j].y(),		\
-					degenSurface.x[i][j].z()		);
-		}
-		fprintf(	file_id, "%f, %f, %f];",							\
-				degenSurface.x[i][num_pnts-1].x(),	\
-				degenSurface.x[i][num_pnts-1].y(),	\
-				degenSurface.x[i][num_pnts-1].z()	);
+			fprintf( file_id, "%f, ", degenSurface.x[i][j].x() );
+		if ( i < nxsecs-1 )
+			fprintf( file_id, "%f;\n", degenSurface.x[i][num_pnts-1].x() );
+		else
+			fprintf( file_id, "%f];\n", degenSurface.x[i][num_pnts-1].x() );
 	}
 
+	fprintf(file_id, "\ndegenGeom(end).surf.y = [");
 	for ( int i = 0; i < nxsecs; i++ )
 	{
-		fprintf(file_id, "\ndegenGeom(end).surf.sect(%d).Xn = [", (i+1));
 		for ( int j = 0; j < num_pnts-1; j++ )
-		{
-			fprintf(	file_id, "%f, %f, %f;\n",						\
-					degenSurface.nvec[i][j].x(),	\
-					degenSurface.nvec[i][j].y(),	\
-					degenSurface.nvec[i][j].z()		);
-		}
-		fprintf(	file_id, "%f, %f, %f];",								\
-				degenSurface.nvec[i][num_pnts-1].x(),	\
-				degenSurface.nvec[i][num_pnts-1].y(),	\
-				degenSurface.nvec[i][num_pnts-1].z()	);
+			fprintf( file_id, "%f, ", degenSurface.x[i][j].y() );
+		if ( i < nxsecs-1 )
+			fprintf( file_id, "%f;\n", degenSurface.x[i][num_pnts-1].y() );
+		else
+			fprintf( file_id, "%f];\n", degenSurface.x[i][num_pnts-1].y() );
+	}
+
+	fprintf(file_id, "\ndegenGeom(end).surf.z = [");
+	for ( int i = 0; i < nxsecs; i++ )
+	{
+		for ( int j = 0; j < num_pnts-1; j++ )
+			fprintf( file_id, "%f, ", degenSurface.x[i][j].z() );
+		if ( i < nxsecs-1 )
+			fprintf( file_id, "%f;\n", degenSurface.x[i][num_pnts-1].z() );
+		else
+			fprintf( file_id, "%f];\n", degenSurface.x[i][num_pnts-1].z() );
+	}
+
+	// Normal vectors
+	fprintf(file_id, "\ndegenGeom(end).surf.nx = [");
+	for ( int i = 0; i < nxsecs; i++ )
+	{
+		for ( int j = 0; j < num_pnts-1; j++ )
+			fprintf( file_id, "%f, ", degenSurface.nvec[i][j].x() );
+		if ( i < nxsecs-1 )
+			fprintf( file_id, "%f;\n", degenSurface.nvec[i][num_pnts-1].x() );
+		else
+			fprintf( file_id, "%f];\n", degenSurface.nvec[i][num_pnts-1].x() );
+	}
+
+	fprintf(file_id, "\ndegenGeom(end).surf.ny = [");
+	for ( int i = 0; i < nxsecs; i++ )
+	{
+		for ( int j = 0; j < num_pnts-1; j++ )
+			fprintf( file_id, "%f, ", degenSurface.nvec[i][j].y() );
+		if ( i < nxsecs-1 )
+			fprintf( file_id, "%f;\n", degenSurface.nvec[i][num_pnts-1].y() );
+		else
+			fprintf( file_id, "%f];\n", degenSurface.nvec[i][num_pnts-1].y() );
+	}
+
+	fprintf(file_id, "\ndegenGeom(end).surf.nz = [");
+	for ( int i = 0; i < nxsecs; i++ )
+	{
+		for ( int j = 0; j < num_pnts-1; j++ )
+			fprintf( file_id, "%f, ", degenSurface.nvec[i][j].z() );
+		if ( i < nxsecs-1 )
+			fprintf( file_id, "%f;\n", degenSurface.nvec[i][num_pnts-1].z() );
+		else
+			fprintf( file_id, "%f];\n", degenSurface.nvec[i][num_pnts-1].z() );
 	}
 
 	fprintf(file_id, "\ndegenGeom(end).surf.u = [");
@@ -1347,67 +1382,113 @@ void DegenGeom::write_degenGeomM_file(FILE* file_id)
 	// Twice as many cross sections for BODY type
 	if ( type == DegenGeom::BODY_TYPE ) nxsecs *= 2;
 	//============================= DegenPlate =============================//
-	fprintf(file_id, "\ndegenGeom(end).plate.nPlate = [");
-	for ( int i = 0; i < nxsecs-1; i++ )
+	fprintf(file_id, "\ndegenGeom(end).plate.nx = [");
+	for ( int i = 0; i < nxsecs - 1; i++ )
 	{
-		fprintf( file_id, "%f, %f, %f;\n",  degenPlate.nPlate[i].x(), \
-				degenPlate.nPlate[i].y(), \
-				degenPlate.nPlate[i].z()  );
+		fprintf(file_id, "%f, ", degenPlate.nPlate[i].x());
 	}
-	fprintf(file_id, "%f, %f, %f];", degenPlate.nPlate[nxsecs-1].x(), \
-			degenPlate.nPlate[nxsecs-1].y(), \
-			degenPlate.nPlate[nxsecs-1].z()  );
+	fprintf(file_id, "%f];", degenPlate.nPlate[nxsecs-1].x());
 
+	fprintf(file_id, "\ndegenGeom(end).plate.ny = [");
+	for ( int i = 0; i < nxsecs - 1; i++ )
+	{
+		fprintf(file_id, "%f, ", degenPlate.nPlate[i].y());
+	}
+	fprintf(file_id, "%f];", degenPlate.nPlate[nxsecs-1].y());
+
+	fprintf(file_id, "\ndegenGeom(end).plate.nz = [");
+	for ( int i = 0; i < nxsecs - 1; i++ )
+	{
+		fprintf(file_id, "%f, ", degenPlate.nPlate[i].z());
+	}
+	fprintf(file_id, "%f];", degenPlate.nPlate[nxsecs-1].z());
+
+	fprintf(file_id, "\ndegenGeom(end).plate.x = [");
 	for ( int i = 0; i < nxsecs; i++ )
 	{
-		fprintf(file_id, "\ndegenGeom(end).plate.sect(%d).X = [", (i+1));
 		for ( int j = 0; j < (num_pnts+1)/2-1; j++ )
-		{
-			fprintf(	file_id, "%f, %f, %f;\n",				\
-					degenPlate.x[i][j].x(),	\
-					degenPlate.x[i][j].y(),	\
-					degenPlate.x[i][j].z()	);
-		}
-		fprintf(	file_id, "%f, %f, %f];\n",				\
-				degenPlate.x[i][(num_pnts+1)/2-1].x(),	\
-				degenPlate.x[i][(num_pnts+1)/2-1].y(),	\
-				degenPlate.x[i][(num_pnts+1)/2-1].z()	);
+			fprintf( file_id, "%f, ", degenPlate.x[i][j].x() );
+		if ( i < nxsecs-1 )
+			fprintf( file_id, "%f;\n", degenPlate.x[i][(num_pnts+1)/2-1].x() );
+		else
+			fprintf( file_id, "%f];\n", degenPlate.x[i][(num_pnts+1)/2-1].x() );
 	}
 
+	fprintf(file_id, "\ndegenGeom(end).plate.y = [");
 	for ( int i = 0; i < nxsecs; i++ )
 	{
-		fprintf(file_id, "\ndegenGeom(end).plate.sect(%d).zCamber = [", (i+1));
 		for ( int j = 0; j < (num_pnts+1)/2-1; j++ )
-		{
+			fprintf( file_id, "%f, ", degenPlate.x[i][j].y() );
+		if ( i < nxsecs-1 )
+			fprintf( file_id, "%f;\n", degenPlate.x[i][(num_pnts+1)/2-1].y() );
+		else
+			fprintf( file_id, "%f];\n", degenPlate.x[i][(num_pnts+1)/2-1].y() );
+	}
+
+	fprintf(file_id, "\ndegenGeom(end).plate.z = [");
+	for ( int i = 0; i < nxsecs; i++ )
+	{
+		for ( int j = 0; j < (num_pnts+1)/2-1; j++ )
+			fprintf( file_id, "%f, ", degenPlate.x[i][j].z() );
+		if ( i < nxsecs-1 )
+			fprintf( file_id, "%f;\n", degenPlate.x[i][(num_pnts+1)/2-1].z() );
+		else
+			fprintf( file_id, "%f];\n", degenPlate.x[i][(num_pnts+1)/2-1].z() );
+	}
+
+	fprintf(file_id, "\ndegenGeom(end).plate.zCamber = [");
+	for ( int i = 0; i < nxsecs; i++ )
+	{
+		for ( int j = 0; j < (num_pnts+1)/2-1; j++ )
 			fprintf( file_id, "%f, ", degenPlate.zcamber[i][j] );
-		}
-		fprintf(	file_id, "%f];\n", degenPlate.zcamber[i][(num_pnts+1)/2-1]);
+		if ( i < nxsecs-1 )
+			fprintf( file_id, "%f;\n", degenPlate.zcamber[i][(num_pnts+1)/2-1] );
+		else
+			fprintf( file_id, "%f];\n", degenPlate.zcamber[i][(num_pnts+1)/2-1] );
 	}
 
+	fprintf(file_id, "\ndegenGeom(end).plate.t = [");
 	for ( int i = 0; i < nxsecs; i++ )
 	{
-		fprintf(file_id, "\ndegenGeom(end).plate.sect(%d).t = [", (i+1));
 		for ( int j = 0; j < (num_pnts+1)/2-1; j++ )
-		{
 			fprintf( file_id, "%f, ", degenPlate.t[i][j] );
-		}
-		fprintf(	file_id, "%f];\n", degenPlate.t[i][(num_pnts+1)/2-1]);
+		if ( i < nxsecs-1 )
+			fprintf( file_id, "%f;\n", degenPlate.t[i][(num_pnts+1)/2-1] );
+		else
+			fprintf( file_id, "%f];\n", degenPlate.t[i][(num_pnts+1)/2-1] );
 	}
 
+	fprintf(file_id, "\ndegenGeom(end).plate.nxCamber = [");
 	for ( int i = 0; i < nxsecs; i++ )
 	{
-		fprintf(file_id, "\ndegenGeom(end).plate.sect(%d).nCamber = [", (i+1));
 		for ( int j = 0; j < (num_pnts+1)/2-1; j++ )
-		{
-			fprintf(	file_id, "%f, %f, %f;\n",						\
-					degenPlate.nCamber[i][j].x(),	\
-					degenPlate.nCamber[i][j].y(),	\
-					degenPlate.nCamber[i][j].z()	);
-		}
-		fprintf(	file_id, "%f, %f, %f];\n",										\
-				degenPlate.nCamber[i][(num_pnts+1)/2-1].x(),	\
-				degenPlate.nCamber[i][(num_pnts+1)/2-1].y(),	\
-				degenPlate.nCamber[i][(num_pnts+1)/2-1].z()		);
+			fprintf( file_id, "%f, ", degenPlate.nCamber[i][j].x() );
+		if ( i < nxsecs-1 )
+			fprintf( file_id, "%f;\n", degenPlate.nCamber[i][(num_pnts+1)/2-1].x() );
+		else
+			fprintf( file_id, "%f];\n", degenPlate.nCamber[i][(num_pnts+1)/2-1].x() );
+	}
+
+	fprintf(file_id, "\ndegenGeom(end).plate.nyCamber = [");
+	for ( int i = 0; i < nxsecs; i++ )
+	{
+		for ( int j = 0; j < (num_pnts+1)/2-1; j++ )
+			fprintf( file_id, "%f, ", degenPlate.nCamber[i][j].y() );
+		if ( i < nxsecs-1 )
+			fprintf( file_id, "%f;\n", degenPlate.nCamber[i][(num_pnts+1)/2-1].y() );
+		else
+			fprintf( file_id, "%f];\n", degenPlate.nCamber[i][(num_pnts+1)/2-1].y() );
+	}
+
+	fprintf(file_id, "\ndegenGeom(end).plate.nzCamber = [");
+	for ( int i = 0; i < nxsecs; i++ )
+	{
+		for ( int j = 0; j < (num_pnts+1)/2-1; j++ )
+			fprintf( file_id, "%f, ", degenPlate.nCamber[i][j].z() );
+		if ( i < nxsecs-1 )
+			fprintf( file_id, "%f;\n", degenPlate.nCamber[i][(num_pnts+1)/2-1].z() );
+		else
+			fprintf( file_id, "%f];\n", degenPlate.nCamber[i][(num_pnts+1)/2-1].z() );
 	}
 
 	fprintf(file_id, "\ndegenGeom(end).plate.u = [");
