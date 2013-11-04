@@ -207,7 +207,7 @@ void DegenGeom::createDegenSurface(int sym_code_in, float mat[4][4], const array
 	vector< vector<vec3d> > nSurfMat = degenSurface.nvec;
 
 	vector<vec3d> xVec( num_pnts );
-	vector<vec3d> nVec( num_pnts );
+	vector<vec3d> nVec( num_pnts-1 );
 
 	if ( getType() == DegenGeom::SURFACE_TYPE )
 	{
@@ -220,8 +220,6 @@ void DegenGeom::createDegenSurface(int sym_code_in, float mat[4][4], const array
 
 	for ( int i = nLow; i < nHigh-1; i++ )
 	{
-		nVec.assign(num_pnts,vec3d(NAN,NAN,NAN));
-
 		for ( int j = 0; j < num_pnts-1; j++ )
 		{
 			vec3d sVec1 = pntsarr(i+1,j).transform(mat) - pntsarr(i,j).transform(mat);
@@ -237,8 +235,6 @@ void DegenGeom::createDegenSurface(int sym_code_in, float mat[4][4], const array
 
 		nSurfMat.push_back(nVec);
 	}
-	nVec.assign(num_pnts,vec3d(NAN,NAN,NAN));
-	nSurfMat.push_back(nVec);
 
 	for ( int i = nLow; i < nHigh; i++ )
 	{
@@ -1124,23 +1120,35 @@ void DegenGeom::write_degenGeomCsv_file(FILE* file_id)
 
 	fprintf(file_id, "# DegenGeom Type,nXsecs, nPnts/Xsec\n");
 	fprintf(file_id, "SURFACE_NODE,%d,%d\n", nxsecs, num_pnts);
-	fprintf(file_id, "# x,y,z,xn,yn,zn,u,w\n");
+	fprintf(file_id, "# x,y,z,u,w\n");
 
 	for ( int i = 0; i < nxsecs; i++ )
 	{
 		for ( int j = 0; j < num_pnts; j++ )
 		{
-			fprintf(	file_id, "%f,%f,%f,%f,%f,%f,%f,%f\n",			\
+			fprintf(	file_id, "%f,%f,%f,%f,%f\n",			\
 					degenSurface.x[i][j].x(),		\
 					degenSurface.x[i][j].y(),		\
 					degenSurface.x[i][j].z(),		\
-					degenSurface.nvec[i][j].x(),	\
-					degenSurface.nvec[i][j].y(),	\
-					degenSurface.nvec[i][j].z(),	\
 					degenSurface.u[i],				\
 					degenSurface.w[j]				);
 		}
 	}
+
+	fprintf(file_id, "SURFACE_FACE,%d,%d\n", nxsecs-1, num_pnts-1);
+	fprintf(file_id, "# xn,yn,zn\n");
+
+	for ( int i = 0; i < nxsecs-1; i++ )
+	{
+		for ( int j = 0; j < num_pnts-1; j++ )
+		{
+			fprintf(	file_id, "%f,%f,%f\n",			\
+					degenSurface.nvec[i][j].x(),	\
+					degenSurface.nvec[i][j].y(),	\
+					degenSurface.nvec[i][j].z()		);
+		}
+	}
+
 
 	// JBB: Twice as many cross sections for BODY type
 	if ( type == DegenGeom::BODY_TYPE ) nxsecs *= 2;
@@ -1333,36 +1341,36 @@ void DegenGeom::write_degenGeomM_file(FILE* file_id)
 
 	// Normal vectors
 	fprintf(file_id, "\ndegenGeom(end).surf.nx = [");
-	for ( int i = 0; i < nxsecs; i++ )
+	for ( int i = 0; i < nxsecs-1; i++ )
 	{
-		for ( int j = 0; j < num_pnts-1; j++ )
+		for ( int j = 0; j < num_pnts-2; j++ )
 			fprintf( file_id, "%f, ", degenSurface.nvec[i][j].x() );
-		if ( i < nxsecs-1 )
-			fprintf( file_id, "%f;\n", degenSurface.nvec[i][num_pnts-1].x() );
+		if ( i < nxsecs-2 )
+			fprintf( file_id, "%f;\n", degenSurface.nvec[i][num_pnts-2].x() );
 		else
-			fprintf( file_id, "%f];\n", degenSurface.nvec[i][num_pnts-1].x() );
+			fprintf( file_id, "%f];\n", degenSurface.nvec[i][num_pnts-2].x() );
 	}
 
 	fprintf(file_id, "\ndegenGeom(end).surf.ny = [");
-	for ( int i = 0; i < nxsecs; i++ )
+	for ( int i = 0; i < nxsecs-1; i++ )
 	{
-		for ( int j = 0; j < num_pnts-1; j++ )
+		for ( int j = 0; j < num_pnts-2; j++ )
 			fprintf( file_id, "%f, ", degenSurface.nvec[i][j].y() );
-		if ( i < nxsecs-1 )
-			fprintf( file_id, "%f;\n", degenSurface.nvec[i][num_pnts-1].y() );
+		if ( i < nxsecs-2 )
+			fprintf( file_id, "%f;\n", degenSurface.nvec[i][num_pnts-2].y() );
 		else
-			fprintf( file_id, "%f];\n", degenSurface.nvec[i][num_pnts-1].y() );
+			fprintf( file_id, "%f];\n", degenSurface.nvec[i][num_pnts-2].y() );
 	}
 
 	fprintf(file_id, "\ndegenGeom(end).surf.nz = [");
-	for ( int i = 0; i < nxsecs; i++ )
+	for ( int i = 0; i < nxsecs-1; i++ )
 	{
-		for ( int j = 0; j < num_pnts-1; j++ )
+		for ( int j = 0; j < num_pnts-2; j++ )
 			fprintf( file_id, "%f, ", degenSurface.nvec[i][j].z() );
-		if ( i < nxsecs-1 )
-			fprintf( file_id, "%f;\n", degenSurface.nvec[i][num_pnts-1].z() );
+		if ( i < nxsecs-2 )
+			fprintf( file_id, "%f;\n", degenSurface.nvec[i][num_pnts-2].z() );
 		else
-			fprintf( file_id, "%f];\n", degenSurface.nvec[i][num_pnts-1].z() );
+			fprintf( file_id, "%f];\n", degenSurface.nvec[i][num_pnts-2].z() );
 	}
 
 	fprintf(file_id, "\ndegenGeom(end).surf.u = [");
