@@ -281,25 +281,28 @@ void DegenGeom::createSurfDegenPlate(int sym_code_in, float mat[4][4], const arr
 	vector<double>	tVec(  platePnts );
 	vector<double>	zVec(  platePnts );
 
-	vec3d  topPnt, botPnt, chordVec, camberPnt, chordPnt, nPlate;
+	vec3d  lePnt, tePnt, topPnt, botPnt, chordVec, camberPnt, chordPnt, nPlate;
 
 	for ( int i = nLow; i < nHigh; i++ )
 	{
+		lePnt = pntsarr(i,0);
+		tePnt = pntsarr(i, platePnts-1);
+
 		// Set first point (trailing edge)
-		xVec[0]  = pntsarr(i,0).transform(mat);
+		xVec[0]  = lePnt.transform(mat);
 		nCVec[0] = vec3d(0,0,0); // on camber line
 		tVec[0]  = 0;
 		zVec[0]  = 0;
 
 		// Set last point (leading edge)
-		xVec[platePnts-1]  = pntsarr( i, platePnts-1 ).transform(mat);
+		xVec[platePnts-1]  = tePnt.transform(mat);
 		nCVec[platePnts-1] = vec3d(0,0,0); // on camber line
 		tVec[platePnts-1]  = 0;
 		zVec[platePnts-1]  = 0;
 
 		//== Compute plate normal ==//
 		// rotated chord vector
-		vec3d rcv = pntsarr(i, platePnts-1).transform(mat) - pntsarr(i,0).transform(mat);
+		vec3d rcv = xVec[platePnts-1] - xVec[0];
 		// rotated area normal vector
 		vec3d anv = get_area_normal(i, pntsarr).transform(mat) - vec3d(0,0,0).transform(mat);
 		// plate normal vector
@@ -308,7 +311,7 @@ void DegenGeom::createSurfDegenPlate(int sym_code_in, float mat[4][4], const arr
 		degenPlate.nPlate.push_back( nPlate );
 
 		// normalized, unrotated chord vector (te->le)
-		chordVec = pntsarr(i, platePnts-1) - pntsarr(i,0);
+		chordVec = tePnt - lePnt;
 		chordVec.normalize();
 
 		// Set points along af section
@@ -318,14 +321,26 @@ void DegenGeom::createSurfDegenPlate(int sym_code_in, float mat[4][4], const arr
 			botPnt = pntsarr(i,k);
 
 			camberPnt = (topPnt + botPnt) / 2;
-			chordPnt  = pntsarr(i,0) + chordVec * dot(camberPnt-pntsarr(i,0),chordVec);
+
+			nCVec[j] = topPnt.transform(mat)-botPnt.transform(mat);  // vector from bottom point to top point.
+			nCVec[j].normalize();
+
+			tVec[j]  = dist(topPnt,botPnt);
+
+			// Try finding least-squares minimum distance point.
+			double s, t;
+			bool intflag = line_line_intersect( botPnt, topPnt, lePnt, tePnt, &s, &t );
+			if( intflag )
+			{
+				chordPnt = lePnt + (tePnt - lePnt) * t;
+			}
+			else  // If it doesn't work, project.  Projection isn't quite right, but should be close.  This should never happen anyway.
+			{
+				chordPnt  = lePnt + chordVec * dot(camberPnt-lePnt,chordVec);
+			}
 
 			xVec[j]  = chordPnt.transform(mat);
-			nCVec[j] = topPnt.transform(mat)-botPnt.transform(mat);
-			nCVec[j].normalize();
-			tVec[j]  = dist(topPnt,botPnt);
 			zVec[j]  = dist(camberPnt,chordPnt);
-			if ( angle(camberPnt - chordPnt, nPlate) != 0) zVec[j] *= -1;
 		}
 
 		xMat.push_back(xVec);
@@ -366,26 +381,29 @@ void DegenGeom::createBodyDegenPlate(int sym_code_in, float mat[4][4], const arr
 	vector<double>	tVec(  platePnts );
 	vector<double>	zVec(  platePnts );
 
-	vec3d  topPnt, botPnt, chordVec, camberPnt, chordPnt, nPlate;
+	vec3d  lePnt, tePnt, topPnt, botPnt, chordVec, camberPnt, chordPnt, nPlate;
 
 	// "Vertical" plate
 	for ( int i = nLow; i < nHigh; i++ )
 	{
+		lePnt = pntsarr(i,0);
+		tePnt = pntsarr(i, platePnts-1);
+
 		// Set first point (trailing edge)
-		xVec[0]  = pntsarr(i,0).transform(mat);
+		xVec[0]  = lePnt.transform(mat);
 		nCVec[0] = vec3d(0,0,0); // on camber line
 		tVec[0]  = 0;
 		zVec[0]  = 0;
 
 		// Set last point (leading edge)
-		xVec[platePnts-1]  = pntsarr( i, platePnts-1 ).transform(mat);
+		xVec[platePnts-1]  = tePnt.transform(mat);
 		nCVec[platePnts-1] = vec3d(0,0,0); // on camber line
 		tVec[platePnts-1]  = 0;
 		zVec[platePnts-1]  = 0;
 
 		//== Compute plate normal ==//
 		// rotated chord vector
-		vec3d rcv = pntsarr(i, platePnts-1).transform(mat) - pntsarr(i,0).transform(mat);
+		vec3d rcv = xVec[platePnts-1] - xVec[0];
 		// rotated area normal vector
 		vec3d anv = get_area_normal(i, pntsarr).transform(mat) - vec3d(0,0,0).transform(mat);
 		// plate normal vector
@@ -394,7 +412,7 @@ void DegenGeom::createBodyDegenPlate(int sym_code_in, float mat[4][4], const arr
 		degenPlate.nPlate.push_back( nPlate );
 
 		// normalized, unrotated chord vector (te->le)
-		chordVec = pntsarr(i, platePnts-1) - pntsarr(i,0);
+		chordVec = tePnt - lePnt;
 		chordVec.normalize();
 
 		// Set points along af section
@@ -404,14 +422,26 @@ void DegenGeom::createBodyDegenPlate(int sym_code_in, float mat[4][4], const arr
 			botPnt = pntsarr(i,k);
 
 			camberPnt = (topPnt + botPnt) / 2;
-			chordPnt  = pntsarr(i,0) + chordVec * dot(camberPnt-pntsarr(i,0),chordVec);
 
-			xVec[j]  = chordPnt.transform(mat);
 			nCVec[j] = topPnt.transform(mat)-botPnt.transform(mat);
 			nCVec[j].normalize();
+
 			tVec[j]  = dist(topPnt,botPnt);
+
+			// Try finding least-squares minimum distance point.
+			double s, t;
+			bool intflag = line_line_intersect( botPnt, topPnt, lePnt, tePnt, &s, &t );
+			if( intflag )
+			{
+				chordPnt = lePnt + (tePnt - lePnt) * t;
+			}
+			else  // If it doesn't work, project.  Projection isn't quite right, but should be close.  This should never happen anyway.
+			{
+				chordPnt  = lePnt + chordVec * dot(camberPnt-lePnt,chordVec);
+			}
+
+			xVec[j]  = chordPnt.transform(mat);
 			zVec[j]  = dist(camberPnt,chordPnt);
-			if ( angle(camberPnt - chordPnt, nPlate) != 0) zVec[j] *= -1;
 		}
 
 		xMat.push_back(xVec);
@@ -434,22 +464,24 @@ void DegenGeom::createBodyDegenPlate(int sym_code_in, float mat[4][4], const arr
 	int startPnt = (num_pnts - 1) / 4;
 	for ( int i = nLow; i < nHigh; i++ )
 	{
+		lePnt = pntsarr(i,startPnt);
+		tePnt = pntsarr(i, startPnt+platePnts-1);
+
 		// Set first point (trailing edge)
-		xVec[0]  = pntsarr(i,startPnt).transform(mat);
+		xVec[0]  = lePnt.transform(mat);
 		nCVec[0] = vec3d(0,0,0); // on camber line
 		tVec[0]  = 0;
 		zVec[0]  = 0;
 
 		// Set last point (leading edge)
-		xVec[platePnts-1]  = pntsarr( i, startPnt+platePnts-1 ).transform(mat);
+		xVec[platePnts-1]  = tePnt.transform(mat);
 		nCVec[platePnts-1] = vec3d(0,0,0); // on camber line
 		tVec[platePnts-1]  = 0;
 		zVec[platePnts-1]  = 0;
 
 		//== Compute plate normal ==//
 		// rotated chord vector
-		vec3d rcv = pntsarr(i, startPnt+platePnts-1).transform(mat) \
-				  - pntsarr(i,startPnt).transform(mat);
+		vec3d rcv = xVec[platePnts-1] - xVec[0];
 		// rotated area normal vector
 		vec3d anv = get_area_normal(i, pntsarr).transform(mat) - vec3d(0,0,0).transform(mat);
 		// plate normal vector
@@ -458,7 +490,7 @@ void DegenGeom::createBodyDegenPlate(int sym_code_in, float mat[4][4], const arr
 		degenPlate.nPlate.push_back( nPlate );
 
 		// normalized, unrotated chord vector (te->le)
-		chordVec = pntsarr(i, startPnt+platePnts-1) - pntsarr(i,startPnt);
+		chordVec = tePnt - lePnt;
 		chordVec.normalize();
 
 		// Set points along af section
@@ -468,14 +500,26 @@ void DegenGeom::createBodyDegenPlate(int sym_code_in, float mat[4][4], const arr
 			botPnt = pntsarr(i, k % (num_pnts-1) );
 
 			camberPnt = (topPnt + botPnt) / 2;
-			chordPnt  = pntsarr(i,startPnt) + chordVec * dot(camberPnt-pntsarr(i,startPnt),chordVec);
 
-			xVec[j]  = chordPnt.transform(mat);
 			nCVec[j] = topPnt.transform(mat)-botPnt.transform(mat);
 			nCVec[j].normalize();
+
 			tVec[j]  = dist(topPnt,botPnt);
+
+			// Try finding least-squares minimum distance point.
+			double s, t;
+			bool intflag = line_line_intersect( botPnt, topPnt, lePnt, tePnt, &s, &t );
+			if( intflag )
+			{
+				chordPnt = lePnt + (tePnt - lePnt) * t;
+			}
+			else  // If it doesn't work, project.  Projection isn't quite right, but should be close.  This should never happen anyway.
+			{
+				chordPnt  = lePnt + chordVec * dot(camberPnt-lePnt,chordVec);
+			}
+
+			xVec[j]  = chordPnt.transform(mat);
 			zVec[j]  = dist(camberPnt,chordPnt);
-			if ( angle(camberPnt - chordPnt, nPlate) != 0) zVec[j] *= -1;
 		}
 
 		xMat.push_back(xVec);
