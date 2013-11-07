@@ -115,8 +115,18 @@ public:
 	void setType( int geomType)	{ type = geomType; }
 
 	void write_degenGeomCsv_file(FILE* file_id);
-	void write_degenGeomM_file(FILE* file_id);
+	void write_degenGeomSurfCsv_file(FILE* file_id, int nxsecs);
+	void write_degenGeomPlateCsv_file(FILE* file_id, int nxsecs, DegenPlate &degenPlate);
+	void write_degenGeomStickCsv_file(FILE* file_id, int nxsecs, DegenStick &degenStick);
+	void write_degenGeomPointCsv_file(FILE* file_id, int nxsecs);
+	void write_degenGeomPropCsv_file(FILE* file_id);
 
+	void write_degenGeomM_file(FILE* file_id);
+	void write_degenGeomSurfM_file(FILE* file_id, int nxsecs);
+	void write_degenGeomPlateM_file(FILE* file_id, int nxsecs, DegenPlate &degenPlate);
+	void write_degenGeomStickM_file(FILE* file_id, int nxsecs, DegenStick &degenStick);
+	void write_degenGeomPointM_file(FILE* file_id, int nxsecs);
+	void write_degenGeomPropM_file(FILE* file_id);
 
 	vec3d  get_area_normal( int ixs, const array_2d<vec3d> &pntsarr );
 	double get_xsec_area( int ixs, const array_2d<vec3d> &pntsarr );
@@ -127,8 +137,11 @@ public:
 	void createDegenSurface(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, bool refl);
 	void createSurfDegenPlate(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
 	void createBodyDegenPlate(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
+	void createDegenPlate(DegenPlate &degenPlate, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, int nLow, int nHigh, int startPnt);
 	void createSurfDegenStick(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
 	void createBodyDegenStick(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
+	void createDegenStick(DegenStick &degenStick, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, int nLow, int nHigh, int startPnt);
+	void createDegenStickSweep(DegenStick &degenStick, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, int nLow, int nHigh, int startPnt);
 
 	vec3d get_xsec_shellCG( int ixs, const array_2d<vec3d> &pntsarr );
 
@@ -140,8 +153,10 @@ public:
 protected:
 
 	DegenSurface degenSurface;
-	DegenPlate   degenPlate;
-	DegenStick   degenStick;
+	DegenPlate   degenPlateFirst;
+	DegenPlate   degenPlateSecond;
+	DegenStick   degenStickFirst;
+	DegenStick   degenStickSecond;
 	DegenPoint   degenPoint;
 	DegenProp    degenProp;
 
