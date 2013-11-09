@@ -1271,21 +1271,19 @@ void DegenGeom::write_degenGeomPlateM_file(FILE* file_id, int nxsecs, DegenPlate
 	}
 	fprintf(file_id, "%f];", degenPlate.u[nxsecs-1]);
 
-	int wCnt = (num_pnts+1)/2;
-//	if ( nxsecs != nxsecsOrig ) wCnt *= 2;
 	fprintf(file_id, "\ndegenGeom(end).plate.wTop = [");
-	for ( int j = 0; j < wCnt-1; j++ )
+	for ( int j = 0; j < (num_pnts+1)/2-1; j++ )
 	{
 		fprintf(file_id, "%f, ", degenPlate.wTop[j]);
 	}
-	fprintf(file_id, "%f];", degenPlate.wTop[wCnt-1]);
+	fprintf(file_id, "%f];", degenPlate.wTop[(num_pnts+1)/2-1]);
 
 	fprintf(file_id, "\ndegenGeom(end).plate.wBot = [");
-	for ( int j = 0; j < wCnt-1; j++ )
+	for ( int j = 0; j < (num_pnts+1)/2-1; j++ )
 	{
 		fprintf(file_id, "%f, ", degenPlate.wBot[j]);
 	}
-	fprintf(file_id, "%f];", degenPlate.wBot[wCnt-1]);
+	fprintf(file_id, "%f];", degenPlate.wBot[(num_pnts+1)/2-1]);
 
 }
 
