@@ -123,8 +123,8 @@ public:
 
 	void write_degenGeomM_file(FILE* file_id);
 	void write_degenGeomSurfM_file(FILE* file_id, int nxsecs);
-	void write_degenGeomPlateM_file(FILE* file_id, int nxsecs, DegenPlate &degenPlate);
-	void write_degenGeomStickM_file(FILE* file_id, int nxsecs, DegenStick &degenStick);
+	void write_degenGeomPlateM_file(FILE* file_id, int nxsecs, DegenPlate &degenPlate, int iplate);
+	void write_degenGeomStickM_file(FILE* file_id, int nxsecs, DegenStick &degenStick, int istick);
 	void write_degenGeomPointM_file(FILE* file_id, int nxsecs);
 	void write_degenGeomPropM_file(FILE* file_id);
 
