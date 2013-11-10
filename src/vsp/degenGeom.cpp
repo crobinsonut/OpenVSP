@@ -882,6 +882,23 @@ vector<double> DegenGeom::calculate_solid_inertias_in_plane(int ixs, int plane, 
 	return inertiasCG;
 }
 
+const char* DegenGeom::makeCsvFmt( int n )
+{
+	char fmt[10];
+	sprintf( fmt, "%%.%de", DBL_DIG + 3 );
+
+	string fmtstring = "";
+	for( int i=0; i < n; ++i)
+	{
+		fmtstring.append( fmt );
+		if(i < n-1 )
+			fmtstring.append(", ");
+		else
+			fmtstring.append("\n");
+	}
+	return fmtstring.c_str();
+}
+
 void DegenGeom::write_degenGeomSurfCsv_file(FILE* file_id, int nxsecs)
 {
 	fprintf(file_id, "# DegenGeom Type,nXsecs, nPnts/Xsec\n");
@@ -892,7 +909,7 @@ void DegenGeom::write_degenGeomSurfCsv_file(FILE* file_id, int nxsecs)
 	{
 		for ( int j = 0; j < num_pnts; j++ )
 		{
-			fprintf(	file_id, "%f,%f,%f,%f,%f\n",			\
+			fprintf(file_id, makeCsvFmt(5),			\
 					degenSurface.x[i][j].x(),		\
 					degenSurface.x[i][j].y(),		\
 					degenSurface.x[i][j].z(),		\
@@ -908,7 +925,7 @@ void DegenGeom::write_degenGeomSurfCsv_file(FILE* file_id, int nxsecs)
 	{
 		for ( int j = 0; j < num_pnts-1; j++ )
 		{
-			fprintf(	file_id, "%f,%f,%f\n",			\
+			fprintf(file_id, makeCsvFmt(3),			\
 					degenSurface.nvec[i][j].x(),	\
 					degenSurface.nvec[i][j].y(),	\
 					degenSurface.nvec[i][j].z()		);
@@ -925,7 +942,7 @@ void DegenGeom::write_degenGeomPlateCsv_file(FILE* file_id, int nxsecs, DegenPla
 	fprintf(file_id,"# xn,yn,zn\n");
 	for ( int i = 0; i < nxsecs; i++ )
 	{
-		fprintf( file_id, "%f,%f,%f\n", degenPlate.nPlate[i].x(), \
+		fprintf(file_id, makeCsvFmt(3), degenPlate.nPlate[i].x(), \
 				degenPlate.nPlate[i].y(), \
 				degenPlate.nPlate[i].z()  );
 	}
@@ -935,7 +952,7 @@ void DegenGeom::write_degenGeomPlateCsv_file(FILE* file_id, int nxsecs, DegenPla
 	{
 		for ( int j = 0; j < (num_pnts+1)/2; j++ )
 		{
-			fprintf(	file_id, "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",	\
+			fprintf(file_id, makeCsvFmt(11),	\
 					degenPlate.x[i][j].x(),				\
 					degenPlate.x[i][j].y(),				\
 					degenPlate.x[i][j].z(),				\
@@ -961,7 +978,7 @@ void DegenGeom::write_degenGeomStickCsv_file(FILE* file_id, int nxsecs, DegenSti
 
 	for ( int i = 0; i < nxsecs; i++ )
 	{
-		fprintf(	file_id, "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",	\
+		fprintf(file_id, makeCsvFmt(32),	\
 				degenStick.xle[i].x(),					\
 				degenStick.xle[i].y(),					\
 				degenStick.xle[i].z(),					\
@@ -1004,7 +1021,7 @@ void DegenGeom::write_degenGeomPointCsv_file(FILE* file_id, int nxsecs)
 	fprintf(file_id, "# vol,volWet,area,areaWet,IxxShell,IyyShell,IzzShell,IxyShell,");
 	fprintf(file_id, "IxzShell,IyzShell,IxxSolid,IyySolid,IzzSolid,IxySolid,IxzSolid,");
 	fprintf(file_id, "IyzSolid,xcgShell,ycgShell,zcgShell,xcgSolid,ycgSolid,zcgSolid\n"); // Need newline below.  Omitting for diff-consistency.
-	fprintf(	file_id, "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f",\
+	fprintf(file_id, makeCsvFmt(22),\
 			degenPoint.vol[0],			\
 			degenPoint.volWet[0],		\
 			degenPoint.area[0],			\
@@ -1031,17 +1048,23 @@ void DegenGeom::write_degenGeomPointCsv_file(FILE* file_id, int nxsecs)
 
 void DegenGeom::write_degenGeomPropCsv_file(FILE* file_id)
 {
+	char fmtstr[255];
+	strcat(fmtstr, "%d, ");
+	strcat(fmtstr, makeCsvFmt(7) );
 	if ( parentGeom->getTypeStr() == "prop" )
 	{
-		fprintf(file_id, "# Propeller, Num Blades, Diameter, xLoc, yLoc, zLoc, nRotX, nRotY, nRotZ\n");
-		fprintf(file_id, "PROP, %d, %f, %f, %f, %f, %f, %f, %f\n",  degenProp.nblade,	\
-																	degenProp.d,		\
-																	degenProp.x.x(),	\
-																	degenProp.x.y(),	\
-																	degenProp.x.z(),	\
-																	degenProp.nvec.x(),	\
-																	degenProp.nvec.y(),	\
-																	degenProp.nvec.z()	);
+		fprintf(file_id, "# DegenGeom Type\n");
+		fprintf(file_id, "PROP\n");
+		fprintf(file_id, "# Num Blades, Diameter, xLoc, yLoc, zLoc, nRotX, nRotY, nRotZ\n");
+		fprintf(file_id, fmtstr,\
+				degenProp.nblade,	\
+				degenProp.d,		\
+				degenProp.x.x(),	\
+				degenProp.x.y(),	\
+				degenProp.x.z(),	\
+				degenProp.nvec.x(),	\
+				degenProp.nvec.y(),	\
+				degenProp.nvec.z()	);
 	}
 }
 

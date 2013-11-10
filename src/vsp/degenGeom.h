@@ -114,6 +114,7 @@ public:
 	int getType()				{ return type; }
 	void setType( int geomType)	{ type = geomType; }
 
+	const char* makeCsvFmt( int n );
 	void write_degenGeomCsv_file(FILE* file_id);
 	void write_degenGeomSurfCsv_file(FILE* file_id, int nxsecs);
 	void write_degenGeomPlateCsv_file(FILE* file_id, int nxsecs, DegenPlate &degenPlate);
