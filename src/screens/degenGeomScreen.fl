@@ -8,47 +8,47 @@ class DegenGeomUI {open
   } {
     Fl_Window UIWindow {
       label {Degen Geom} open
-      xywh {49 242 385 392} type Double color 45 resizable visible
+      xywh {198 244 375 365} type Double color 45 resizable visible
     } {
       Fl_Box {} {
         label {Degen Geom - Compute Models, File IO}
-        xywh {7 5 365 25} box ROUNDED_BOX labelfont 1 labelsize 16 labelcolor 15
+        xywh {5 5 365 25} box ROUNDED_BOX labelfont 1 labelsize 16 labelcolor 15
       }
       Fl_Box {} {
-        xywh {8 155 365 5} box BORDER_BOX color 4
+        xywh {5 110 365 5} box BORDER_BOX color 4
       }
       Fl_Button computeButton {
-        label {Compute Degen Geom Models}
-        xywh {42 36 300 25} labelfont 1
+        label Execute selected
+        xywh {5 335 365 25} labelfont 1
       }
       Fl_Box {} {
         label {File Export}
-        xywh {8 83 365 17} box BORDER_BOX labelfont 1 labelcolor 15
+        xywh {5 38 365 17} box BORDER_BOX labelfont 1 labelcolor 15
       }
       Fl_Light_Button mFileButton {
         label {.m}
-        xywh {8 130 60 20} labelfont 1
+        xywh {5 85 60 20} labelfont 1
       }
       Fl_Button mFileChooseButton {
-        label {...} selected
-        xywh {348 130 25 20} labelfont 1
+        label {...}
+        xywh {345 85 25 20} labelfont 1
       }
       Fl_Button csvFileChooseButton {
         label {...}
-        xywh {348 105 25 20} labelfont 1
+        xywh {345 60 25 20} labelfont 1
       }
       Fl_Text_Display outputTextDisplay {
-        xywh {8 165 365 210} color 23 labelcolor 32 textfont 4 textsize 12
+        xywh {5 120 365 210} color 23 labelcolor 32 textfont 4 textsize 12
       }
       Fl_Output mFileOutput {
-        xywh {68 130 280 20} color 17
+        xywh {65 85 280 20} color 17
       }
       Fl_Output csvFileOutput {
-        xywh {68 105 280 20} color 17
+        xywh {65 60 280 20} color 17
       }
       Fl_Light_Button csvFileButton {
         label {.csv}
-        xywh {8 105 60 20} labelfont 1
+        xywh {5 60 60 20} labelfont 1
       }
     }
   }

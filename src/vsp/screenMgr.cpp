@@ -296,8 +296,12 @@ void ScreenMgr::createGui()
 	degenGeomUI->outputTextDisplay->buffer( degenGeomTextBuffer);
 	degenGeomUI->computeButton->callback( staticMenuCB, this );
 	degenGeomUI->csvFileButton->callback( staticMenuCB, this );
+	degenGeomUI->csvFileButton->value(1);
+	aircraftPtr->setExportDegenGeomCsvFile( !!degenGeomUI->csvFileButton->value() );
 	degenGeomUI->csvFileChooseButton->callback( staticMenuCB, this );
 	degenGeomUI->mFileButton->callback( staticMenuCB, this );
+	degenGeomUI->mFileButton->value(1);
+	aircraftPtr->setExportDegenGeomMFile( !!degenGeomUI->mFileButton->value() );
 	degenGeomUI->mFileChooseButton->callback( staticMenuCB, this );
 
 	//==== Aero Ref Screen ====//
