@@ -153,10 +153,8 @@ public:
 protected:
 
 	DegenSurface degenSurface;
-	DegenPlate   degenPlateFirst;
-	DegenPlate   degenPlateSecond;
-	DegenStick   degenStickFirst;
-	DegenStick   degenStickSecond;
+	vector< DegenPlate >   degenPlates;
+	vector< DegenStick >   degenSticks;
 	DegenPoint   degenPoint;
 	DegenProp    degenProp;
 

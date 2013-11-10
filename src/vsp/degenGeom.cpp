@@ -270,18 +270,21 @@ void DegenGeom::createSurfDegenPlate(int sym_code_in, float mat[4][4], const arr
 		nHigh = num_xsecs - 1;
 	}
 
-	createDegenPlate(degenPlateFirst, sym_code_in, mat, pntsarr, nLow, nHigh, startPnt);
+	degenPlates.resize(1);
+	createDegenPlate(degenPlates[0], sym_code_in, mat, pntsarr, nLow, nHigh, startPnt);
 }
 
 void DegenGeom::createBodyDegenPlate(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
 {
 	int nLow = 0, nHigh = num_xsecs;
 
+	degenPlates.resize(2);
+
 	int startPnt = 0;
-	createDegenPlate(degenPlateFirst, sym_code_in, mat, pntsarr, nLow, nHigh, startPnt);
+	createDegenPlate(degenPlates[0], sym_code_in, mat, pntsarr, nLow, nHigh, startPnt);
 
 	startPnt = (num_pnts - 1) / 4;
-	createDegenPlate(degenPlateSecond, sym_code_in, mat, pntsarr, nLow, nHigh, startPnt);
+	createDegenPlate(degenPlates[1], sym_code_in, mat, pntsarr, nLow, nHigh, startPnt);
 }
 
 void DegenGeom::createDegenPlate(DegenPlate &degenPlate, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, int nLow, int nHigh, int startPnt)
@@ -395,9 +398,11 @@ void DegenGeom::createSurfDegenStick(int sym_code_in, float mat[4][4], const arr
 		nHigh = num_xsecs - 1;
 	}
 
+	degenSticks.resize(1);
+
 	int startPnt = 0;
-	createDegenStick(degenStickFirst, sym_code_in, mat, pntsarr, nLow, nHigh, startPnt);
-	createDegenStickSweep(degenStickFirst, sym_code_in, mat, pntsarr, nLow, nHigh, startPnt);
+	createDegenStick(degenSticks[0], sym_code_in, mat, pntsarr, nLow, nHigh, startPnt);
+	createDegenStickSweep(degenSticks[0], sym_code_in, mat, pntsarr, nLow, nHigh, startPnt);
 
 }
 
@@ -449,11 +454,13 @@ void DegenGeom::createBodyDegenStick(int sym_code_in, float mat[4][4], const arr
 {
 	int nLow = 0, nHigh = num_xsecs;
 
+	degenSticks.resize(2);
+
 	int startPnt = 0;
-	createDegenStick(degenStickFirst, sym_code_in, mat, pntsarr, nLow, nHigh, startPnt);
+	createDegenStick(degenSticks[0], sym_code_in, mat, pntsarr, nLow, nHigh, startPnt);
 
 	startPnt = (num_pnts - 1) / 4;
-	createDegenStick(degenStickSecond, sym_code_in, mat, pntsarr, nLow, nHigh, startPnt);
+	createDegenStick(degenSticks[1], sym_code_in, mat, pntsarr, nLow, nHigh, startPnt);
 }
 
 void DegenGeom::createDegenStick(DegenStick &degenStick, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, int nLow, int nHigh, int startPnt)
@@ -1054,15 +1061,15 @@ void DegenGeom::write_degenGeomCsv_file(FILE* file_id)
 
 	write_degenGeomSurfCsv_file( file_id, nxsecs);
 
-	write_degenGeomPlateCsv_file( file_id, nxsecs, degenPlateFirst);
+	write_degenGeomPlateCsv_file( file_id, nxsecs, degenPlates[0]);
 
 	if ( type == DegenGeom::BODY_TYPE )
-		write_degenGeomPlateCsv_file( file_id, nxsecs, degenPlateSecond);
+		write_degenGeomPlateCsv_file( file_id, nxsecs, degenPlates[1]);
 
-	write_degenGeomStickCsv_file(file_id, nxsecs, degenStickFirst);
+	write_degenGeomStickCsv_file(file_id, nxsecs, degenSticks[0]);
 
 	if ( type == DegenGeom::BODY_TYPE )
-		write_degenGeomStickCsv_file(file_id, nxsecs, degenStickSecond);
+		write_degenGeomStickCsv_file(file_id, nxsecs, degenSticks[1]);
 
 	write_degenGeomPointCsv_file(file_id, nxsecs);
 }
@@ -1504,15 +1511,15 @@ void DegenGeom::write_degenGeomM_file(FILE* file_id)
 
 	write_degenGeomSurfM_file(file_id, nxsecs);
 
-	write_degenGeomPlateM_file(file_id, nxsecs, degenPlateFirst, 1);
+	write_degenGeomPlateM_file(file_id, nxsecs, degenPlates[0], 1);
 
 	if ( type == DegenGeom::BODY_TYPE )
-		write_degenGeomPlateM_file(file_id, nxsecs, degenPlateSecond, 2);
+		write_degenGeomPlateM_file(file_id, nxsecs, degenPlates[1], 2);
 
-	write_degenGeomStickM_file(file_id, nxsecs, degenStickFirst, 1);
+	write_degenGeomStickM_file(file_id, nxsecs, degenSticks[0], 1);
 
 	if ( type == DegenGeom::BODY_TYPE )
-		write_degenGeomStickM_file(file_id, nxsecs, degenStickSecond, 2);
+		write_degenGeomStickM_file(file_id, nxsecs, degenSticks[1], 2);
 
 	write_degenGeomPointM_file(file_id, nxsecs);
 
