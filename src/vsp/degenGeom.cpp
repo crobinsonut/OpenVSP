@@ -1,6 +1,7 @@
 #include "degenGeom.h"
 #include "geom.h"
 #include <cmath>
+#include "writeMatlab.h"
 
 //==== Get area normal vector for PLANAR cross section ====//
 vec3d DegenGeom::get_area_normal( int ixs, const array_2d<vec3d> &pntsarr)
@@ -1099,416 +1100,97 @@ void DegenGeom::write_degenGeomCsv_file(FILE* file_id)
 
 void DegenGeom::write_degenGeomSurfM_file(FILE* file_id, int nxsecs)
 {
-	//============================= DegenSurf =============================//
-	fprintf(file_id, "\ndegenGeom(end).surf.x = [");
-	for ( int i = 0; i < nxsecs; i++ )
-	{
-		for ( int j = 0; j < num_pnts-1; j++ )
-			fprintf( file_id, "%f, ", degenSurface.x[i][j].x() );
-		if ( i < nxsecs-1 )
-			fprintf( file_id, "%f;\n", degenSurface.x[i][num_pnts-1].x() );
-		else
-			fprintf( file_id, "%f];\n", degenSurface.x[i][num_pnts-1].x() );
-	}
+	string basename = string("degenGeom(end).surf.");
 
-	fprintf(file_id, "\ndegenGeom(end).surf.y = [");
-	for ( int i = 0; i < nxsecs; i++ )
-	{
-		for ( int j = 0; j < num_pnts-1; j++ )
-			fprintf( file_id, "%f, ", degenSurface.x[i][j].y() );
-		if ( i < nxsecs-1 )
-			fprintf( file_id, "%f;\n", degenSurface.x[i][num_pnts-1].y() );
-		else
-			fprintf( file_id, "%f];\n", degenSurface.x[i][num_pnts-1].y() );
-	}
+	WriteVecDoubleM writeVecDouble;
+	WriteMatVec3dM writeMatVec3d;
 
-	fprintf(file_id, "\ndegenGeom(end).surf.z = [");
-	for ( int i = 0; i < nxsecs; i++ )
-	{
-		for ( int j = 0; j < num_pnts-1; j++ )
-			fprintf( file_id, "%f, ", degenSurface.x[i][j].z() );
-		if ( i < nxsecs-1 )
-			fprintf( file_id, "%f;\n", degenSurface.x[i][num_pnts-1].z() );
-		else
-			fprintf( file_id, "%f];\n", degenSurface.x[i][num_pnts-1].z() );
-	}
-
-	// Normal vectors
-	fprintf(file_id, "\ndegenGeom(end).surf.nx = [");
-	for ( int i = 0; i < nxsecs-1; i++ )
-	{
-		for ( int j = 0; j < num_pnts-2; j++ )
-			fprintf( file_id, "%f, ", degenSurface.nvec[i][j].x() );
-		if ( i < nxsecs-2 )
-			fprintf( file_id, "%f;\n", degenSurface.nvec[i][num_pnts-2].x() );
-		else
-			fprintf( file_id, "%f];\n", degenSurface.nvec[i][num_pnts-2].x() );
-	}
-
-	fprintf(file_id, "\ndegenGeom(end).surf.ny = [");
-	for ( int i = 0; i < nxsecs-1; i++ )
-	{
-		for ( int j = 0; j < num_pnts-2; j++ )
-			fprintf( file_id, "%f, ", degenSurface.nvec[i][j].y() );
-		if ( i < nxsecs-2 )
-			fprintf( file_id, "%f;\n", degenSurface.nvec[i][num_pnts-2].y() );
-		else
-			fprintf( file_id, "%f];\n", degenSurface.nvec[i][num_pnts-2].y() );
-	}
-
-	fprintf(file_id, "\ndegenGeom(end).surf.nz = [");
-	for ( int i = 0; i < nxsecs-1; i++ )
-	{
-		for ( int j = 0; j < num_pnts-2; j++ )
-			fprintf( file_id, "%f, ", degenSurface.nvec[i][j].z() );
-		if ( i < nxsecs-2 )
-			fprintf( file_id, "%f;\n", degenSurface.nvec[i][num_pnts-2].z() );
-		else
-			fprintf( file_id, "%f];\n", degenSurface.nvec[i][num_pnts-2].z() );
-	}
-
-	fprintf(file_id, "\ndegenGeom(end).surf.u = [");
-	for ( int i = 0; i < nxsecs - 1; i++ )
-	{
-		fprintf(file_id, "%f, ", degenSurface.u[i]);
-	}
-	fprintf(file_id, "%f];", degenSurface.u[nxsecs-1]);
-
-	fprintf(file_id, "\ndegenGeom(end).surf.w = [");
-	for ( int j = 0; j < num_pnts-1; j++ )
-	{
-		fprintf(file_id, "%f, ", degenSurface.w[j]);
-	}
-	fprintf(file_id, "%f];", degenSurface.w[num_pnts-1]);
+	writeMatVec3d.write(  file_id, degenSurface.x,    basename, nxsecs, num_pnts );
+	writeMatVec3d.write(  file_id, degenSurface.nvec, basename + "n",   nxsecs-1,    num_pnts-1 );
+	writeVecDouble.write( file_id, degenSurface.u,    basename + "u",   nxsecs );
+	writeVecDouble.write( file_id, degenSurface.w,    basename + "w",   num_pnts );
 }
 
 void DegenGeom::write_degenGeomPlateM_file(FILE* file_id, int nxsecs, DegenPlate &degenPlate, int iplate)
 {
-	//============================= DegenPlate =============================//
-	fprintf(file_id, "\ndegenGeom(end).plate(%d).nx = [", iplate);
-	for ( int i = 0; i < nxsecs - 1; i++ )
-	{
-		fprintf(file_id, "%f, ", degenPlate.nPlate[i].x());
-	}
-	fprintf(file_id, "%f];", degenPlate.nPlate[nxsecs-1].x());
+	char num[80];
+	sprintf( num, "degenGeom(end).plate(%d).", iplate );
+	string basename = string(num);
 
-	fprintf(file_id, "\ndegenGeom(end).plate(%d).ny = [", iplate);
-	for ( int i = 0; i < nxsecs - 1; i++ )
-	{
-		fprintf(file_id, "%f, ", degenPlate.nPlate[i].y());
-	}
-	fprintf(file_id, "%f];", degenPlate.nPlate[nxsecs-1].y());
+	WriteVecDoubleM writeVecDouble;
+	WriteVecVec3dM writeVecVec3d;
+	WriteMatDoubleM writeMatDouble;
+	WriteMatVec3dM writeMatVec3d;
 
-	fprintf(file_id, "\ndegenGeom(end).plate(%d).nz = [", iplate);
-	for ( int i = 0; i < nxsecs - 1; i++ )
-	{
-		fprintf(file_id, "%f, ", degenPlate.nPlate[i].z());
-	}
-	fprintf(file_id, "%f];", degenPlate.nPlate[nxsecs-1].z());
-
-	fprintf(file_id, "\ndegenGeom(end).plate(%d).x = [", iplate);
-	for ( int i = 0; i < nxsecs; i++ )
-	{
-		for ( int j = 0; j < (num_pnts+1)/2-1; j++ )
-			fprintf( file_id, "%f, ", degenPlate.x[i][j].x() );
-		if ( i < nxsecs-1 )
-			fprintf( file_id, "%f;\n", degenPlate.x[i][(num_pnts+1)/2-1].x() );
-		else
-			fprintf( file_id, "%f];\n", degenPlate.x[i][(num_pnts+1)/2-1].x() );
-	}
-
-	fprintf(file_id, "\ndegenGeom(end).plate(%d).y = [", iplate);
-	for ( int i = 0; i < nxsecs; i++ )
-	{
-		for ( int j = 0; j < (num_pnts+1)/2-1; j++ )
-			fprintf( file_id, "%f, ", degenPlate.x[i][j].y() );
-		if ( i < nxsecs-1 )
-			fprintf( file_id, "%f;\n", degenPlate.x[i][(num_pnts+1)/2-1].y() );
-		else
-			fprintf( file_id, "%f];\n", degenPlate.x[i][(num_pnts+1)/2-1].y() );
-	}
-
-	fprintf(file_id, "\ndegenGeom(end).plate(%d).z = [", iplate);
-	for ( int i = 0; i < nxsecs; i++ )
-	{
-		for ( int j = 0; j < (num_pnts+1)/2-1; j++ )
-			fprintf( file_id, "%f, ", degenPlate.x[i][j].z() );
-		if ( i < nxsecs-1 )
-			fprintf( file_id, "%f;\n", degenPlate.x[i][(num_pnts+1)/2-1].z() );
-		else
-			fprintf( file_id, "%f];\n", degenPlate.x[i][(num_pnts+1)/2-1].z() );
-	}
-
-	fprintf(file_id, "\ndegenGeom(end).plate(%d).zCamber = [", iplate);
-	for ( int i = 0; i < nxsecs; i++ )
-	{
-		for ( int j = 0; j < (num_pnts+1)/2-1; j++ )
-			fprintf( file_id, "%f, ", degenPlate.zcamber[i][j] );
-		if ( i < nxsecs-1 )
-			fprintf( file_id, "%f;\n", degenPlate.zcamber[i][(num_pnts+1)/2-1] );
-		else
-			fprintf( file_id, "%f];\n", degenPlate.zcamber[i][(num_pnts+1)/2-1] );
-	}
-
-	fprintf(file_id, "\ndegenGeom(end).plate(%d).t = [", iplate);
-	for ( int i = 0; i < nxsecs; i++ )
-	{
-		for ( int j = 0; j < (num_pnts+1)/2-1; j++ )
-			fprintf( file_id, "%f, ", degenPlate.t[i][j] );
-		if ( i < nxsecs-1 )
-			fprintf( file_id, "%f;\n", degenPlate.t[i][(num_pnts+1)/2-1] );
-		else
-			fprintf( file_id, "%f];\n", degenPlate.t[i][(num_pnts+1)/2-1] );
-	}
-
-	fprintf(file_id, "\ndegenGeom(end).plate(%d).nxCamber = [", iplate);
-	for ( int i = 0; i < nxsecs; i++ )
-	{
-		for ( int j = 0; j < (num_pnts+1)/2-1; j++ )
-			fprintf( file_id, "%f, ", degenPlate.nCamber[i][j].x() );
-		if ( i < nxsecs-1 )
-			fprintf( file_id, "%f;\n", degenPlate.nCamber[i][(num_pnts+1)/2-1].x() );
-		else
-			fprintf( file_id, "%f];\n", degenPlate.nCamber[i][(num_pnts+1)/2-1].x() );
-	}
-
-	fprintf(file_id, "\ndegenGeom(end).plate(%d).nyCamber = [", iplate);
-	for ( int i = 0; i < nxsecs; i++ )
-	{
-		for ( int j = 0; j < (num_pnts+1)/2-1; j++ )
-			fprintf( file_id, "%f, ", degenPlate.nCamber[i][j].y() );
-		if ( i < nxsecs-1 )
-			fprintf( file_id, "%f;\n", degenPlate.nCamber[i][(num_pnts+1)/2-1].y() );
-		else
-			fprintf( file_id, "%f];\n", degenPlate.nCamber[i][(num_pnts+1)/2-1].y() );
-	}
-
-	fprintf(file_id, "\ndegenGeom(end).plate(%d).nzCamber = [", iplate);
-	for ( int i = 0; i < nxsecs; i++ )
-	{
-		for ( int j = 0; j < (num_pnts+1)/2-1; j++ )
-			fprintf( file_id, "%f, ", degenPlate.nCamber[i][j].z() );
-		if ( i < nxsecs-1 )
-			fprintf( file_id, "%f;\n", degenPlate.nCamber[i][(num_pnts+1)/2-1].z() );
-		else
-			fprintf( file_id, "%f];\n", degenPlate.nCamber[i][(num_pnts+1)/2-1].z() );
-	}
-
-	fprintf(file_id, "\ndegenGeom(end).plate(%d).u = [", iplate);
-	for ( int i = 0; i < nxsecs-1; i++ )
-	{
-		fprintf(file_id, "%f, ", degenPlate.u[i]);
-	}
-	fprintf(file_id, "%f];", degenPlate.u[nxsecs-1]);
-
-	fprintf(file_id, "\ndegenGeom(end).plate(%d).wTop = [", iplate);
-	for ( int j = 0; j < (num_pnts+1)/2-1; j++ )
-	{
-		fprintf(file_id, "%f, ", degenPlate.wTop[j]);
-	}
-	fprintf(file_id, "%f];", degenPlate.wTop[(num_pnts+1)/2-1]);
-
-	fprintf(file_id, "\ndegenGeom(end).plate(%d).wBot = [", iplate);
-	for ( int j = 0; j < (num_pnts+1)/2-1; j++ )
-	{
-		fprintf(file_id, "%f, ", degenPlate.wBot[j]);
-	}
-	fprintf(file_id, "%f];", degenPlate.wBot[(num_pnts+1)/2-1]);
-
+	writeVecVec3d.write(  file_id, degenPlate.nPlate,  basename + "n",       nxsecs );
+	writeMatVec3d.write(  file_id, degenPlate.x,       basename,             nxsecs,           (num_pnts+1)/2 );
+	writeMatDouble.write( file_id, degenPlate.zcamber, basename + "zCamber", nxsecs,           (num_pnts+1)/2 );
+	writeMatDouble.write( file_id, degenPlate.t,       basename + "t",       nxsecs,           (num_pnts+1)/2 );
+	writeMatVec3d.write(  file_id, degenPlate.nCamber, basename + "nCamber", nxsecs,           (num_pnts+1)/2 );
+	writeVecDouble.write( file_id, degenPlate.u,       basename + "u",       nxsecs );
+	writeVecDouble.write( file_id, degenPlate.wTop,    basename + "wTop",    (num_pnts+1)/2 );
+	writeVecDouble.write( file_id, degenPlate.wBot,    basename + "wBot",    (num_pnts+1)/2 );
 }
 
 void DegenGeom::write_degenGeomStickM_file(FILE* file_id, int nxsecs, DegenStick &degenStick, int istick)
 {
-	//============================= DegenStick =============================//
-	fprintf(file_id, "\ndegenGeom(end).stick(%d).Xle = [", istick);
-	for ( int i = 0; i < nxsecs-1; i++ )
-	{
-		fprintf(	file_id,"%f, %f, %f;\n", degenStick.xle[i].x(),	\
-				degenStick.xle[i].y(),	\
-				degenStick.xle[i].z()	);
-	}
-	fprintf(file_id,"%f, %f, %f];", degenStick.xle[nxsecs-1].x(),	\
-			degenStick.xle[nxsecs-1].y(),	\
-			degenStick.xle[nxsecs-1].z()	);
+	char num[80];
+	sprintf( num, "degenGeom(end).stick(%d).", istick );
+	string basename = string(num);
 
-	fprintf(file_id, "\ndegenGeom(end).stick(%d).Xte = [", istick);
-	for ( int i = 0; i < nxsecs-1; i++ )
-	{
-		fprintf(	file_id,"%f, %f, %f;\n", degenStick.xte[i].x(),	\
-				degenStick.xte[i].y(),	\
-				degenStick.xte[i].z()	);
-	}
-	fprintf(file_id,"%f, %f, %f];", degenStick.xte[nxsecs-1].x(),	\
-			degenStick.xte[nxsecs-1].y(),	\
-			degenStick.xte[nxsecs-1].z()	);
+	WriteVecDoubleM writeVecDouble;
+	WriteVecVec3dM writeVecVec3d;
+	WriteMatDoubleM writeMatDouble;
 
-	fprintf(file_id, "\ndegenGeom(end).stick(%d).XcgSolid = [", istick);
-	for ( int i = 0; i < nxsecs-1; i++ )
-	{
-		fprintf(	file_id,"%f, %f, %f;\n", degenStick.xcgSolid[i].x(),	\
-				degenStick.xcgSolid[i].y(),	\
-				degenStick.xcgSolid[i].z()	);
-	}
-	fprintf(file_id,"%f, %f, %f];", degenStick.xcgSolid[nxsecs-1].x(),	\
-			degenStick.xcgSolid[nxsecs-1].y(),	\
-			degenStick.xcgSolid[nxsecs-1].z()	);
-
-	fprintf(file_id, "\ndegenGeom(end).stick(%d).XcgShell = [", istick);
-	for ( int i = 0; i < nxsecs-1; i++ )
-	{
-		fprintf(	file_id,"%f, %f, %f;\n", degenStick.xcgShell[i].x(),	\
-				degenStick.xcgShell[i].y(),	\
-				degenStick.xcgShell[i].z()	);
-	}
-	fprintf(file_id,"%f, %f, %f];", degenStick.xcgShell[nxsecs-1].x(),	\
-			degenStick.xcgShell[nxsecs-1].y(),	\
-			degenStick.xcgShell[nxsecs-1].z()	);
-
-	fprintf(file_id, "\ndegenGeom(end).stick(%d).toc = [", istick);
-	for ( int i = 0; i < nxsecs-1; i++ )
-	{
-		fprintf(file_id, "%f, ", degenStick.toc[i]);
-	}
-	fprintf(file_id, "%f];\n", degenStick.toc[nxsecs-1]);
-
-	fprintf(file_id, "\ndegenGeom(end).stick(%d).tLoc = [", istick);
-	for ( int i = 0; i < nxsecs-1; i++ )
-	{
-		fprintf(file_id, "%f, ", degenStick.tLoc[i]);
-	}
-	fprintf(file_id, "%f];\n", degenStick.tLoc[nxsecs-1]);
-
-	fprintf(file_id, "\ndegenGeom(end).stick(%d).chord = [", istick);
-	for ( int i = 0; i < nxsecs-1; i++ )
-	{
-		fprintf(file_id, "%f, ", degenStick.chord[i]);
-	}
-	fprintf(file_id, "%f];\n", degenStick.chord[nxsecs-1]);
-
-	fprintf(file_id, "\ndegenGeom(end).stick(%d).sweep = [", istick);
-	for ( int i = 0; i < nxsecs-1; i++ )
-	{
-		fprintf(file_id, "%f, ", degenStick.sweep[i]);
-	}
-	fprintf(file_id, "%f];\n", degenStick.sweep[nxsecs-1]);
-
-	fprintf(file_id, "\ndegenGeom(end).stick(%d).Ishell = [", istick);
-	for ( int i = 0; i < nxsecs-1; i++ )
-	{
-		fprintf(	file_id, "%f, %f, %f, %f, %f, %f;\n",		\
-				degenStick.Ishell[i][0],	\
-				degenStick.Ishell[i][1],	\
-				degenStick.Ishell[i][2],	\
-				degenStick.Ishell[i][3],	\
-				degenStick.Ishell[i][4],	\
-				degenStick.Ishell[i][5]		);
-	}
-	fprintf(	file_id, "%f, %f, %f, %f, %f, %f];\n",			\
-			degenStick.Ishell[nxsecs-1][0],	\
-			degenStick.Ishell[nxsecs-1][1],	\
-			degenStick.Ishell[nxsecs-1][2],	\
-			degenStick.Ishell[nxsecs-1][3],	\
-			degenStick.Ishell[nxsecs-1][4],	\
-			degenStick.Ishell[nxsecs-1][5]	);
-
-	fprintf(file_id, "\ndegenGeom(end).stick(%d).Isolid = [", istick);
-	for ( int i = 0; i < nxsecs-1; i++ )
-	{
-		fprintf(	file_id, "%f, %f, %f;\n",					\
-				degenStick.Isolid[i][0],	\
-				degenStick.Isolid[i][1],	\
-				degenStick.Isolid[i][2]		);
-	}
-	fprintf(	file_id, "%f, %f, %f];\n",						\
-			degenStick.Isolid[nxsecs-1][0],	\
-			degenStick.Isolid[nxsecs-1][1],	\
-			degenStick.Isolid[nxsecs-1][2]	);
-
-	fprintf(file_id, "\ndegenGeom(end).stick(%d).area = [", istick);
-	for ( int i = 0; i < nxsecs-1; i++ )
-	{
-		fprintf(file_id, "%f, ", degenStick.area[i]);
-	}
-	fprintf(file_id, "%f];\n", degenStick.area[nxsecs-1]);
-
-	fprintf(file_id, "\ndegenGeom(end).stick(%d).areaNormal = [", istick);
-	for ( int i = 0; i < nxsecs-1; i++ )
-	{
-		fprintf(	file_id, "%f, %f, %f;\n",						\
-				degenStick.areaNormal[i].x(),	\
-				degenStick.areaNormal[i].y(),	\
-				degenStick.areaNormal[i].z()	);
-	}
-	fprintf(	file_id, "%f, %f, %f];\n",							\
-			degenStick.areaNormal[nxsecs-1].x(),\
-			degenStick.areaNormal[nxsecs-1].y(),\
-			degenStick.areaNormal[nxsecs-1].z()	);
-
-	fprintf(file_id, "\ndegenGeom(end).stick(%d).perimTop = [", istick);
-	for ( int i = 0; i < nxsecs-1; i++ )
-	{
-		fprintf(file_id, "%f, ", degenStick.perimTop[i]);
-	}
-	fprintf(file_id, "%f];\n", degenStick.perimTop[nxsecs-1]);
-
-	fprintf(file_id, "\ndegenGeom(end).stick(%d).perimBot = [", istick);
-	for ( int i = 0; i < nxsecs-1; i++ )
-	{
-		fprintf(file_id, "%f, ", degenStick.perimBot[i]);
-	}
-	fprintf(file_id, "%f];\n", degenStick.perimBot[nxsecs-1]);
-
-	fprintf(file_id, "\ndegenGeom(end).stick(%d).u = [", istick);
-	for ( int i = 0; i < nxsecs-1; i++ )
-	{
-		fprintf(file_id, "%f, ", degenStick.u[i]);
-	}
-	fprintf(file_id, "%f];\n", degenStick.u[nxsecs-1]);
+	writeVecVec3d.write(  file_id, degenStick.xle,        basename + "le",         nxsecs );
+	writeVecVec3d.write(  file_id, degenStick.xte,        basename + "te",         nxsecs );
+	writeVecVec3d.write(  file_id, degenStick.xcgSolid,   basename + "cgSolid",    nxsecs );
+	writeVecVec3d.write(  file_id, degenStick.xcgShell,   basename + "cgShell",    nxsecs );
+	writeVecDouble.write( file_id, degenStick.toc,        basename + "toc",        nxsecs );
+	writeVecDouble.write( file_id, degenStick.tLoc,       basename + "tLoc",       nxsecs );
+	writeVecDouble.write( file_id, degenStick.chord,      basename + "chord",      nxsecs );
+	writeVecDouble.write( file_id, degenStick.sweep,      basename + "sweep",      nxsecs );
+	writeMatDouble.write( file_id, degenStick.Ishell,     basename + "Ishell",     nxsecs,    6 );
+	writeMatDouble.write( file_id, degenStick.Isolid,     basename + "Isolid",     nxsecs,    3 );
+	writeVecDouble.write( file_id, degenStick.area,       basename + "area",       nxsecs );
+	writeVecVec3d.write(  file_id, degenStick.areaNormal, basename + "areaNormal", nxsecs );
+	writeVecDouble.write( file_id, degenStick.perimTop,   basename + "perimTop",   nxsecs );
+	writeVecDouble.write( file_id, degenStick.perimBot,   basename + "perimBot",   nxsecs );
+	writeVecDouble.write( file_id, degenStick.u,          basename + "u",          nxsecs );
 }
 
 void DegenGeom::write_degenGeomPointM_file(FILE* file_id, int nxsecs)
 {
-	//============================= DegenPoint =============================//
-	fprintf(file_id, "\ndegenGeom(end).point.vol = %f;\n", degenPoint.vol[0]);
-	fprintf(file_id, "\ndegenGeom(end).point.volWet = %f;\n", degenPoint.volWet[0]);
-	fprintf(file_id, "\ndegenGeom(end).point.area = %f;\n", degenPoint.area[0]);
-	fprintf(file_id, "\ndegenGeom(end).point.areaWet = %f;\n", degenPoint.areaWet[0]);
-	fprintf(file_id, "\ndegenGeom(end).point.Ishell = [%f, %f, %f, %f, %f, %f];\n",	\
-			degenPoint.Ishell[0][0],	\
-			degenPoint.Ishell[0][1],	\
-			degenPoint.Ishell[0][2],	\
-			degenPoint.Ishell[0][3],	\
-			degenPoint.Ishell[0][4],	\
-			degenPoint.Ishell[0][5]		);
-	fprintf(file_id, "\ndegenGeom(end).point.Isolid = [%f, %f, %f, %f, %f, %f];\n",	\
-			degenPoint.Isolid[0][0],	\
-			degenPoint.Isolid[0][1],	\
-			degenPoint.Isolid[0][2],	\
-			degenPoint.Isolid[0][3],	\
-			degenPoint.Isolid[0][4],	\
-			degenPoint.Isolid[0][5]		);
-	fprintf(file_id, "\ndegenGeom(end).point.xcgShell = [%f, %f, %f];\n",	\
-			degenPoint.xcgShell[0].x(),	\
-			degenPoint.xcgShell[0].y(),	\
-			degenPoint.xcgShell[0].z()	);
-	fprintf(file_id, "\ndegenGeom(end).point.xcgSolid = [%f, %f, %f];\n",	\
-			degenPoint.xcgSolid[0].x(),	\
-			degenPoint.xcgSolid[0].y(),	\
-			degenPoint.xcgSolid[0].z()	);
+	string basename = string("degenGeom(end).point.");
+
+	WriteDoubleM writeDouble;
+	WriteVec3dM writeVec3d;
+	WriteVecDoubleM writeVecDouble;
+
+	writeDouble.write(    file_id, degenPoint.vol[0],      basename + "vol" );
+	writeDouble.write(    file_id, degenPoint.volWet[0],   basename + "volWet" );
+	writeDouble.write(    file_id, degenPoint.area[0],     basename + "area" );
+	writeDouble.write(    file_id, degenPoint.areaWet[0],  basename + "areaWet" );
+	writeVecDouble.write( file_id, degenPoint.Ishell[0],   basename + "Ishell",     6 );
+	writeVecDouble.write( file_id, degenPoint.Isolid[0],   basename + "Isolid",     6 );
+	writeVec3d.write(     file_id, degenPoint.xcgShell[0], basename + "cgShell");
+	writeVec3d.write(     file_id, degenPoint.xcgSolid[0], basename + "cgSolid");
 }
 
 void DegenGeom::write_degenGeomPropM_file(FILE* file_id)
 {
 	if ( parentGeom->getTypeStr() == "prop" )
 	{
-		fprintf(file_id, "\npropGeom(end).numBlades = %d;", degenProp.nblade);
-		fprintf(file_id, "\npropGeom(end).diameter = %f;", degenProp.d);
-		fprintf(file_id, "\npropGeom(end).rotCenter = [%f, %f, %f];",	degenProp.x.x(),	\
-																		degenProp.x.y(),	\
-																		degenProp.x.z()	);
-		fprintf(file_id, "\npropGeom(end).rotVec = [%f, %f, %f];",		degenProp.nvec.x(),	\
-																		degenProp.nvec.y(), \
-																		degenProp.nvec.z()	);
+		string basename = string("propGeom(end).");
+
+		fprintf(file_id, "propGeom(end).numBlades = %d;\n", degenProp.nblade);
+
+		WriteDoubleM writeDouble;
+		WriteVec3dM writeVec3d;
+
+		writeDouble.write( file_id, degenProp.d,    basename + "diameter" );
+		writeVec3d.write(  file_id, degenProp.x,    basename);
+		writeVec3d.write(  file_id, degenProp.nvec, basename + "n");
 	}
 }
 

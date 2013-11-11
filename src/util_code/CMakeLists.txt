@@ -45,4 +45,5 @@ util.h
 vec2d.h
 vec3d.h
 vector_util.h
+writeMatlab.h
 )
