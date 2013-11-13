@@ -204,11 +204,7 @@ void DegenGeom::createDegenSurface(int sym_code_in, float mat[4][4], const array
 {
 	int nLow = 0, nHigh = num_xsecs;
 
-	vector< vector<vec3d> > xSurfMat = degenSurface.x;
-	vector< vector<vec3d> > nSurfMat = degenSurface.nvec;
-
-	vector<vec3d> xVec( num_pnts );
-	vector<vec3d> nVec( num_pnts-1 );
+	vec3d nVec;
 
 	if ( getType() == DegenGeom::SURFACE_TYPE )
 	{
@@ -219,44 +215,45 @@ void DegenGeom::createDegenSurface(int sym_code_in, float mat[4][4], const array
 		}
 	}
 
-	for ( int i = nLow; i < nHigh-1; i++ )
-	{
-		for ( int j = 0; j < num_pnts-1; j++ )
-		{
-			vec3d sVec1 = pntsarr(i+1,j).transform(mat) - pntsarr(i,j).transform(mat);
-			vec3d sVec2 = pntsarr(i,j+1).transform(mat) - pntsarr(i,j).transform(mat);
-
-			if(!refl)
-				nVec[j]     = cross(sVec1,sVec2);
-			else
-				nVec[j]     = cross(sVec2,sVec1);
-
-			nVec[j].normalize();
-		}
-
-		nSurfMat.push_back(nVec);
-	}
+	int nxs = nHigh - nLow;
+	degenSurface.x.resize( nxs );
+	degenSurface.u.resize( nxs );
 
 	for ( int i = nLow; i < nHigh; i++ )
 	{
+		degenSurface.x[i-nLow].resize( num_pnts );
 		for ( int j = 0; j < num_pnts; j++ )
 		{
-			xVec[j] = pntsarr(i,j).transform(mat);
+			degenSurface.x[i-nLow][j] = pntsarr(i,j).transform(mat);
 		}
-
-		degenSurface.u.push_back( uArray[i] );
-
-		xSurfMat.push_back(xVec);
+		degenSurface.u[i-nLow] = uArray[i];
 	}
 
+	degenSurface.nvec.resize( nxs - 1 );
+	for ( int i = 0; i < nxs-1; i++ )
+	{
+		degenSurface.nvec[i].resize( num_pnts - 1 );
+		for ( int j = 0; j < num_pnts-1; j++ )
+		{
+			vec3d sVec1 = degenSurface.x[i+1][j] - degenSurface.x[i][j];
+			vec3d sVec2 = degenSurface.x[i][j+1] - degenSurface.x[i][j];
 
+			if(!refl)
+				nVec = cross( sVec1, sVec2 );
+			else
+				nVec = cross( sVec2, sVec1 );
+
+			nVec.normalize();
+
+			degenSurface.nvec[i][j] = nVec;
+		}
+	}
+
+	degenSurface.w.resize( num_pnts );
 	for ( int j = 0; j < num_pnts; j++ )
 	{
-		degenSurface.w.push_back( wArray[j] );
+		degenSurface.w[j] = wArray[j];
 	}
-
-	degenSurface.x    = xSurfMat;
-	degenSurface.nvec = nSurfMat;
 }
 
 void DegenGeom::createSurfDegenPlate(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
