@@ -403,52 +403,7 @@ void DegenGeom::createSurfDegenStick(int sym_code_in, float mat[4][4], const arr
 
 	int startPnt = 0;
 	createDegenStick(degenSticks[0], sym_code_in, mat, pntsarr, nLow, nHigh, startPnt);
-	createDegenStickSweep(degenSticks[0], sym_code_in, mat, pntsarr, nLow, nHigh, startPnt);
 
-}
-
-void DegenGeom::createDegenStickSweep(DegenStick &degenStick, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, int nLow, int nHigh, int startPnt)
-{
-	int platePnts = (num_pnts + 1) / 2;
-
-	// Calculate sweep angle
-	for( int i = nLow; i < nHigh - 1; i++ )
-	{
-		vec3d  cvCurrent, cvNext, qcCurrent, qcNext;
-		double chordCurrent, chordNext;
-
-		// Get current section chord vector
-		cvCurrent = pntsarr(i, platePnts-1) - pntsarr(i,0);
-		chordCurrent = cvCurrent.mag();
-		cvCurrent.normalize();
-		// Get current section quarter chord point
-		qcCurrent = (pntsarr(i,0) + cvCurrent*0.75*chordCurrent).transform(mat);
-
-		// Get next section chord vector
-		cvNext = pntsarr(i+1, platePnts-1) - pntsarr(i+1,0);
-		chordNext = cvNext.mag();
-		cvNext.normalize();
-		// Get next section quarter chord point
-		qcNext = (pntsarr(i+1,0) + cvNext*0.75*chordNext).transform(mat);
-
-		// Get vector from current to next quarter chord
-		vec3d qcVec = qcNext - qcCurrent;
-
-		// Zero out z component so angle is only in x-y plane
-		qcVec.set_z(0);
-
-		vec3d yAxis(0,1,0), zAxis(0,0,-1);
-		if(qcVec.y() < 0)
-		{
-			yAxis.set_y(-1);
-			zAxis.set_z(1);
-		}
-
-		// Get signed angle between qc vector and y axis
-		double lambda =  ((double)180 / 3.1415927) * signed_angle(yAxis, qcVec, zAxis);
-		degenStick.sweep.push_back( lambda );
-	}
-	degenStick.sweep.push_back( NAN );
 }
 
 void DegenGeom::createBodyDegenStick(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
@@ -523,9 +478,26 @@ void DegenGeom::createDegenStick(DegenStick &degenStick, int sym_code_in, float 
 	}
 
 	// Calculate sweep angle
-	for( int i = nLow; i < nHigh; i++ )
+	for( int i = nLow; i < nHigh-1; i++ )
 	{
-		degenStick.sweep.push_back( NAN );
+		vec3d xle0 = pntsarr( i, startPnt+platePnts-1 ).transform( mat );
+		vec3d xte0 = pntsarr( i, startPnt ).transform( mat );
+		vec3d xle1 = pntsarr( i+1, startPnt+platePnts-1 ).transform( mat );
+		vec3d xte1 = pntsarr( i+1, startPnt ).transform( mat );
+
+		vec3d vle = xle1 - xle0;
+		vec3d vte = xte1 - xte0;
+		vec3d vchd = xte0 - xle0;
+		vec3d vdownstream( 1, 0, 0 );
+
+		vec3d n = cross( vchd, vle );
+		n.normalize();
+
+		vec3d downNormal = cross( n, vdownstream  );
+		downNormal.normalize();
+
+		degenStick.sweeple.push_back( RAD_2_DEG*signed_angle( downNormal, vle, n * -1.0 ) );
+		degenStick.sweepte.push_back( RAD_2_DEG*signed_angle( downNormal, vte, n * -1.0 ) );
 	}
 }
 
@@ -973,13 +945,13 @@ void DegenGeom::write_degenGeomStickCsv_file(FILE* file_id, int nxsecs, DegenSti
 {
 
 	fprintf(file_id, "# DegenGeom Type, nXsecs\nSTICK, %d\n# xle,yle,zle,xte,yte,zte,xcg_solid,ycg_solid,zcg_solid,"
-			"xcg_shell,ycg_shell,zcg_shell,toc,tLoc,chord,sweep,Ixx_shell_A,Ixx_shell_B,Izz_shell_A,"
+			"xcg_shell,ycg_shell,zcg_shell,toc,tLoc,chord,sweeple,sweepte,Ixx_shell_A,Ixx_shell_B,Izz_shell_A,"
 			"Izz_shell_B,J_shell_A,J_shell_B,Ixx_solid,Izz_solid,J_solid,area,areaNormalX,"
 			"areaNormalY,areaNormalZ,perimTop,perimBot,u\n", nxsecs);
 
 	for ( int i = 0; i < nxsecs; i++ )
 	{
-		fprintf(file_id, makeCsvFmt(32),	\
+		fprintf(file_id, makeCsvFmt(33),	\
 				degenStick.xle[i].x(),					\
 				degenStick.xle[i].y(),					\
 				degenStick.xle[i].z(),					\
@@ -995,7 +967,8 @@ void DegenGeom::write_degenGeomStickCsv_file(FILE* file_id, int nxsecs, DegenSti
 				degenStick.toc[i],						\
 				degenStick.tLoc[i],						\
 				degenStick.chord[i],					\
-				degenStick.sweep[i],					\
+				degenStick.sweeple[i],					\
+				degenStick.sweepte[i],					\
 				degenStick.Ishell[i][0],				\
 				degenStick.Ishell[i][1],				\
 				degenStick.Ishell[i][2],				\
@@ -1149,9 +1122,10 @@ void DegenGeom::write_degenGeomStickM_file(FILE* file_id, int nxsecs, DegenStick
 	writeVecDouble.write( file_id, degenStick.toc,        basename + "toc",        nxsecs );
 	writeVecDouble.write( file_id, degenStick.tLoc,       basename + "tLoc",       nxsecs );
 	writeVecDouble.write( file_id, degenStick.chord,      basename + "chord",      nxsecs );
-	writeVecDouble.write( file_id, degenStick.sweep,      basename + "sweep",      nxsecs );
-	writeMatDouble.write( file_id, degenStick.Ishell,     basename + "Ishell",     nxsecs,    6 );
-	writeMatDouble.write( file_id, degenStick.Isolid,     basename + "Isolid",     nxsecs,    3 );
+	writeVecDouble.write( file_id, degenStick.sweeple,    basename + "sweeple",    nxsecs - 1 );
+	writeVecDouble.write( file_id, degenStick.sweepte,    basename + "sweepte",    nxsecs - 1 );
+	writeMatDouble.write( file_id, degenStick.Ishell,     basename + "Ishell",     nxsecs,        6 );
+	writeMatDouble.write( file_id, degenStick.Isolid,     basename + "Isolid",     nxsecs,        3 );
 	writeVecDouble.write( file_id, degenStick.area,       basename + "area",       nxsecs );
 	writeVecVec3d.write(  file_id, degenStick.areaNormal, basename + "areaNormal", nxsecs );
 	writeVecDouble.write( file_id, degenStick.perimTop,   basename + "perimTop",   nxsecs );

@@ -39,7 +39,8 @@ typedef struct {
     vector< double >		 	toc;		//!
     vector< double >		 	tLoc;		//!
     vector< double >		 	chord;		//!
-    vector< double >		 	sweep;		//! c/4. Make function to give sweep anywhere
+    vector< double >		 	sweeple;	//!
+    vector< double >		 	sweepte;	//!
     vector< vector< double > >	Ishell;		//!
     vector< vector< double > >	Isolid;		//!
     vector< vec3d >			 	xcgSolid;	//!
