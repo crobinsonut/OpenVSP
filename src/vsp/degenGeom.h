@@ -45,7 +45,7 @@ typedef struct {
     vector< vector< double > >	Isolid;		//!
     vector< vec3d >			 	xcgSolid;	//!
     vector< vec3d >			 	xcgShell;	//!
-    vector< double >         	area;		//!
+    vector< double >         	sectarea;	//!
     vector< vec3d >			 	areaNormal;	//!
     vector< double >         	perimTop;	//!
     vector< double >         	perimBot;	//!
