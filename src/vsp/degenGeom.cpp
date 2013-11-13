@@ -446,7 +446,7 @@ void DegenGeom::createDegenStick(DegenStick &degenStick, int sym_code_in, float 
 
 		vec3d areaNormal = get_area_normal(i, pntsarr).transform(mat) - vec3d(0,0,0).transform(mat);
 		areaNormal.normalize();
-		degenStick.areaNormal.push_back( areaNormal );
+		degenStick.sectnvec.push_back( areaNormal );
 
 		for ( int j = 1, k = startPnt+num_pnts-2; j < platePnts-1; j++, k-- )
 		{
@@ -946,8 +946,8 @@ void DegenGeom::write_degenGeomStickCsv_file(FILE* file_id, int nxsecs, DegenSti
 
 	fprintf(file_id, "# DegenGeom Type, nXsecs\nSTICK, %d\n# xle,yle,zle,xte,yte,zte,xcg_solid,ycg_solid,zcg_solid,"
 			"xcg_shell,ycg_shell,zcg_shell,toc,tLoc,chord,sweeple,sweepte,Ixx_shell_A,Ixx_shell_B,Izz_shell_A,"
-			"Izz_shell_B,J_shell_A,J_shell_B,Ixx_solid,Izz_solid,J_solid,sectarea,areaNormalX,"
-			"areaNormalY,areaNormalZ,perimTop,perimBot,u\n", nxsecs);
+			"Izz_shell_B,J_shell_A,J_shell_B,Ixx_solid,Izz_solid,J_solid,sectarea,sectnormalx,"
+			"sectnormaly,sectnormalz,perimTop,perimBot,u\n", nxsecs);
 
 	for ( int i = 0; i < nxsecs; i++ )
 	{
@@ -979,9 +979,9 @@ void DegenGeom::write_degenGeomStickCsv_file(FILE* file_id, int nxsecs, DegenSti
 				degenStick.Isolid[i][1],				\
 				degenStick.Isolid[i][2],				\
 				degenStick.sectarea[i],					\
-				degenStick.areaNormal[i].x(),			\
-				degenStick.areaNormal[i].y(),			\
-				degenStick.areaNormal[i].z(),			\
+				degenStick.sectnvec[i].x(),			\
+				degenStick.sectnvec[i].y(),			\
+				degenStick.sectnvec[i].z(),			\
 				degenStick.perimTop[i],					\
 				degenStick.perimBot[i],					\
 				degenStick.u[i]							);
@@ -1127,7 +1127,7 @@ void DegenGeom::write_degenGeomStickM_file(FILE* file_id, int nxsecs, DegenStick
 	writeMatDouble.write( file_id, degenStick.Ishell,     basename + "Ishell",     nxsecs,        6 );
 	writeMatDouble.write( file_id, degenStick.Isolid,     basename + "Isolid",     nxsecs,        3 );
 	writeVecDouble.write( file_id, degenStick.sectarea,   basename + "sectarea",   nxsecs );
-	writeVecVec3d.write(  file_id, degenStick.areaNormal, basename + "areaNormal", nxsecs );
+	writeVecVec3d.write(  file_id, degenStick.sectnvec,   basename + "sectNormal", nxsecs );
 	writeVecDouble.write( file_id, degenStick.perimTop,   basename + "perimTop",   nxsecs );
 	writeVecDouble.write( file_id, degenStick.perimBot,   basename + "perimBot",   nxsecs );
 	writeVecDouble.write( file_id, degenStick.u,          basename + "u",          nxsecs );
