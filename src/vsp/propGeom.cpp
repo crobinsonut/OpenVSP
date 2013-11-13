@@ -591,7 +591,7 @@ void PropGeom::createDegenGeom(vector<DegenGeom> &dgs)
 void PropGeom::createDegenProp( DegenGeom *dg )
 {
 	DegenProp degenProp = dg->getDegenProp();
-	degenProp.nvec = vec3d(1,0,0).transform( model_mat );
+	degenProp.nvec = vec3d(1,0,0).transform( model_mat ) - vec3d(0,0,0).transform( model_mat );
 	degenProp.x = vec3d(0,0,0).transform( model_mat );
 	degenProp.nblade = numBlades;
 	degenProp.d = diameter();
