@@ -4,9 +4,10 @@ function h = plotDegenSurf( dgfile )
 run(dgfile);
 
 % Initialize flags to prevent undefined access.
-plotnormals = false; plotuparm = false; plotwparm = false;
+plotnormals = false; plotarea = false; plotuparm = false; plotwparm = false;
 
 plotnormals = true;
+plotarea = true;
 %plotuparm = true;
 %plotwparm = true;
 
@@ -29,6 +30,8 @@ for i=1:ngeom
     surf(x,y,z,repmat(degenGeom(i).surf.u,1,npt));
   elseif(plotwparm)
     surf(x,y,z,repmat(degenGeom(i).surf.w,1,nxsecs)');
+  elseif(plotarea)
+    surf(x,y,z,degenGeom(i).surf.area);
   else
     surf(x,y,z);
   end

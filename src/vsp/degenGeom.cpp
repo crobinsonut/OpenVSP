@@ -230,18 +230,38 @@ void DegenGeom::createDegenSurface(int sym_code_in, float mat[4][4], const array
 	}
 
 	degenSurface.nvec.resize( nxs - 1 );
+	degenSurface.area.resize( nxs - 1 );
 	for ( int i = 0; i < nxs-1; i++ )
 	{
 		degenSurface.nvec[i].resize( num_pnts - 1 );
+		degenSurface.area[i].resize( num_pnts - 1 );
 		for ( int j = 0; j < num_pnts-1; j++ )
 		{
 			vec3d sVec1 = degenSurface.x[i+1][j] - degenSurface.x[i][j];
 			vec3d sVec2 = degenSurface.x[i][j+1] - degenSurface.x[i][j];
 
-			if(!refl)
-				nVec = cross( sVec1, sVec2 );
+			vec3d sVec3 = degenSurface.x[i+1][j+1] - degenSurface.x[i+1][j];
+			vec3d sVec4 = degenSurface.x[i+1][j+1] - degenSurface.x[i][j+1];
+
+			// Take areas of both triangles for quad.
+			degenSurface.area[i][j] = 0.5*( cross(sVec1, sVec2).mag() + cross(sVec3, sVec4).mag() );
+
+			vec3d v1, v2;
+
+			if( sVec1.mag() > sVec4.mag() )
+				v1 = sVec1;
 			else
-				nVec = cross( sVec2, sVec1 );
+				v1 = sVec4;
+
+			if( sVec2.mag() > sVec3.mag() )
+				v2 = sVec2;
+			else
+				v2 = sVec3;
+
+			// Approximate normal as normal for two longest sides.
+			nVec = cross( v1, v2 );
+			if(refl)
+				nVec = nVec*-1.0;
 
 			nVec.normalize();
 
@@ -889,16 +909,17 @@ void DegenGeom::write_degenGeomSurfCsv_file(FILE* file_id, int nxsecs)
 	}
 
 	fprintf(file_id, "SURFACE_FACE,%d,%d\n", nxsecs-1, num_pnts-1);
-	fprintf(file_id, "# xn,yn,zn\n");
+	fprintf(file_id, "# xn,yn,zn,area\n");
 
 	for ( int i = 0; i < nxsecs-1; i++ )
 	{
 		for ( int j = 0; j < num_pnts-1; j++ )
 		{
-			fprintf(file_id, makeCsvFmt(3),			\
+			fprintf(file_id, makeCsvFmt(4),			\
 					degenSurface.nvec[i][j].x(),	\
 					degenSurface.nvec[i][j].y(),	\
-					degenSurface.nvec[i][j].z()		);
+					degenSurface.nvec[i][j].z(),	\
+					degenSurface.area[i][j]			);
 		}
 	}
 
@@ -1074,9 +1095,11 @@ void DegenGeom::write_degenGeomSurfM_file(FILE* file_id, int nxsecs)
 
 	WriteVecDoubleM writeVecDouble;
 	WriteMatVec3dM writeMatVec3d;
+	WriteMatDoubleM writeMatDouble;
 
 	writeMatVec3d.write(  file_id, degenSurface.x,    basename, nxsecs, num_pnts );
 	writeMatVec3d.write(  file_id, degenSurface.nvec, basename + "n",   nxsecs-1,    num_pnts-1 );
+	writeMatDouble.write( file_id, degenSurface.area, basename + "area",nxsecs-1,    num_pnts-1 );
 	writeVecDouble.write( file_id, degenSurface.u,    basename + "u",   nxsecs );
 	writeVecDouble.write( file_id, degenSurface.w,    basename + "w",   num_pnts );
 }
