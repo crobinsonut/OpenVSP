@@ -50,6 +50,8 @@ typedef struct {
     vector< vec3d >			 	sectnvec;	//!
     vector< double >         	perimTop;	//!
     vector< double >         	perimBot;	//!
+    vector< double >			areaTop;	//!
+    vector< double >			areaBot;	//!
     vector< double >         	u;			//!
 } DegenStick;
 
