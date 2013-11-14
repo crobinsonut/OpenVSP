@@ -14,7 +14,7 @@
 #include <float.h> //For DBL_EPSILON
 #include <stdio.h>
 #include "vec3d.h"
-
+#include <cmath>
 
 //****** Constructor:  vec3d x() ******//
  vec3d::vec3d()
@@ -89,7 +89,7 @@
 
 
 //******* Transform *******//
- vec3d vec3d::transform(float mat[4][4])
+ vec3d vec3d::transform(float mat[4][4]) const
 {
     return( vec3d( (mat[0][0]*v[0] + mat[1][0]*v[1] + mat[2][0]*v[2] + mat[3][0]),
                    (mat[0][1]*v[0] + mat[1][1]*v[1] + mat[2][1]*v[2] + mat[3][1]),
@@ -98,7 +98,7 @@
 }
 
 //******* Transform *******//
- vec3d vec3d::transform(double mat[4][4])
+ vec3d vec3d::transform(double mat[4][4]) const
 {
     return( vec3d( (mat[0][0]*v[0] + mat[1][0]*v[1] + mat[2][0]*v[2] + mat[3][0]),
                    (mat[0][1]*v[0] + mat[1][1]*v[1] + mat[2][1]*v[2] + mat[3][1]),
@@ -193,6 +193,45 @@ double dist_squared(const vec3d& a, const vec3d& b)
       {
         v[0] /= length; v[1] /= length; v[2] /= length;
       }
+}
+
+
+int vec3d::major_comp() const
+{
+	int i = 0;
+	double c = abs( v[i] );
+
+	if( abs(v[1]) > c )
+	{
+		i = 1;
+		c = abs( v[i] );
+	}
+
+	if( abs(v[2]) > c )
+	{
+		i = 2;
+		c = abs( v[i] );
+	}
+	return i;
+}
+
+int vec3d::minor_comp() const
+{
+	int i = 0;
+	double c = abs( v[i] );
+
+	if( abs(v[1]) < c )
+	{
+		i = 1;
+		c = abs( v[i] );
+	}
+
+	if( abs(v[2]) < c )
+	{
+		i = 2;
+		c = abs( v[i] );
+	}
+	return i;
 }
 
 //******* Dot Product:  x = a.dot(b) ******//

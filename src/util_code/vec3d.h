@@ -91,8 +91,8 @@ public:
 	{ v[0] = cos_alpha*v[0];  v[1] = -sin_alpha*v[0] + v[1]; }
 
     // Transform Matrix
-    vec3d transform(float mat[4][4]);
-    vec3d transform(double mat[4][4]);
+    vec3d transform(float mat[4][4]) const;
+    vec3d transform(double mat[4][4]) const;
     vec3d reflect_xy()			{ return(vec3d( v[0],  v[1], -v[2])); }
     vec3d reflect_xz()			{ return(vec3d( v[0], -v[1],  v[2])); }
     vec3d reflect_yz()			{ return(vec3d(-v[0],  v[1],  v[2])); }
@@ -112,6 +112,9 @@ public:
 
     double mag() const;                // x = a.mag()
     void normalize();           // a.normalize()
+
+    int major_comp() const;
+    int minor_comp() const;
  
     friend double dot(const vec3d& a, const vec3d& b);   // x = dot(a,b)
     friend vec3d cross(const vec3d& a, const vec3d& b);  // a = cross(b,c)
