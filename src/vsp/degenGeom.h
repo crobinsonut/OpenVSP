@@ -42,6 +42,8 @@ typedef struct {
     vector< double >		 	chord;		//!
     vector< double >		 	sweeple;	//!
     vector< double >		 	sweepte;	//!
+    vector< vector< double > >	transmat;	//!
+    vector< vector< double > >	invtransmat;//!
     vector< vector< double > >	Ishell;		//!
     vector< vector< double > >	Isolid;		//!
     vector< vec3d >			 	xcgSolid;	//!
@@ -118,6 +120,19 @@ public:
 	int getType()				{ return type; }
 	void setType( int geomType)	{ type = geomType; }
 
+	void build_trans_mat( vec3d x, vec3d y, vec3d z, const vec3d &p, double mat[4][4], double invmat[4][4] );
+	void build_basis( const int &startPnt, const vector < vec3d > &sect, vec3d &v1, vec3d &v2, vec3d &v3 );
+	void transform_section( const int &startPnt, vector < vec3d > &sect, double trans[4][4], double invtrans[4][4] );
+	void calculate_section_prop( const vector < vec3d > &sect, double &len, double &area, vec3d &xcgshell, vec3d &xcgsolid, vector < double > &Ishell, vector < double > &Isolid );
+
+	void createDegenSurface(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, bool refl);
+	void createSurfDegenPlate(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
+	void createBodyDegenPlate(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
+	void createDegenPlate(DegenPlate &degenPlate, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, int nLow, int nHigh, int startPnt);
+	void createSurfDegenStick(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
+	void createBodyDegenStick(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
+	void createDegenStick(DegenStick &degenStick, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, int nLow, int nHigh, int startPnt);
+
 	const char* makeCsvFmt( int n );
 	void write_degenGeomCsv_file(FILE* file_id);
 	void write_degenGeomSurfCsv_file(FILE* file_id, int nxsecs);
@@ -132,28 +147,6 @@ public:
 	void write_degenGeomStickM_file(FILE* file_id, int nxsecs, DegenStick &degenStick, int istick);
 	void write_degenGeomPointM_file(FILE* file_id, int nxsecs);
 	void write_degenGeomPropM_file(FILE* file_id);
-
-	vec3d  get_area_normal( int ixs, const array_2d<vec3d> &pntsarr );
-	double get_xsec_area( int ixs, const array_2d<vec3d> &pntsarr );
-	double get_xsec_plane_area( int ixs, int plane, float mat[4][4], const array_2d<vec3d> &pntsarr );
-	vec3d  get_xsec_centroid( int ixs, const array_2d<vec3d> &pntsarr );
-	vec2d  get_xsec_centroid_in_plane(int ixs, int plane, float mat[4][4], const array_2d<vec3d> &pntsarr);
-
-	void createDegenSurface(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, bool refl);
-	void createSurfDegenPlate(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
-	void createBodyDegenPlate(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
-	void createDegenPlate(DegenPlate &degenPlate, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, int nLow, int nHigh, int startPnt);
-	void createSurfDegenStick(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
-	void createBodyDegenStick(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
-	void createDegenStick(DegenStick &degenStick, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, int nLow, int nHigh, int startPnt);
-	void createDegenStickSweep(DegenStick &degenStick, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, int nLow, int nHigh, int startPnt);
-
-	vec3d get_xsec_shellCG( int ixs, const array_2d<vec3d> &pntsarr );
-
-	vector<double> calculate_shell_inertias(int ixs, const array_2d<vec3d> &pntsarr);
-	vector<double> calculate_shell_inertias_in_plane(int ixs, int plane, float mat[4][4], const array_2d<vec3d> &pntsarr);
-	vector<double> calculate_solid_inertias(int ixs, const array_2d<vec3d> &pntsarr);
-	vector<double> calculate_solid_inertias_in_plane(int ixs, int plane, float mat[4][4], const array_2d<vec3d> &pntsarr);
 
 protected:
 

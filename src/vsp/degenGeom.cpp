@@ -3,202 +3,223 @@
 #include <cmath>
 #include "writeMatlab.h"
 
-//==== Get area normal vector for PLANAR cross section ====//
-vec3d DegenGeom::get_area_normal( int ixs, const array_2d<vec3d> &pntsarr)
+void DegenGeom::build_trans_mat( vec3d x, vec3d y, vec3d z, const vec3d &p, double mat[4][4], double invmat[4][4] )
 {
-	vec3d areaNormal, refVec1, refVec2;
-	int halfPnts = (num_pnts + 1) / 2;
+	// Initialize transformation matrix as identity.
+	for( int i = 0; i < 4; i++ )
+	{
+		for( int j = 0; j < 4; j++ )
+			mat[i][j] = 0;
+		mat[i][i] = 1.0;
+	}
 
-	refVec1 = pntsarr(ixs, halfPnts - 1) - pntsarr(ixs, 0);
-	refVec2 = pntsarr(ixs, 1) - pntsarr(ixs, num_pnts - 2);
+	// Input vectors are assumed to be unit vectors.
+	// Their magnitude will equal one unless it is the zero vector.
+	if ( x.mag() < 0.5 || y.mag() < 0.5 || z.mag() < 0.5 )  // At least one input vector is degenerate.
+	{
+		if( x.mag() > 0.5 && y.mag() < 0.5 ) // X is OK, Y is degenerate
+		{
+			int imin = x.minor_comp();
+			y.v[imin] = 1.0;
+			z = cross( x, y );
+			z.normalize();
+			y = cross( z, x );
+			y.normalize();
+		}
+		else if( x.mag() < 0.5 && y.mag() > 0.5 ) // X is degenerate, Y is OK
+		{
+			int imin = y.minor_comp();
+			x.v[imin] = 1.0;
+			z = cross( x, y );
+			z.normalize();
+			x = cross( y, z );
+			x.normalize();
+		}
+		else
+		{
+			x = vec3d( 1, 0, 0 );
+			y = vec3d( 0, 1, 0 );
+			z = vec3d( 0, 0, 1 );
+		}
+	}
 
-	areaNormal = cross(refVec2, refVec1);
-	areaNormal.normalize();
+	// Build rotation part of matrix.
+	for( int i = 0; i < 3; i++ )
+	{
+		mat[i][0] = x.v[i];
+		mat[i][1] = y.v[i];
+		mat[i][2] = z.v[i];
 
-	return areaNormal;
+		invmat[0][i] = x.v[i];
+		invmat[1][i] = y.v[i];
+		invmat[2][i] = z.v[i];
+	}
+
+	// Build translation part of matrix.
+	vec3d offset = p.transform(mat);
+
+	for( int i = 0; i < 3; i++ )
+	{
+		mat[3][i] = -offset.v[i];
+		invmat[3][i] = p.v[i];
+	}
 }
 
-//==== Get Cross Section Area ====//
-// JBB: This only works for PLANAR cross sections.
-double DegenGeom::get_xsec_area( int ixs, const array_2d<vec3d> &pntsarr )
+void DegenGeom::build_basis( const int &startPnt, const vector < vec3d > &sect, vec3d &v1, vec3d &v2, vec3d &v3 )
 {
-	double area = 0;
-	int j;
-	vec3d xAxis(1,0,0), yAxis(0,1,0), zAxis(0,0,1), areaNormal = get_area_normal(ixs, pntsarr);
-	vector<vec3d> pnts;
+	int n_halfpts = (num_pnts + 1) / 2;
+	int i_half = n_halfpts - 1;
+	int i_quarter = ( (num_pnts + 1) / 4 ) - 1;
 
-	// Load cross section points
+	// Vector along chord from te to le.
+	v1 = sect[ startPnt % ( num_pnts - 1 ) ] - sect[ ( startPnt + i_half ) % ( num_pnts - 1 ) ];
+	v1.normalize();
+
+	// Vector from 1/4 to 3/4 points around section.
+	vec3d v = ( sect[ ( startPnt + i_quarter ) % ( num_pnts - 1 ) ] - sect[ ( startPnt + i_half + i_quarter ) % ( num_pnts - 1) ]  );
+	v.normalize();
+
+	v3 = cross( v1, v );
+	v3.normalize();
+
+	v2 = cross( v3, v1 );
+	v2.normalize();
+}
+
+
+void DegenGeom::transform_section( const int &startPnt, vector < vec3d > &sect, double trans[4][4], double invtrans[4][4] )
+{
+	vec3d chordVec;
+	vec3d areaNormal;
+	vec3d up;
+
+	int n_halfpts = (num_pnts + 1) / 2;
+	int i_half = n_halfpts - 1;
+
+	build_basis( startPnt, sect, chordVec, up, areaNormal );
+
+	vec3d p = sect[ ( startPnt + i_half ) % ( num_pnts - 1 ) ];
+
+	build_trans_mat( chordVec, up, areaNormal, p, trans, invtrans );
+
 	for( int i = 0; i < num_pnts; i++ )
-	{
-		pnts.push_back( pntsarr(ixs,i) );
-	}
-
-	// Get rotation in xy plane to align areaNormal with yaxis
-	vec2d an2(areaNormal.x(), areaNormal.y()), ax1(1,0), ax2(0,1);
-	double theta = angle(an2, ax2);
-	if (areaNormal.x() < 0) theta = -theta;
-	// Rotate areaNormal around z to y axis
-	areaNormal   = RotateArbAxis( areaNormal, theta, zAxis );
-	// Rotate points as well
-	for ( int i = 0; i < num_pnts; i++ )
-		pnts[i] = RotateArbAxis( pnts[i], theta, zAxis );
-
-	// Get rotation in yz plane to align areaNormal with yaxis
-	an2.set_xy(areaNormal.y(), areaNormal.z());
-	theta = angle(an2, ax1);
-	if(areaNormal.z() >= 0) theta = -theta;
-	// Rotate points
-	for ( int i = 0; i < num_pnts; i++ )
-		pnts[i] = RotateArbAxis( pnts[i], theta, xAxis );
-
-	// Cross section should now be in x-z plane. Calculate area.
-	for( j = 1; j < num_pnts; j++ )
-		area += pnts[j-1].x()*pnts[j].z() - pnts[j].x()*pnts[j-1].z();
-	area += pnts[j-1].x()*pnts[0].z() - pnts[0].x()*pnts[j-1].z();
-
-	return (0.5*area);
+		sect[i] = sect[i].transform(trans);
 }
 
-//==== Cross sectional area in a given plane. ====//
-double DegenGeom::get_xsec_plane_area( int ixs, int plane, float mat[4][4], const array_2d<vec3d> &pntsarr )
+void DegenGeom::calculate_section_prop( const vector < vec3d > &sect, double &len, double &area, vec3d &xcgshell, vec3d &xcgsolid, vector < double > &Ishell, vector < double > &Isolid )
 {
-	double area = 0;
-	int j;
-	vector<vec3d> pnts;
+	double dl, da;
+	double c11, c22, c12;
+	double I22shell = 0, I11shell = 0, I12shell = 0;
+	double I22solid = 0, I11solid = 0, I12solid = 0;
 
-	for ( int i = 0; i < num_pnts; i++ )
+	vec3d c1;
+
+	len = 0;
+	area = 0;
+	xcgshell = vec3d( 0, 0, 0 );
+	xcgsolid = vec3d( 0, 0, 0 );
+	Ishell.clear();
+	Isolid.clear();
+
+	int n = sect.size();
+
+	// Cross section should be planar.  Assume Z=0.
+
+	for( int j = 0; j < n-1; j++ )
 	{
-		pnts.push_back( pntsarr(ixs,i).transform(mat) );
+		dl = dist( sect[j], sect[j+1] );
+		da = sect[j].x()*sect[j+1].y() - sect[j+1].x()*sect[j].y();
+
+		len += dl;
+		area += da;
+
+		c1 = sect[j] + sect[j+1];
+		xcgshell = xcgshell + c1 * dl;
+		xcgsolid = xcgsolid + c1 * da;
+
+		c11 = ( (sect[j].y() * sect[j].y()) + (sect[j].y() * sect[j+1].y()) + (sect[j+1].y() * sect[j+1].y()) );
+		c22 = ( (sect[j].x() * sect[j].x()) + (sect[j].x() * sect[j+1].x()) + (sect[j+1].x() * sect[j+1].x()) );
+		c12 = ( (2.0 * sect[j].x() * sect[j].y()) + (sect[j].x() * sect[j+1].y()) + (sect[j+1].x() * sect[j].y()) + (2.0 * sect[j+1].x() * sect[j+1].y()) );
+
+		I11shell += c11 * dl;
+		I22shell += c22 * dl;
+		I12shell += c12 * dl;
+
+		I11solid += c11 * da;
+		I22solid += c22 * da;
+		I12solid += c12 * da;
+	}
+	// Final segment will have zero contribution for closed curve.
+	dl = dist( sect[n-1], sect[0] );
+	da = sect[n-1].x()*sect[0].y() - sect[0].x()*sect[n-1].y();
+
+	len += dl;
+	area += da;
+
+	c1 = sect[n-1]+sect[0];
+	xcgsolid = xcgsolid + c1 * da;
+	xcgshell = xcgshell + c1 * dl;
+
+	c11 = ( (sect[n-1].y() * sect[n-1].y()) + (sect[n-1].y() * sect[0].y()) + (sect[0].y() * sect[0].y()) );
+	c22 = ( (sect[n-1].x() * sect[n-1].x()) + (sect[n-1].x() * sect[0].x()) + (sect[0].x() * sect[0].x()) );
+	c12 = ( (2.0 * sect[n-1].x() * sect[n-1].y()) + (sect[n-1].x() * sect[0].y()) + (sect[0].x() * sect[n-1].y()) + (2.0 * sect[0].x() * sect[0].y()) );
+
+	I11shell += c11 * dl;
+	I22shell += c22 * dl;
+	I12shell += c12 * dl;
+
+	I11solid += c11 * da;
+	I22solid += c22 * da;
+	I12solid += c12 * da;
+
+	if( abs(area) < 1e-6 )
+	{
+		area = 0.0;
+
+		xcgshell = vec3d( 0, 0, 0 );
+		xcgsolid = vec3d( 0, 0, 0 );
+
+		I11shell = 0.0;
+		I22shell = 0.0;
+		I12shell = 0.0;
+
+		I11solid = 0.0;
+		I22solid = 0.0;
+		I12solid = 0.0;
+	}
+	else
+	{
+		area /= 2.0;
+
+		xcgshell = xcgshell / (2.0*len);
+		xcgsolid = xcgsolid / (6.0*area);
+
+		I11shell /= (3.0*len);
+		I22shell /= (3.0*len);
+		I12shell /= (6.0*len);
+
+		I11solid /= (12.0*area);
+		I22solid /= (12.0*area);
+		I12solid /= (24.0*area);
 	}
 
-	switch (plane)
-	{
-	case XY_PLANE:
-		for( j = 1; j < num_pnts; j++ )
-			area += pnts[j-1].x()*pnts[j].y() - pnts[j].x()*pnts[j-1].y();
-		area += pnts[j-1].x()*pnts[0].y() - pnts[0].x()*pnts[j-1].y();
-		break;
-	case XZ_PLANE:
-		for( j = 1; j < num_pnts; j++ )
-			area += pnts[j-1].x()*pnts[j].z() - pnts[j].x()*pnts[j-1].z();
-		area += pnts[j-1].x()*pnts[0].z() - pnts[0].x()*pnts[j-1].z();
-		break;
-	case YZ_PLANE:
-		for( j = 1; j < num_pnts; j++ )
-			area += pnts[j-1].y()*pnts[j].z() - pnts[j].y()*pnts[j-1].z();
-		area += pnts[j-1].y()*pnts[0].z() - pnts[0].y()*pnts[j-1].z();
-		break;
-	}
+	I11shell = ( I11shell - (xcgshell.y() * xcgshell.y() ) ) * len;
+	I22shell = ( I22shell - (xcgshell.x() * xcgshell.x() ) ) * len;
+	I12shell = ( I12shell - (xcgshell.x() * xcgshell.y() ) ) * len;
 
-	return (0.5 * area);
+	I11solid = ( I11solid - (xcgsolid.y() * xcgsolid.y() ) ) * area;
+	I22solid = ( I22solid - (xcgsolid.x() * xcgsolid.x() ) ) * area;
+	I12solid = ( I12solid - (xcgsolid.x() * xcgsolid.y() ) ) * area;
+
+	Ishell.push_back( I11shell );
+	Ishell.push_back( I22shell );
+	Ishell.push_back( I12shell );
+
+	Isolid.push_back( I11solid );
+	Isolid.push_back( I22solid );
+	Isolid.push_back( I12solid );
 }
-
-//==== Get cross section centroid location. Only works for PLANAR cross sections! ====//
-vec3d DegenGeom::get_xsec_centroid( int ixs, const array_2d<vec3d> &pntsarr )
-{
-	double xcg = 0, zcg = 0, area = get_xsec_area(ixs, pntsarr);
-	int j;
-	vec3d xAxis(1,0,0), zAxis(0,0,1), areaNormal = get_area_normal(ixs, pntsarr);
-
-	vector<vec3d> pnts;
-	// Load cross section points
-	for( int i = 0; i < num_pnts; i++ )
-	{
-		pnts.push_back( pntsarr(ixs,i) );
-	}
-
-	// Get rotation in xy plane to align areaNormal with yaxis
-	vec2d an2(areaNormal.x(), areaNormal.y()), ax1(1,0), ax2(0,1);
-	double theta2, theta1 = angle(an2, ax2);
-	if (areaNormal.x() < 0) theta1 = -theta1;
-	// Rotate areaNormal around z to y axis
-	areaNormal   = RotateArbAxis( areaNormal, theta1, zAxis );
-	// Rotate points as well
-	for ( int i = 0; i < num_pnts; i++ )
-		pnts[i] = RotateArbAxis( pnts[i], theta1, zAxis );
-
-	// Get rotation in yz plane to align areaNormal with yaxis
-	an2.set_xy(areaNormal.y(), areaNormal.z());
-	theta2 = angle(an2, ax1);
-	if(areaNormal.z() >= 0) theta2 = -theta2;
-	// Rotate points about x axis
-	for ( int i = 0; i < num_pnts; i++ )
-		pnts[i] = RotateArbAxis( pnts[i], theta2, xAxis );
-
-	// Cross section should now be in x-z plane. Calculate centroid.
-	for ( j = 1; j < num_pnts; j++ )
-	{
-		xcg += (pnts[j-1].x()*pnts[j].z() - pnts[j].x()*pnts[j-1].z()) \
-				* ( pnts[j-1].x() + pnts[j].x() );
-		zcg += (pnts[j-1].x()*pnts[j].z() - pnts[j].x()*pnts[j-1].z()) \
-				* ( pnts[j-1].z() + pnts[j].z() );
-	}
-	xcg += (pnts[j-1].x()*pnts[0].z() - pnts[0].x()*pnts[j-1].z()) \
-			* ( pnts[j-1].x() + pnts[0].x() );
-	zcg += (pnts[j-1].x()*pnts[0].z() - pnts[0].x()*pnts[j-1].z()) \
-			* ( pnts[j-1].z() + pnts[0].z() );
-	xcg /= (6*area);
-	zcg /= (6*area);
-
-	// Xcg vector including y position (same for all points since xsec rotated into xz plane)
-	vec3d cgLoc(xcg, pnts[0].y(), zcg);
-	// Rotate back into original coordinate frame
-	cgLoc = RotateArbAxis( cgLoc, -theta2, xAxis );
-	cgLoc = RotateArbAxis( cgLoc, -theta1, zAxis );
-
-	return cgLoc;
-}
-
-vec2d DegenGeom::get_xsec_centroid_in_plane(int ixs, int plane, float mat[4][4], const array_2d<vec3d> &pntsarr)
-{
-	double xcg = 0, ycg = 0, area = get_xsec_plane_area(ixs, plane, mat, pntsarr);
-	int j;
-	vector<vec2d> pnts;
-	vec2d tmpPnts;
-
-	switch(plane)
-	{
-	case XY_PLANE:
-		for ( int i = 0; i < num_pnts; i++ )
-		{
-			tmpPnts.set_xy( pntsarr(ixs,i).transform(mat).x(), pntsarr(ixs,i).transform(mat).y() );
-			pnts.push_back(tmpPnts);
-		}
-		break;
-	case XZ_PLANE:
-		for ( int i = 0; i < num_pnts; i++ )
-		{
-			tmpPnts.set_xy( pntsarr(ixs,i).transform(mat).x(), pntsarr(ixs,i).transform(mat).z() );
-			pnts.push_back(tmpPnts);
-		}
-		break;
-	case YZ_PLANE:
-		for ( int i = 0; i < num_pnts; i++ )
-		{
-			tmpPnts.set_xy( pntsarr(ixs,i).transform(mat).y(), pntsarr(ixs,i).transform(mat).z() );
-			pnts.push_back(tmpPnts);
-		}
-		break;
-	}
-
-	for ( j = 1; j < num_pnts; j++ )
-	{
-		xcg += (pnts[j-1].x()*pnts[j].y() - pnts[j].x()*pnts[j-1].y()) \
-				* ( pnts[j-1].x() + pnts[j].x() );
-		ycg += (pnts[j-1].x()*pnts[j].y() - pnts[j].x()*pnts[j-1].y()) \
-				* ( pnts[j-1].y() + pnts[j].y() );
-	}
-	xcg += (pnts[j-1].x()*pnts[0].y() - pnts[0].x()*pnts[j-1].y()) \
-			* ( pnts[j-1].x() + pnts[0].x() );
-	ycg += (pnts[j-1].x()*pnts[0].y() - pnts[0].x()*pnts[j-1].y()) \
-			* ( pnts[j-1].y() + pnts[0].y() );
-	xcg /= (6*area);
-	ycg /= (6*area);
-
-	vec2d cgLoc( xcg, ycg );
-	return cgLoc;
-}
-
 
 void DegenGeom::createDegenSurface(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, bool refl)
 {
@@ -339,11 +360,17 @@ void DegenGeom::createDegenPlate(DegenPlate &degenPlate, int sym_code_in, float 
 		tVec[platePnts-1]  = 0;
 		zVec[platePnts-1]  = 0;
 
+
+		vector < vec3d > section( num_pnts );
+		for ( int j = 0; j < num_pnts; j++ )
+			section[j] = pntsarr( i, j ).transform(mat);
+
+		vec3d chordVec, anv, up;
+		build_basis( startPnt, section, chordVec, up, anv );
+
 		//== Compute plate normal ==//
 		// rotated chord vector
 		vec3d rcv = xVec[platePnts-1] - xVec[0];
-		// rotated area normal vector
-		vec3d anv = get_area_normal(i, pntsarr).transform(mat) - vec3d(0,0,0).transform(mat);
 		// plate normal vector
 		nPlate = cross(rcv,anv);
 		nPlate.normalize();
@@ -436,6 +463,7 @@ void DegenGeom::createBodyDegenStick(int sym_code_in, float mat[4][4], const arr
 	createDegenStick(degenSticks[1], sym_code_in, mat, pntsarr, nLow, nHigh, startPnt);
 }
 
+
 void DegenGeom::createDegenStick(DegenStick &degenStick, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, int nLow, int nHigh, int startPnt)
 {
 	int platePnts = (num_pnts + 1) / 2;
@@ -447,6 +475,27 @@ void DegenGeom::createDegenStick(DegenStick &degenStick, int sym_code_in, float 
 		double tempThickness = 0, perimTop = 0, perimBot = 0;
 		int    maxThickIdx[2] = {0,0};
 
+		vector < vec3d > section( num_pnts );
+		for ( int j = 0; j < num_pnts; j++ )
+			section[j] = pntsarr( i, j ).transform(mat);
+
+		vec3d chordVec, areaNormal, up;
+		build_basis( startPnt, section, chordVec, up, areaNormal );
+		degenStick.sectnvec.push_back( areaNormal );
+
+		// Transform section to XY plane, with LE at origin and TE on +X-axis.
+		// Also return transformation matrix from 3D space to XY plane as sect_trans.
+		double sect_trans[4][4], sect_inv_trans[4][4];
+		transform_section( startPnt, section, sect_trans, sect_inv_trans );
+
+		// Reshape matrix to vector and store in degenStick
+		vector < double > tmatvec;
+		for ( int j = 0; j < 4; j++ )
+			for ( int k = 0; k < 4; k++ )
+				tmatvec.push_back( sect_trans[j][k] );
+
+		degenStick.transmat.push_back( tmatvec );
+
 		// normalized, unrotated chord vector (te->le)
 		chordVec = pntsarr(i, startPnt+platePnts-1) - pntsarr(i, startPnt);
 		chordVec.normalize();
@@ -455,15 +504,20 @@ void DegenGeom::createDegenStick(DegenStick &degenStick, int sym_code_in, float 
 		degenStick.xte.push_back( pntsarr( i, startPnt ).transform(mat) );
 		degenStick.chord.push_back( dist(pntsarr(i, startPnt+platePnts-1), pntsarr(i, startPnt)) );
 		degenStick.u.push_back( uArray[i] );
-		degenStick.Ishell.push_back(calculate_shell_inertias_in_plane(i,YZ_PLANE, mat, pntsarr));
-		degenStick.Isolid.push_back(calculate_solid_inertias_in_plane(i,YZ_PLANE, mat, pntsarr));
-		degenStick.xcgSolid.push_back( get_xsec_centroid(i, pntsarr).transform(mat) );
-		degenStick.xcgShell.push_back( get_xsec_shellCG(i, pntsarr).transform(mat)  );
-		degenStick.sectarea.push_back( get_xsec_area(i, pntsarr) );
 
-		vec3d areaNormal = get_area_normal(i, pntsarr).transform(mat) - vec3d(0,0,0).transform(mat);
-		areaNormal.normalize();
-		degenStick.sectnvec.push_back( areaNormal );
+		double len, area;
+		vec3d xcgshell, xcgsolid;
+		vector < double > Ishell, Isolid;
+		calculate_section_prop( section, len, area, xcgshell, xcgsolid, Ishell, Isolid );
+
+		xcgshell = xcgshell.transform(sect_inv_trans);
+		xcgsolid = xcgsolid.transform(sect_inv_trans);
+
+		degenStick.Ishell.push_back( Ishell );
+		degenStick.Isolid.push_back( Isolid );
+		degenStick.xcgShell.push_back( xcgshell );
+		degenStick.xcgSolid.push_back( xcgsolid );
+		degenStick.sectarea.push_back( area );
 
 		for ( int j = 1, k = startPnt+num_pnts-2; j < platePnts-1; j++, k-- )
 		{
@@ -525,360 +579,6 @@ void DegenGeom::createDegenStick(DegenStick &degenStick, int sym_code_in, float 
 		degenStick.areaTop.push_back( areaTop );
 		degenStick.areaBot.push_back( areaBot );
 	}
-}
-
-vec3d DegenGeom::get_xsec_shellCG( int ixs, const array_2d<vec3d> &pntsarr )
-{
-	double xcg = 0, zcg = 0, area = get_xsec_area(ixs, pntsarr);
-	int j;
-	vec3d xAxis(1,0,0), zAxis(0,0,1), areaNormal = get_area_normal(ixs, pntsarr);
-
-	vector<vec3d> pnts;
-	// Load cross section points
-	for( int i = 0; i < num_pnts; i++ )
-	{
-		pnts.push_back( pntsarr(ixs,i) );
-	}
-
-	// Get rotation in xy plane to align areaNormal with yaxis
-	vec2d an2(areaNormal.x(), areaNormal.y()), ax1(1,0), ax2(0,1);
-	double theta2, theta1 = angle(an2, ax2);
-	if (areaNormal.x() < 0) theta1 = -theta1;
-	// Rotate areaNormal around z to y axis
-	areaNormal   = RotateArbAxis( areaNormal, theta1, zAxis );
-	// Rotate points as well
-	for ( int i = 0; i < num_pnts; i++ )
-		pnts[i] = RotateArbAxis( pnts[i], theta1, zAxis );
-
-	// Get rotation in yz plane to align areaNormal with yaxis
-	an2.set_xy(areaNormal.y(), areaNormal.z());
-	theta2 = angle(an2, ax1);
-	if(areaNormal.z() >= 0) theta2 = -theta2;
-	// Rotate points about x axis
-	for ( int i = 0; i < num_pnts; i++ )
-		pnts[i] = RotateArbAxis( pnts[i], theta2, xAxis );
-
-	vec3d  cg;
-	double segLen, totLen = 0;
-	// Cross section should now be in x-z plane. Calculate shell cg.
-	for ( j = 1; j < num_pnts; j++ )
-	{
-		// Line segment center point
-		cg     = (pnts[j-1] + pnts[j])/2;
-		// Line segment length
-		segLen = (pnts[j-1] - pnts[j]).mag();
-		// Sum of segment lengths (proxy for area, which is proxy for mass)
-		totLen += segLen;
-
-		xcg += cg.x() * segLen;
-		zcg += cg.z() * segLen;
-	}
-
-	// Line segment center point
-	cg     = (pnts[j-1] + pnts[0])/2;
-	// Line segment length
-	segLen = (pnts[j-1] - pnts[0]).mag();
-	// Sum of segment lengths (proxy for area, which is proxy for mass)
-	totLen += segLen;
-
-	xcg += cg.x() * segLen;
-	zcg += cg.z() * segLen;
-
-	xcg /= totLen;
-	zcg /= totLen;
-
-	// Xcg vector including y position (same for all points since xsec rotated into xz plane)
-	vec3d cgLoc(xcg, pnts[0].y(), zcg);
-	// Rotate back into original coordinate frame
-	cgLoc = RotateArbAxis( cgLoc, -theta2, xAxis );
-	cgLoc = RotateArbAxis( cgLoc, -theta1, zAxis );
-
-	return cgLoc;
-}
-
-//===== Jxx, Jzz, Jyy coefficients. Use Jxx = inertias[0]*t^3 + inertias[1]*t, =====================//
-//===== Jzz = inertias[2]*t^3 + inertias[3]*t, etc with t as shell thickness to get inertias. =====//
-vector<double> DegenGeom::calculate_shell_inertias(int ixs, const array_2d<vec3d> &pntsarr )
-{
-	int j, platePnts = (num_pnts + 1) / 2;
-	vector<double> inertias(6,0);
-	vec3d xAxis(1,0,0), zAxis(0,0,1);
-	vec3d areaNormal = get_area_normal(ixs, pntsarr), CG = get_xsec_centroid(ixs, pntsarr);
-
-	vector<vec3d> pnts;
-	// Load cross section points
-	for( int i = 0; i < num_pnts; i++ )
-	{
-		pnts.push_back( pntsarr(ixs,i) );
-	}
-
-	// Get rotation in xy plane to align areaNormal with yaxis
-	vec2d an2(areaNormal.x(), areaNormal.y()), ax1(1,0), ax2(0,1);
-	double theta = angle(an2, ax2);
-	if (areaNormal.x() < 0) theta = -theta;
-	// Rotate areaNormal around z to y axis
-	areaNormal = RotateArbAxis( areaNormal, theta, zAxis );
-	// Rotate centroid
-	CG   = RotateArbAxis( CG, theta, zAxis );
-	// Rotate points as well
-	for ( int i = 0; i < num_pnts; i++ )
-		pnts[i] = RotateArbAxis( pnts[i], theta, zAxis );
-
-	// Get rotation in yz plane to align areaNormal with yaxis
-	an2.set_xy(areaNormal.y(), areaNormal.z());
-	theta = angle(an2, ax1);
-	if(areaNormal.z() >= 0) theta = -theta;
-	// Rotate points about x axis
-	for ( int i = 0; i < num_pnts; i++ )
-		pnts[i] = RotateArbAxis( pnts[i], theta, xAxis );
-	// Rotate centroid
-	CG = RotateArbAxis( CG, theta, xAxis );
-
-	// Cross section is now in x-z plane. Compute shell inertias.
-	vec3d segVec, chordVec = pnts[0] - pnts[platePnts-1];
-	vec3d distToCG, cg;
-	chordVec.normalize();
-	double segLen, phi;
-
-	for ( j = 1; j < num_pnts; j++ )
-	{
-		// Line segment center point
-		cg     = (pnts[j-1] + pnts[j])/2;
-		// Line segment vector
-		segVec = pnts[j-1] - pnts[j];
-		// Line segment length
-		segLen = segVec.mag();
-		segVec.normalize();
-		// vector from line segment center point to xsec centroid
-		distToCG = cg - CG;
-		// angle between line segment and "chord"
-		phi = angle(segVec,chordVec);
-
-		inertias[0] += segLen/24 * ( 1+cos(2*phi) );
-		inertias[1] += pow(segLen,3)/24 * ( 1-cos(2*phi) ) + segLen*pow(distToCG.z(),2);
-
-		inertias[2] += segLen/24 * ( 1-cos(2*phi) );
-		inertias[3] += pow(segLen,3)/24 * ( 1+cos(2*phi) ) + segLen*pow(distToCG.x(),2);
-	}
-
-	// Line segment center point
-	cg     = (pnts[j-1] + pnts[0])/2;
-	// Line segment vector
-	segVec = pnts[j-1] - pnts[0];
-	// Line segment length
-	segLen = segVec.mag();
-	segVec.normalize();
-	// vector from line segment center point to xsec centroid
-	distToCG = cg - CG;
-	// angle between line segment and "chord"
-	phi = angle(segVec,chordVec);
-
-	inertias[0] += segLen/24 * ( 1+cos(2*phi) );
-	inertias[1] += pow(segLen,3)/24 * ( 1-cos(2*phi) ) + segLen*pow(distToCG.z(),2);
-
-	inertias[2] += segLen/24 * ( 1-cos(2*phi) );
-	inertias[3] += pow(segLen,3)/24 * ( 1+cos(2*phi) ) + segLen*pow(distToCG.x(),2);
-
-	inertias[4] = inertias[0] + inertias[2];
-	inertias[5] = inertias[1] + inertias[3];
-
-	return inertias;
-}
-
-vector<double> DegenGeom::calculate_shell_inertias_in_plane(int ixs, int plane, float mat[4][4], const array_2d<vec3d> &pntsarr)
-{
-	int j, platePnts = (num_pnts + 1) / 2;
-	vector<double> inertias(6,0);
-	vector<vec2d> pnts;
-	vec2d tmpPnts;
-
-	switch(plane)
-	{
-	case XY_PLANE:
-		for ( int i = 0; i < num_pnts; i++ )
-		{
-			tmpPnts.set_xy( pntsarr(ixs,i).transform(mat).x(), pntsarr(ixs,i).transform(mat).y() );
-			pnts.push_back(tmpPnts);
-		}
-		break;
-	case XZ_PLANE:
-		for ( int i = 0; i < num_pnts; i++ )
-		{
-			tmpPnts.set_xy( pntsarr(ixs,i).transform(mat).x(), pntsarr(ixs,i).transform(mat).z() );
-			pnts.push_back(tmpPnts);
-		}
-		break;
-	case YZ_PLANE:
-		for ( int i = 0; i < num_pnts; i++ )
-		{
-			tmpPnts.set_xy( pntsarr(ixs,i).transform(mat).y(), pntsarr(ixs,i).transform(mat).z() );
-			pnts.push_back(tmpPnts);
-		}
-		break;
-	}
-
-	vec2d segVec, chordVec = pnts[0] - pnts[platePnts-1];
-	vec2d distToCG, cg, CG = get_xsec_centroid_in_plane(ixs, plane, mat, pntsarr);
-	chordVec.normalize();
-	double segLen, phi;
-
-	for ( j = 1; j < num_pnts; j++ )
-	{
-		// Line segment center point
-		cg     = (pnts[j-1] + pnts[j])/2;
-		// Line segment vector
-		segVec = pnts[j-1] - pnts[j];
-		// Line segment length
-		segLen = segVec.mag();
-		segVec.normalize();
-		// vector from line segment center point to xsec centroid
-		distToCG = cg - CG;
-		// angle between line segment and x-axis
-		phi = angle(segVec, vec2d(1,0) );
-
-		inertias[0] += segLen/24 * ( 1+cos(2*phi) );
-		inertias[1] += pow(segLen,3)/24 * ( 1-cos(2*phi) ) + segLen*pow(distToCG.y(),2);
-
-		inertias[2] += segLen/24 * ( 1-cos(2*phi) );
-		inertias[3] += pow(segLen,3)/24 * ( 1+cos(2*phi) ) + segLen*pow(distToCG.x(),2);
-	}
-
-	// Line segment center point
-	cg     = (pnts[j-1] + pnts[0])/2;
-	// Line segment vector
-	segVec = pnts[j-1] - pnts[0];
-	// Line segment length
-	segLen = segVec.mag();
-	segVec.normalize();
-	// vector from line segment center point to xsec centroid
-	distToCG = cg - CG;
-	// angle between line segment and x-axis
-	phi = angle(segVec, vec2d(1,0) );
-
-	inertias[0] += segLen/24 * ( 1+cos(2*phi) );
-	inertias[1] += pow(segLen,3)/24 * ( 1-cos(2*phi) ) + segLen*pow(distToCG.y(),2);
-
-	inertias[2] += segLen/24 * ( 1-cos(2*phi) );
-	inertias[3] += pow(segLen,3)/24 * ( 1+cos(2*phi) ) + segLen*pow(distToCG.x(),2);
-
-	inertias[4] = inertias[0] + inertias[2];
-	inertias[5] = inertias[1] + inertias[3];
-
-	return inertias;
-}
-
-vector<double> DegenGeom::calculate_solid_inertias( int ixs, const array_2d<vec3d> &pntsarr )
-{
-	vector<double> inertias(2,0), inertiasCG(3,0);
-	int j;
-	double area = get_xsec_area(ixs, pntsarr);
-	vec3d xAxis(1,0,0), zAxis(0,0,1);
-	vec3d areaNormal = get_area_normal(ixs, pntsarr);
-	vec3d centroid   = get_xsec_centroid(ixs, pntsarr);
-
-	vector<vec3d> pnts;
-	// Load cross section points
-	for( int i = 0; i < num_pnts; i++ )
-	{
-		pnts.push_back( pntsarr(ixs,i) );
-	}
-
-	// Get rotation in xy plane to align areaNormal with yaxis
-	vec2d an2(areaNormal.x(), areaNormal.y()), ax1(1,0), ax2(0,1);
-	double theta = angle(an2, ax2);
-	if (areaNormal.x() < 0) theta = -theta;
-	// Rotate areaNormal around z to y axis
-	areaNormal = RotateArbAxis( areaNormal, theta, zAxis );
-	// Rotate centroid
-	centroid   = RotateArbAxis( centroid, theta, zAxis );
-	// Rotate points as well
-	for ( int i = 0; i < num_pnts; i++ )
-		pnts[i] = RotateArbAxis( pnts[i], theta, zAxis );
-
-	// Get rotation in yz plane to align areaNormal with yaxis
-	an2.set_xy(areaNormal.y(), areaNormal.z());
-	theta = angle(an2, ax1);
-	if(areaNormal.z() >= 0) theta = -theta;
-	// Rotate points about x axis
-	for ( int i = 0; i < num_pnts; i++ )
-		pnts[i] = RotateArbAxis( pnts[i], theta, xAxis );
-	// Rotate centroid
-	centroid = RotateArbAxis( centroid, theta, xAxis );
-
-	// Cross section should now be in x-z plane. Calculate inertias
-	for ( j = 1; j < num_pnts; j++ )
-	{
-		inertias[0] += (pnts[j-1].x()*pnts[j].z() - pnts[j].x()*pnts[j-1].z()) \
-				* (pow(pnts[j-1].z(),2) + pnts[j-1].z()*pnts[j].z() + pow(pnts[j].z(),2));
-		inertias[1] += (pnts[j-1].x()*pnts[j].z() - pnts[j].x()*pnts[j-1].z()) \
-				* (pow(pnts[j-1].x(),2) + pnts[j-1].x()*pnts[j].x() + pow(pnts[j].x(),2));
-	}
-	inertias[0] += (pnts[j-1].x()*pnts[0].z() - pnts[0].x()*pnts[j-1].z()) \
-			* (pow(pnts[j-1].z(),2) + pnts[j-1].z()*pnts[0].z() + pow(pnts[0].z(),2));
-	inertias[1] += (pnts[j-1].x()*pnts[0].z() - pnts[0].x()*pnts[j-1].z()) \
-			* (pow(pnts[j-1].x(),2) + pnts[j-1].x()*pnts[0].x() + pow(pnts[0].x(),2));
-	inertias[0] /= (12*area);
-	inertias[1] /= (12*area);
-
-	inertiasCG[0] = ( inertias[0] - pow(centroid.z(),2) ) * area;
-	inertiasCG[1] = ( inertias[1] - pow(centroid.x(),2) ) * area;
-	inertiasCG[2] = inertiasCG[0] + inertiasCG[1];
-
-	return inertiasCG;
-}
-
-vector<double> DegenGeom::calculate_solid_inertias_in_plane(int ixs, int plane, float mat[4][4], const array_2d<vec3d> &pntsarr)
-{
-	vector<double> inertias(2,0), inertiasCG(3,0);
-	int j;
-	double area = get_xsec_plane_area(ixs, plane, mat, pntsarr);
-	vec2d tmpPnts, cg = get_xsec_centroid_in_plane(ixs, plane, mat, pntsarr);
-	vector<vec2d> pnts;
-
-	switch(plane)
-	{
-	case XY_PLANE:
-		for ( int i = 0; i < num_pnts; i++ )
-		{
-			tmpPnts.set_xy( pntsarr(ixs,i).transform(mat).x(), pntsarr(ixs,i).transform(mat).y() );
-			pnts.push_back(tmpPnts);
-		}
-		break;
-	case XZ_PLANE:
-		for ( int i = 0; i < num_pnts; i++ )
-		{
-			tmpPnts.set_xy( pntsarr(ixs,i).transform(mat).x(), pntsarr(ixs,i).transform(mat).z() );
-			pnts.push_back(tmpPnts);
-		}
-		break;
-	case YZ_PLANE:
-		for ( int i = 0; i < num_pnts; i++ )
-		{
-			tmpPnts.set_xy( pntsarr(ixs,i).transform(mat).y(), pntsarr(ixs,i).transform(mat).z() );
-			pnts.push_back(tmpPnts);
-		}
-		break;
-	}
-
-	for ( j = 1; j < num_pnts; j++ )
-	{
-		inertias[0] += ( pnts[j-1].x()*pnts[j].y() - pnts[j].x()*pnts[j-1].y() ) \
-				* ( pow( pnts[j-1].y(), 2) + pnts[j-1].y()*pnts[j].y() + pow( pnts[j].y(), 2) );
-		inertias[1] += ( pnts[j-1].x()*pnts[j].y() - pnts[j].x()*pnts[j-1].y() ) \
-				* ( pow( pnts[j-1].x(), 2) + pnts[j-1].x()*pnts[j].x() + pow( pnts[j].x(), 2) );
-	}
-	inertias[0] += (pnts[j-1].x()*pnts[0].y() - pnts[0].x()*pnts[j-1].y()) \
-			* (pow(pnts[j-1].y(),2) + pnts[j-1].y()*pnts[0].y() + pow(pnts[0].y(),2));
-	inertias[1] += (pnts[j-1].x()*pnts[0].y() - pnts[0].x()*pnts[j-1].y()) \
-			* (pow(pnts[j-1].x(),2) + pnts[j-1].x()*pnts[0].x() + pow(pnts[0].x(),2));
-	inertias[0] /= (12*area);
-	inertias[1] /= (12*area);
-
-	inertiasCG[0] = ( inertias[0] - pow(cg.y(),2) ) * abs(area);
-	inertiasCG[1] = ( inertias[1] - pow(cg.x(),2) ) * abs(area);
-	inertiasCG[2] = inertiasCG[0] + inertiasCG[1];
-
-	return inertiasCG;
 }
 
 const char* DegenGeom::makeCsvFmt( int n )
@@ -972,13 +672,13 @@ void DegenGeom::write_degenGeomStickCsv_file(FILE* file_id, int nxsecs, DegenSti
 {
 
 	fprintf(file_id, "# DegenGeom Type, nXsecs\nSTICK_NODE, %d\n# xle,yle,zle,xte,yte,zte,xcg_solid,ycg_solid,zcg_solid,"
-			"xcg_shell,ycg_shell,zcg_shell,toc,tLoc,chord,Ixx_shell_A,Ixx_shell_B,Izz_shell_A,"
-			"Izz_shell_B,J_shell_A,J_shell_B,Ixx_solid,Izz_solid,J_solid,sectarea,sectnormalx,"
+			"xcg_shell,ycg_shell,zcg_shell,toc,tLoc,chord,Ixx_shell,Izz_shell,"
+			"Ixz_shell,Ixx_solid,Izz_solid,Ixz_solid,sectarea,sectnormalx,"
 			"sectnormaly,sectnormalz,perimTop,perimBot,u\n", nxsecs);
 
 	for ( int i = 0; i < nxsecs; i++ )
 	{
-		fprintf(file_id, makeCsvFmt(31),	\
+		fprintf(file_id, makeCsvFmt(28),	\
 				degenStick.xle[i].x(),					\
 				degenStick.xle[i].y(),					\
 				degenStick.xle[i].z(),					\
@@ -997,9 +697,6 @@ void DegenGeom::write_degenGeomStickCsv_file(FILE* file_id, int nxsecs, DegenSti
 				degenStick.Ishell[i][0],				\
 				degenStick.Ishell[i][1],				\
 				degenStick.Ishell[i][2],				\
-				degenStick.Ishell[i][3],				\
-				degenStick.Ishell[i][4],				\
-				degenStick.Ishell[i][5],				\
 				degenStick.Isolid[i][0],				\
 				degenStick.Isolid[i][1],				\
 				degenStick.Isolid[i][2],				\
@@ -1163,7 +860,7 @@ void DegenGeom::write_degenGeomStickM_file(FILE* file_id, int nxsecs, DegenStick
 	writeVecDouble.write( file_id, degenStick.chord,      basename + "chord",      nxsecs );
 	writeVecDouble.write( file_id, degenStick.sweeple,    basename + "sweeple",    nxsecs - 1 );
 	writeVecDouble.write( file_id, degenStick.sweepte,    basename + "sweepte",    nxsecs - 1 );
-	writeMatDouble.write( file_id, degenStick.Ishell,     basename + "Ishell",     nxsecs,        6 );
+	writeMatDouble.write( file_id, degenStick.Ishell,     basename + "Ishell",     nxsecs,        3 );
 	writeMatDouble.write( file_id, degenStick.Isolid,     basename + "Isolid",     nxsecs,        3 );
 	writeVecDouble.write( file_id, degenStick.sectarea,   basename + "sectarea",   nxsecs );
 	writeVecVec3d.write(  file_id, degenStick.sectnvec,   basename + "sectNormal", nxsecs );
