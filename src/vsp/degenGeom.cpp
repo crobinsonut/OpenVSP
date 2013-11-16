@@ -126,21 +126,25 @@ void DegenGeom::calculate_section_prop( const vector < vec3d > &sect, double &le
 
 	// Cross section should be planar.  Assume Z=0.
 
-	for( int j = 0; j < n-1; j++ )
+	for( int j = 0; j < n; j++ )
 	{
-		dl = dist( sect[j], sect[j+1] );
-		da = sect[j].x()*sect[j+1].y() - sect[j+1].x()*sect[j].y();
+		int jnext = j + 1;
+		if( jnext >= n ) // Final segment wrap to first segment.
+			jnext = 0;
+
+		dl = dist( sect[j], sect[jnext] );
+		da = sect[j].x()*sect[jnext].y() - sect[jnext].x()*sect[j].y();
 
 		len += dl;
 		area += da;
 
-		c1 = sect[j] + sect[j+1];
+		c1 = sect[j] + sect[jnext];
 		xcgshell = xcgshell + c1 * dl;
 		xcgsolid = xcgsolid + c1 * da;
 
-		c11 = ( (sect[j].y() * sect[j].y()) + (sect[j].y() * sect[j+1].y()) + (sect[j+1].y() * sect[j+1].y()) );
-		c22 = ( (sect[j].x() * sect[j].x()) + (sect[j].x() * sect[j+1].x()) + (sect[j+1].x() * sect[j+1].x()) );
-		c12 = ( (2.0 * sect[j].x() * sect[j].y()) + (sect[j].x() * sect[j+1].y()) + (sect[j+1].x() * sect[j].y()) + (2.0 * sect[j+1].x() * sect[j+1].y()) );
+		c11 = ( (sect[j].y() * sect[j].y()) + (sect[j].y() * sect[jnext].y()) + (sect[jnext].y() * sect[jnext].y()) );
+		c22 = ( (sect[j].x() * sect[j].x()) + (sect[j].x() * sect[jnext].x()) + (sect[jnext].x() * sect[jnext].x()) );
+		c12 = ( (2.0 * sect[j].x() * sect[j].y()) + (sect[j].x() * sect[jnext].y()) + (sect[jnext].x() * sect[j].y()) + (2.0 * sect[jnext].x() * sect[jnext].y()) );
 
 		I11shell += c11 * dl;
 		I22shell += c22 * dl;
@@ -150,28 +154,6 @@ void DegenGeom::calculate_section_prop( const vector < vec3d > &sect, double &le
 		I22solid += c22 * da;
 		I12solid += c12 * da;
 	}
-	// Final segment will have zero contribution for closed curve.
-	dl = dist( sect[n-1], sect[0] );
-	da = sect[n-1].x()*sect[0].y() - sect[0].x()*sect[n-1].y();
-
-	len += dl;
-	area += da;
-
-	c1 = sect[n-1]+sect[0];
-	xcgsolid = xcgsolid + c1 * da;
-	xcgshell = xcgshell + c1 * dl;
-
-	c11 = ( (sect[n-1].y() * sect[n-1].y()) + (sect[n-1].y() * sect[0].y()) + (sect[0].y() * sect[0].y()) );
-	c22 = ( (sect[n-1].x() * sect[n-1].x()) + (sect[n-1].x() * sect[0].x()) + (sect[0].x() * sect[0].x()) );
-	c12 = ( (2.0 * sect[n-1].x() * sect[n-1].y()) + (sect[n-1].x() * sect[0].y()) + (sect[0].x() * sect[n-1].y()) + (2.0 * sect[0].x() * sect[0].y()) );
-
-	I11shell += c11 * dl;
-	I22shell += c22 * dl;
-	I12shell += c12 * dl;
-
-	I11solid += c11 * da;
-	I22solid += c22 * da;
-	I12solid += c12 * da;
 
 	if( abs(area) < 1e-6 )
 	{
