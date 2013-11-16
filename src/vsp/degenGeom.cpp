@@ -617,7 +617,7 @@ void DegenGeom::write_degenGeomSurfCsv_file(FILE* file_id, int nxsecs)
 	}
 
 	fprintf(file_id, "SURFACE_FACE,%d,%d\n", nxsecs-1, num_pnts-1);
-	fprintf(file_id, "# xn,yn,zn,area\n");
+	fprintf(file_id, "# nx,ny,nz,area\n");
 
 	for ( int i = 0; i < nxsecs-1; i++ )
 	{
@@ -638,7 +638,7 @@ void DegenGeom::write_degenGeomPlateCsv_file(FILE* file_id, int nxsecs, DegenPla
 {
 	fprintf(file_id, "# DegenGeom Type,nXsecs,nPnts/Xsec\n");
 	fprintf(file_id, "PLATE,%d,%d\n", nxsecs, (num_pnts+1)/2);
-	fprintf(file_id,"# xn,yn,zn\n");
+	fprintf(file_id,"# nx,ny,nz\n");
 	for ( int i = 0; i < nxsecs; i++ )
 	{
 		fprintf(file_id, makeCsvFmt(3), degenPlate.nPlate[i].x(), \
@@ -646,7 +646,7 @@ void DegenGeom::write_degenGeomPlateCsv_file(FILE* file_id, int nxsecs, DegenPla
 				degenPlate.nPlate[i].z()  );
 	}
 
-	fprintf(file_id, "# x,y,z,zCamb,t,nCambX,nCambY,nCambZ,u,wTop,wBot\n");
+	fprintf(file_id, "# x,y,z,zCamber,t,nCamberx,nCambery,nCamberz,u,wTop,wBot\n");
 	for ( int i = 0; i < nxsecs; i++ )
 	{
 		for ( int j = 0; j < (num_pnts+1)/2; j++ )
@@ -670,10 +670,10 @@ void DegenGeom::write_degenGeomPlateCsv_file(FILE* file_id, int nxsecs, DegenPla
 void DegenGeom::write_degenGeomStickCsv_file(FILE* file_id, int nxsecs, DegenStick &degenStick)
 {
 
-	fprintf(file_id, "# DegenGeom Type, nXsecs\nSTICK_NODE, %d\n# xle,yle,zle,xte,yte,zte,xcg_solid,ycg_solid,zcg_solid,"
-			"xcg_shell,ycg_shell,zcg_shell,toc,tLoc,chord,Ixx_shell,Izz_shell,"
-			"Ixz_shell,Ixx_solid,Izz_solid,Ixz_solid,sectarea,sectnormalx,"
-			"sectnormaly,sectnormalz,perimTop,perimBot,u\n", nxsecs);
+	fprintf(file_id, "# DegenGeom Type, nXsecs\nSTICK_NODE, %d\n# lex,ley,lez,tex,tey,tez,cgShellx,cgShelly,cgShellz,"
+			"cgSolidx,cgSolidy,cgSolidz,toc,tLoc,chord,Ishell11,Ishell22,"
+			"Ishell12,Isolid11,Isolid22,Isolid12,sectArea,sectNormalx,"
+			"sectNormaly,sectNormalz,perimTop,perimBot,u\n", nxsecs);
 
 	for ( int i = 0; i < nxsecs; i++ )
 	{
@@ -684,14 +684,14 @@ void DegenGeom::write_degenGeomStickCsv_file(FILE* file_id, int nxsecs, DegenSti
 				degenStick.xte[i].x(),					\
 				degenStick.xte[i].y(),					\
 				degenStick.xte[i].z(),					\
-				degenStick.xcgSolid[i].x(),				\
-				degenStick.xcgSolid[i].y(),				\
-				degenStick.xcgSolid[i].z(),				\
 				degenStick.xcgShell[i].x(),				\
 				degenStick.xcgShell[i].y(),				\
 				degenStick.xcgShell[i].z(),				\
-				degenStick.toc[i],						\
-				degenStick.tLoc[i],						\
+				degenStick.xcgSolid[i].x(),				\
+				degenStick.xcgSolid[i].y(),				\
+				degenStick.xcgSolid[i].z(),				\
+				degenStick.toc[i],					\
+				degenStick.tLoc[i],					\
 				degenStick.chord[i],					\
 				degenStick.Ishell[i][0],				\
 				degenStick.Ishell[i][1],				\
@@ -700,12 +700,12 @@ void DegenGeom::write_degenGeomStickCsv_file(FILE* file_id, int nxsecs, DegenSti
 				degenStick.Isolid[i][1],				\
 				degenStick.Isolid[i][2],				\
 				degenStick.sectarea[i],					\
-				degenStick.sectnvec[i].x(),			\
-				degenStick.sectnvec[i].y(),			\
-				degenStick.sectnvec[i].z(),			\
+				degenStick.sectnvec[i].x(),				\
+				degenStick.sectnvec[i].y(),				\
+				degenStick.sectnvec[i].z(),				\
 				degenStick.perimTop[i],					\
 				degenStick.perimBot[i],					\
-				degenStick.u[i]							);
+				degenStick.u[i]						);
 	}
 
 
@@ -725,9 +725,9 @@ void DegenGeom::write_degenGeomPointCsv_file(FILE* file_id, int nxsecs)
 {
 	fprintf(file_id, "# DegenGeom Type\n");
 	fprintf(file_id, "POINT\n");
-	fprintf(file_id, "# vol,volWet,area,areaWet,IxxShell,IyyShell,IzzShell,IxyShell,");
-	fprintf(file_id, "IxzShell,IyzShell,IxxSolid,IyySolid,IzzSolid,IxySolid,IxzSolid,");
-	fprintf(file_id, "IyzSolid,xcgShell,ycgShell,zcgShell,xcgSolid,ycgSolid,zcgSolid\n"); // Need newline below.  Omitting for diff-consistency.
+	fprintf(file_id, "# vol,volWet,area,areaWet,Ishellxx,Ishellyy,Ishellzz,Ishellxy,");
+	fprintf(file_id, "Ishellxz,Ishellyz,Isolidxx,Isolidyy,Isolidzz,Isolidxy,Isolidxz,");
+	fprintf(file_id, "Isolidyz,cgShellx,cgShelly,cgShellz,cgSolidx,cgSolidy,cgSolidz\n");
 	fprintf(file_id, makeCsvFmt(22),\
 			degenPoint.vol[0],			\
 			degenPoint.volWet[0],		\
@@ -762,7 +762,7 @@ void DegenGeom::write_degenGeomPropCsv_file(FILE* file_id)
 	{
 		fprintf(file_id, "# DegenGeom Type\n");
 		fprintf(file_id, "PROP\n");
-		fprintf(file_id, "# Num Blades, Diameter, xLoc, yLoc, zLoc, nRotX, nRotY, nRotZ\n");
+		fprintf(file_id, "# numBlades,diameter,x,y,z,nx,ny,nz\n");
 		fprintf(file_id, fmtstr,\
 				degenProp.nblade,	\
 				degenProp.d,		\
@@ -813,10 +813,10 @@ void DegenGeom::write_degenGeomSurfM_file(FILE* file_id, int nxsecs)
 	WriteMatDoubleM writeMatDouble;
 
 	writeMatVec3d.write(  file_id, degenSurface.x,    basename, nxsecs, num_pnts );
-	writeMatVec3d.write(  file_id, degenSurface.nvec, basename + "n",   nxsecs-1,    num_pnts-1 );
-	writeMatDouble.write( file_id, degenSurface.area, basename + "area",nxsecs-1,    num_pnts-1 );
 	writeVecDouble.write( file_id, degenSurface.u,    basename + "u",   nxsecs );
 	writeVecDouble.write( file_id, degenSurface.w,    basename + "w",   num_pnts );
+	writeMatVec3d.write(  file_id, degenSurface.nvec, basename + "n",   nxsecs-1,    num_pnts-1 );
+	writeMatDouble.write( file_id, degenSurface.area, basename + "area",nxsecs-1,    num_pnts-1 );
 }
 
 void DegenGeom::write_degenGeomPlateM_file(FILE* file_id, int nxsecs, DegenPlate &degenPlate, int iplate)
@@ -852,22 +852,24 @@ void DegenGeom::write_degenGeomStickM_file(FILE* file_id, int nxsecs, DegenStick
 
 	writeVecVec3d.write(  file_id, degenStick.xle,        basename + "le",         nxsecs );
 	writeVecVec3d.write(  file_id, degenStick.xte,        basename + "te",         nxsecs );
-	writeVecVec3d.write(  file_id, degenStick.xcgSolid,   basename + "cgSolid",    nxsecs );
 	writeVecVec3d.write(  file_id, degenStick.xcgShell,   basename + "cgShell",    nxsecs );
+	writeVecVec3d.write(  file_id, degenStick.xcgSolid,   basename + "cgSolid",    nxsecs );
 	writeVecDouble.write( file_id, degenStick.toc,        basename + "toc",        nxsecs );
 	writeVecDouble.write( file_id, degenStick.tLoc,       basename + "tLoc",       nxsecs );
 	writeVecDouble.write( file_id, degenStick.chord,      basename + "chord",      nxsecs );
-	writeVecDouble.write( file_id, degenStick.sweeple,    basename + "sweeple",    nxsecs - 1 );
-	writeVecDouble.write( file_id, degenStick.sweepte,    basename + "sweepte",    nxsecs - 1 );
 	writeMatDouble.write( file_id, degenStick.Ishell,     basename + "Ishell",     nxsecs,        3 );
 	writeMatDouble.write( file_id, degenStick.Isolid,     basename + "Isolid",     nxsecs,        3 );
-	writeVecDouble.write( file_id, degenStick.sectarea,   basename + "sectarea",   nxsecs );
+	writeVecDouble.write( file_id, degenStick.sectarea,   basename + "sectArea",   nxsecs );
 	writeVecVec3d.write(  file_id, degenStick.sectnvec,   basename + "sectNormal", nxsecs );
 	writeVecDouble.write( file_id, degenStick.perimTop,   basename + "perimTop",   nxsecs );
 	writeVecDouble.write( file_id, degenStick.perimBot,   basename + "perimBot",   nxsecs );
+	writeVecDouble.write( file_id, degenStick.u,          basename + "u",          nxsecs );
+
+	writeVecDouble.write( file_id, degenStick.sweeple,    basename + "sweeple",    nxsecs - 1 );
+	writeVecDouble.write( file_id, degenStick.sweepte,    basename + "sweepte",    nxsecs - 1 );
 	writeVecDouble.write( file_id, degenStick.areaTop,    basename + "areaTop",    nxsecs - 1 );
 	writeVecDouble.write( file_id, degenStick.areaBot,    basename + "areaBot",    nxsecs - 1 );
-	writeVecDouble.write( file_id, degenStick.u,          basename + "u",          nxsecs );
+
 }
 
 void DegenGeom::write_degenGeomPointM_file(FILE* file_id, int nxsecs)
