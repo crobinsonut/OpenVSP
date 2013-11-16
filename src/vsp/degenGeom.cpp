@@ -672,15 +672,13 @@ void DegenGeom::write_degenGeomSurfCsv_file(FILE* file_id, int nxsecs)
 					degenSurface.area[i][j]			);
 		}
 	}
-
-
 }
 
 void DegenGeom::write_degenGeomPlateCsv_file(FILE* file_id, int nxsecs, DegenPlate &degenPlate)
 {
 	fprintf(file_id, "# DegenGeom Type,nXsecs,nPnts/Xsec\n");
 	fprintf(file_id, "PLATE,%d,%d\n", nxsecs, (num_pnts+1)/2);
-	fprintf(file_id,"# nx,ny,nz\n");
+	fprintf(file_id, "# nx,ny,nz\n");
 	for ( int i = 0; i < nxsecs; i++ )
 	{
 		fprintf(file_id, makeCsvFmt(3), degenPlate.nPlate[i].x(), \
@@ -712,10 +710,12 @@ void DegenGeom::write_degenGeomPlateCsv_file(FILE* file_id, int nxsecs, DegenPla
 void DegenGeom::write_degenGeomStickCsv_file(FILE* file_id, int nxsecs, DegenStick &degenStick)
 {
 
-	fprintf(file_id, "# DegenGeom Type, nXsecs\nSTICK_NODE, %d\n# lex,ley,lez,tex,tey,tez,cgShellx,cgShelly,cgShellz,"
+	fprintf(file_id, "# DegenGeom Type, nXsecs\n");
+	fprintf(file_id, "STICK_NODE, %d\n", nxsecs );
+	fprintf(file_id, "# lex,ley,lez,tex,tey,tez,cgShellx,cgShelly,cgShellz,"
 			"cgSolidx,cgSolidy,cgSolidz,toc,tLoc,chord,Ishell11,Ishell22,"
 			"Ishell12,Isolid11,Isolid22,Isolid12,sectArea,sectNormalx,"
-			"sectNormaly,sectNormalz,perimTop,perimBot,u\n", nxsecs);
+			"sectNormaly,sectNormalz,perimTop,perimBot,u\n");
 
 	for ( int i = 0; i < nxsecs; i++ )
 	{
@@ -751,7 +751,9 @@ void DegenGeom::write_degenGeomStickCsv_file(FILE* file_id, int nxsecs, DegenSti
 	}
 
 
-	fprintf(file_id, "# DegenGeom Type, nXsecs\nSTICK_FACE, %d\n# sweeple,sweepte,areaTop,areaBot\n", nxsecs-1);
+	fprintf(file_id, "# DegenGeom Type, nXsecs\n");
+	fprintf(file_id, "STICK_FACE, %d\n", nxsecs-1);
+	fprintf(file_id, "# sweeple,sweepte,areaTop,areaBot\n");
 
 	for ( int i = 0; i < nxsecs-1; i++ )
 	{
