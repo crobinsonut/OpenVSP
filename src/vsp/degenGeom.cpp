@@ -210,7 +210,7 @@ void DegenGeom::calculate_section_prop( const vector < vec3d > &sect, double &le
 	Isolid.push_back( I12solid );
 }
 
-void DegenGeom::createDegenSurface(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, bool refl)
+void DegenGeom::createDegenSurface(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, const vector< double > &uArray, const vector< double > &wArray, bool refl)
 {
 	int nLow = 0, nHigh = num_xsecs;
 
@@ -286,7 +286,7 @@ void DegenGeom::createDegenSurface(int sym_code_in, float mat[4][4], const array
 	}
 }
 
-void DegenGeom::createSurfDegenPlate(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
+void DegenGeom::createSurfDegenPlate(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, const vector< double > &uArray, const vector< double > &wArray)
 {
 	int nLow = 0, nHigh = num_xsecs;
 	int startPnt = 0;
@@ -299,23 +299,23 @@ void DegenGeom::createSurfDegenPlate(int sym_code_in, float mat[4][4], const arr
 	}
 
 	degenPlates.resize(1);
-	createDegenPlate(degenPlates[0], sym_code_in, mat, pntsarr, nLow, nHigh, startPnt);
+	createDegenPlate(degenPlates[0], sym_code_in, mat, pntsarr, uArray, wArray, nLow, nHigh, startPnt);
 }
 
-void DegenGeom::createBodyDegenPlate(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
+void DegenGeom::createBodyDegenPlate(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, const vector< double > &uArray, const vector< double > &wArray)
 {
 	int nLow = 0, nHigh = num_xsecs;
 
 	degenPlates.resize(2);
 
 	int startPnt = 0;
-	createDegenPlate(degenPlates[0], sym_code_in, mat, pntsarr, nLow, nHigh, startPnt);
+	createDegenPlate(degenPlates[0], sym_code_in, mat, pntsarr, uArray, wArray, nLow, nHigh, startPnt);
 
 	startPnt = (num_pnts - 1) / 4;
-	createDegenPlate(degenPlates[1], sym_code_in, mat, pntsarr, nLow, nHigh, startPnt);
+	createDegenPlate(degenPlates[1], sym_code_in, mat, pntsarr, uArray, wArray, nLow, nHigh, startPnt);
 }
 
-void DegenGeom::createDegenPlate(DegenPlate &degenPlate, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, int nLow, int nHigh, int startPnt)
+void DegenGeom::createDegenPlate(DegenPlate &degenPlate, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, const vector< double > &uArray, const vector< double > &wArray, int nLow, int nHigh, int startPnt)
 {
 	int platePnts = (num_pnts + 1) / 2;
 
@@ -419,7 +419,7 @@ void DegenGeom::createDegenPlate(DegenPlate &degenPlate, int sym_code_in, float 
 	degenPlate.zcamber	= zMat;
 }
 
-void DegenGeom::createSurfDegenStick(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
+void DegenGeom::createSurfDegenStick(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, const vector< double > &uArray, const vector< double > &wArray)
 {
 	int nLow = 0, nHigh = num_xsecs;
 	int platePnts = (num_pnts + 1) / 2;
@@ -435,25 +435,25 @@ void DegenGeom::createSurfDegenStick(int sym_code_in, float mat[4][4], const arr
 	degenSticks.resize(1);
 
 	int startPnt = 0;
-	createDegenStick(degenSticks[0], sym_code_in, mat, pntsarr, nLow, nHigh, startPnt);
+	createDegenStick(degenSticks[0], sym_code_in, mat, pntsarr, uArray, wArray, nLow, nHigh, startPnt);
 
 }
 
-void DegenGeom::createBodyDegenStick(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr)
+void DegenGeom::createBodyDegenStick(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, const vector< double > &uArray, const vector< double > &wArray)
 {
 	int nLow = 0, nHigh = num_xsecs;
 
 	degenSticks.resize(2);
 
 	int startPnt = 0;
-	createDegenStick(degenSticks[0], sym_code_in, mat, pntsarr, nLow, nHigh, startPnt);
+	createDegenStick(degenSticks[0], sym_code_in, mat, pntsarr, uArray, wArray, nLow, nHigh, startPnt);
 
 	startPnt = (num_pnts - 1) / 4;
-	createDegenStick(degenSticks[1], sym_code_in, mat, pntsarr, nLow, nHigh, startPnt);
+	createDegenStick(degenSticks[1], sym_code_in, mat, pntsarr, uArray, wArray, nLow, nHigh, startPnt);
 }
 
 
-void DegenGeom::createDegenStick(DegenStick &degenStick, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, int nLow, int nHigh, int startPnt)
+void DegenGeom::createDegenStick(DegenStick &degenStick, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, const vector< double > &uArray, const vector< double > &wArray, int nLow, int nHigh, int startPnt)
 {
 	int platePnts = (num_pnts + 1) / 2;
 	vec3d chordVec, camberPnt;

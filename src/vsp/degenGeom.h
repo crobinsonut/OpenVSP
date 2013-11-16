@@ -104,9 +104,6 @@ public:
 	void setNumXSecs( const int &nxss )		{ num_xsecs = nxss; }
 	void setNumPnts( const int &npts )		{ num_pnts = npts; }
 
-	void setUarray( const vector< double > &uarr )	{ uArray = uarr; }
-	void setWarray( const vector< double > &warr )	{ wArray = warr; }
-
 	void setName( char* namein)			{ name = string(namein); }
 	string getName()					{ return name; }
 
@@ -125,13 +122,13 @@ public:
 	void transform_section( const int &startPnt, vector < vec3d > &sect, double trans[4][4], double invtrans[4][4] );
 	void calculate_section_prop( const vector < vec3d > &sect, double &len, double &area, vec3d &xcgshell, vec3d &xcgsolid, vector < double > &Ishell, vector < double > &Isolid );
 
-	void createDegenSurface(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, bool refl);
-	void createSurfDegenPlate(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
-	void createBodyDegenPlate(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
-	void createDegenPlate(DegenPlate &degenPlate, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, int nLow, int nHigh, int startPnt);
-	void createSurfDegenStick(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
-	void createBodyDegenStick(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr);
-	void createDegenStick(DegenStick &degenStick, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, int nLow, int nHigh, int startPnt);
+	void createDegenSurface(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, const vector< double > &uArray, const vector< double > &wArray, bool refl);
+	void createSurfDegenPlate(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, const vector< double > &uArray, const vector< double > &wArray);
+	void createBodyDegenPlate(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, const vector< double > &uArray, const vector< double > &wArray);
+	void createDegenPlate(DegenPlate &degenPlate, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, const vector< double > &uArray, const vector< double > &wArray, int nLow, int nHigh, int startPnt);
+	void createSurfDegenStick(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, const vector< double > &uArray, const vector< double > &wArray);
+	void createBodyDegenStick(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, const vector< double > &uArray, const vector< double > &wArray);
+	void createDegenStick(DegenStick &degenStick, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, const vector< double > &uArray, const vector< double > &wArray, int nLow, int nHigh, int startPnt);
 
 	const char* makeCsvFmt( int n );
 	void write_degenGeomCsv_file(FILE* file_id);
@@ -158,9 +155,6 @@ protected:
 
 	int num_xsecs;
 	int num_pnts;
-
-	vector< double > uArray;
-	vector< double > wArray;
 
 	string name;
 
