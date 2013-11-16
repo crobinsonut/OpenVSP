@@ -552,22 +552,51 @@ void DegenGeom::createDegenStick(DegenStick &degenStick, int sym_code_in, float 
 	{
 		vec3d xle0 = pntsarr( i, startPnt+platePnts-1 ).transform( mat );
 		vec3d xte0 = pntsarr( i, startPnt ).transform( mat );
+
 		vec3d xle1 = pntsarr( i+1, startPnt+platePnts-1 ).transform( mat );
 		vec3d xte1 = pntsarr( i+1, startPnt ).transform( mat );
 
 		vec3d vle = xle1 - xle0;
+		vle.normalize();
+
 		vec3d vte = xte1 - xte0;
+		vte.normalize();
+
 		vec3d vchd = xte0 - xle0;
+		vchd.normalize();
+
 		vec3d vdownstream( 1, 0, 0 );
 
-		vec3d n = cross( vchd, vle );
-		n.normalize();
+		if( vchd.mag() > 0.5 )
+		{
+			vec3d n = cross( vchd, vle );
+			n.normalize();
 
-		vec3d downNormal = cross( n, vdownstream  );
-		downNormal.normalize();
+			vec3d downNormal = cross( n, vdownstream  );
+			downNormal.normalize();
 
-		degenStick.sweeple.push_back( RAD_2_DEG*signed_angle( downNormal, vle, n * -1.0 ) );
-		degenStick.sweepte.push_back( RAD_2_DEG*signed_angle( downNormal, vte, n * -1.0 ) );
+			if( downNormal.mag() > 0.5 && vle.mag() > 0.5 )
+				degenStick.sweeple.push_back( RAD_2_DEG*signed_angle( downNormal, vle, n * -1.0 ) );
+			else
+				degenStick.sweeple.push_back( 0.0 );
+
+			if( downNormal.mag() > 0.5 && vte.mag() > 0.5 )
+				degenStick.sweepte.push_back( RAD_2_DEG*signed_angle( downNormal, vte, n * -1.0 ) );
+			else
+				degenStick.sweepte.push_back( 0.0 );
+		}
+		else
+		{
+			vec3d vref1 = cross( vdownstream, vle );
+			vec3d vref2 = cross( vref1, vdownstream );
+			degenStick.sweeple.push_back( RAD_2_DEG*signed_angle( vref2, vle, vref1 * -1.0 ) );
+
+			vref1 = cross( vdownstream, vte );
+			vref2 = cross( vref1, vdownstream );
+			degenStick.sweepte.push_back( RAD_2_DEG*signed_angle( vref2, vte, vref1 * -1.0 ) );
+		}
+
+
 
 		double areaTop = 0, areaBot = 0;
 		for ( int j = 0, k = startPnt+num_pnts-2; j < platePnts-1; j++, k-- )
