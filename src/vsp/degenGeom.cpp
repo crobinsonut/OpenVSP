@@ -454,7 +454,7 @@ void DegenGeom::createDegenStick(DegenStick &degenStick, int sym_code_in, float 
 	for ( int i = nLow; i < nHigh; i++ )
 	{
 		vec3d topPnt, botPnt;
-		double tempThickness = 0, perimTop = 0, perimBot = 0;
+		double tempThickness = -1, perimTop = 0, perimBot = 0;
 		int    maxThickIdx[2] = {0,0};
 
 		vector < vec3d > section( num_pnts );
@@ -484,7 +484,10 @@ void DegenGeom::createDegenStick(DegenStick &degenStick, int sym_code_in, float 
 
 		degenStick.xle.push_back( pntsarr( i, startPnt+platePnts-1 ).transform(mat) );
 		degenStick.xte.push_back( pntsarr( i, startPnt ).transform(mat) );
-		degenStick.chord.push_back( dist(pntsarr(i, startPnt+platePnts-1), pntsarr(i, startPnt)) );
+
+		double chord = dist(pntsarr(i, startPnt+platePnts-1), pntsarr(i, startPnt));
+		degenStick.chord.push_back( chord );
+
 		degenStick.u.push_back( uArray[i] );
 
 		double len, area;
@@ -519,8 +522,17 @@ void DegenGeom::createDegenStick(DegenStick &degenStick, int sym_code_in, float 
 		}
 
 		camberPnt = ( pntsarr(i,maxThickIdx[0]) + pntsarr(i,maxThickIdx[1]) ) / 2;
-		degenStick.tLoc.push_back( 1 - (dot(camberPnt-pntsarr(i,startPnt),chordVec) / degenStick.chord.back()) );
-		degenStick.toc.push_back( tempThickness / degenStick.chord.back() );
+
+		if( chord > 0 )
+		{
+			degenStick.tLoc.push_back( 1 - (dot(camberPnt-pntsarr(i,startPnt),chordVec) / chord) );
+			degenStick.toc.push_back( tempThickness / chord );
+		}
+		else
+		{
+			degenStick.tLoc.push_back( 0.0 );
+			degenStick.toc.push_back( 0.0 );
+		}
 
 		perimTop += dist( pntsarr(i, startPnt+platePnts-1), pntsarr(i, startPnt+platePnts-2) );
 		perimBot += dist( pntsarr(i, startPnt+platePnts), pntsarr(i, startPnt+platePnts-1) );
