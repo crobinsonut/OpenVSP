@@ -402,16 +402,24 @@ void DegenGeom::createDegenPlate(DegenPlate &degenPlate, int sym_code_in, float 
 		tMat.push_back(tVec);
 		zMat.push_back(zVec);
 
-		degenPlate.u.push_back( uArray[i] );
 	}
 
-	for ( int j = 0, k = num_pnts-1; j < platePnts-1; j++, k-- )
+	for ( int i = nLow; i < nHigh; i++ )
 	{
-		degenPlate.wTop.push_back( wArray[j] );
-		degenPlate.wBot.push_back( wArray[k] );
+		vector<double>	uVec(  platePnts );
+		vector<double>	wTopVec(  platePnts );
+		vector<double>	wBotVec(  platePnts );
+
+		for ( int j = 0, k = startPnt+num_pnts-1; j < platePnts; j++, k-- )
+		{
+			uVec[j] = uArray[i];
+			wTopVec[j] = wArray[j];
+			wBotVec[j] = wArray[k % (num_pnts-1)];
+		}
+		degenPlate.u.push_back( uVec );
+		degenPlate.wTop.push_back( wTopVec );
+		degenPlate.wBot.push_back( wBotVec );
 	}
-	degenPlate.wTop.push_back( wArray[platePnts-1] );
-	degenPlate.wBot.push_back( wArray[platePnts-1] );
 
 	degenPlate.x    	= xMat;
 	degenPlate.nCamber 	= nCamberMat;
@@ -689,9 +697,9 @@ void DegenGeom::write_degenGeomPlateCsv_file(FILE* file_id, int nxsecs, DegenPla
 					degenPlate.nCamber[i][j].x(),		\
 					degenPlate.nCamber[i][j].y(),		\
 					degenPlate.nCamber[i][j].z(),		\
-					degenPlate.u[i],					\
-					degenPlate.wTop[j],					\
-					degenPlate.wBot[j]					);
+					degenPlate.u[i][j],					\
+					degenPlate.wTop[i][j],				\
+					degenPlate.wBot[i][j]				);
 		}
 	}
 }
@@ -860,13 +868,13 @@ void DegenGeom::write_degenGeomPlateM_file(FILE* file_id, int nxsecs, DegenPlate
 	WriteMatVec3dM writeMatVec3d;
 
 	writeVecVec3d.write(  file_id, degenPlate.nPlate,  basename + "n",       nxsecs );
-	writeMatVec3d.write(  file_id, degenPlate.x,       basename,             nxsecs,           (num_pnts+1)/2 );
-	writeMatDouble.write( file_id, degenPlate.zcamber, basename + "zCamber", nxsecs,           (num_pnts+1)/2 );
-	writeMatDouble.write( file_id, degenPlate.t,       basename + "t",       nxsecs,           (num_pnts+1)/2 );
-	writeMatVec3d.write(  file_id, degenPlate.nCamber, basename + "nCamber", nxsecs,           (num_pnts+1)/2 );
-	writeVecDouble.write( file_id, degenPlate.u,       basename + "u",       nxsecs );
-	writeVecDouble.write( file_id, degenPlate.wTop,    basename + "wTop",    (num_pnts+1)/2 );
-	writeVecDouble.write( file_id, degenPlate.wBot,    basename + "wBot",    (num_pnts+1)/2 );
+	writeMatVec3d.write(  file_id, degenPlate.x,       basename,             nxsecs,    (num_pnts+1)/2 );
+	writeMatDouble.write( file_id, degenPlate.zcamber, basename + "zCamber", nxsecs,    (num_pnts+1)/2 );
+	writeMatDouble.write( file_id, degenPlate.t,       basename + "t",       nxsecs,    (num_pnts+1)/2 );
+	writeMatVec3d.write(  file_id, degenPlate.nCamber, basename + "nCamber", nxsecs,    (num_pnts+1)/2 );
+	writeMatDouble.write( file_id, degenPlate.u,       basename + "u",       nxsecs,    (num_pnts+1)/2 );
+	writeMatDouble.write( file_id, degenPlate.wTop,    basename + "wTop",    nxsecs,    (num_pnts+1)/2 );
+	writeMatDouble.write( file_id, degenPlate.wBot,    basename + "wBot",    nxsecs,    (num_pnts+1)/2 );
 }
 
 void DegenGeom::write_degenGeomStickM_file(FILE* file_id, int nxsecs, DegenStick &degenStick, int istick)

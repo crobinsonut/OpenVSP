@@ -33,11 +33,11 @@ for i=1:ngeom
     
     if(plotplate)
       if(plotuparm)
-        surf(degenGeom(i).plate(j).x, degenGeom(i).plate(j).y, degenGeom(i).plate(j).z, repmat(degenGeom(i).plate(j).u,1,npt));
+        surf(degenGeom(i).plate(j).x, degenGeom(i).plate(j).y, degenGeom(i).plate(j).z, degenGeom(i).plate(j).u);
       elseif(plotwtopparm)
-        surf(degenGeom(i).plate(j).x, degenGeom(i).plate(j).y, degenGeom(i).plate(j).z, repmat(degenGeom(i).plate(j).wTop,1,nxsecs)');
+        surf(degenGeom(i).plate(j).x, degenGeom(i).plate(j).y, degenGeom(i).plate(j).z, degenGeom(i).plate(j).wTop);
       elseif(plotwbotparm)
-        surf(degenGeom(i).plate(j).x, degenGeom(i).plate(j).y, degenGeom(i).plate(j).z, repmat(degenGeom(i).plate(j).wBot,1,nxsecs)');
+        surf(degenGeom(i).plate(j).x, degenGeom(i).plate(j).y, degenGeom(i).plate(j).z, degenGeom(i).plate(j).wBot);
       else
         surf(degenGeom(i).plate(j).x, degenGeom(i).plate(j).y, degenGeom(i).plate(j).z);
       end

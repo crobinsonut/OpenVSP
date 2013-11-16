@@ -29,9 +29,9 @@ typedef struct {
     vector< vector< vec3d > >	nCamber;	//!
     vector< vector< double > >	t;			//!
     vector< vec3d >			 	nPlate;		//!
-    vector< double >         	u;			//!
-    vector< double >         	wTop;		//!
-    vector< double >         	wBot;		//!
+    vector< vector< double > >	u;			//!
+    vector< vector< double > >	wTop;		//!
+    vector< vector< double > >	wBot;		//!
 } DegenPlate;
 
 typedef struct {
