@@ -491,12 +491,15 @@ void DegenGeom::createDegenStick(DegenStick &degenStick, int sym_code_in, float 
 		transform_section( startPnt, section, sect_trans, sect_inv_trans );
 
 		// Reshape matrix to vector and store in degenStick
-		vector < double > tmatvec;
+		vector < double > tmatvec, invtmatvec;
 		for ( int j = 0; j < 4; j++ )
 			for ( int k = 0; k < 4; k++ )
+			{
 				tmatvec.push_back( sect_trans[j][k] );
-
+				invtmatvec.push_back( sect_inv_trans[j][k] );
+			}
 		degenStick.transmat.push_back( tmatvec );
+		degenStick.invtransmat.push_back( invtmatvec );
 
 		// normalized, unrotated chord vector (te->le)
 		chordVec = pntsarr(i, startPnt+platePnts-1) - pntsarr(i, startPnt);
@@ -622,7 +625,7 @@ void DegenGeom::createDegenStick(DegenStick &degenStick, int sym_code_in, float 
 	}
 }
 
-const char* DegenGeom::makeCsvFmt( int n )
+const char* DegenGeom::makeCsvFmt( int n, bool newline )
 {
 	char fmt[10];
 	sprintf( fmt, "%%.%de", DBL_DIG + 3 );
@@ -634,7 +637,10 @@ const char* DegenGeom::makeCsvFmt( int n )
 		if(i < n-1 )
 			fmtstring.append(", ");
 		else
-			fmtstring.append("\n");
+		{
+			if( newline )
+				fmtstring.append("\n");
+		}
 	}
 	return fmtstring.c_str();
 }
@@ -715,11 +721,13 @@ void DegenGeom::write_degenGeomStickCsv_file(FILE* file_id, int nxsecs, DegenSti
 	fprintf(file_id, "# lex,ley,lez,tex,tey,tez,cgShellx,cgShelly,cgShellz,"
 			"cgSolidx,cgSolidy,cgSolidz,toc,tLoc,chord,Ishell11,Ishell22,"
 			"Ishell12,Isolid11,Isolid22,Isolid12,sectArea,sectNormalx,"
-			"sectNormaly,sectNormalz,perimTop,perimBot,u\n");
+			"sectNormaly,sectNormalz,perimTop,perimBot,u,");
+	fprintf(file_id, "t00,t01,t02,t03,t10,t11,t12,t13,t20,t21,t22,t23,t30,t31,t32,t33,");
+	fprintf(file_id, "it00,it01,it02,it03,it10,it11,it12,it13,it20,it21,it22,it23,it30,it31,it32,it33,\n");
 
 	for ( int i = 0; i < nxsecs; i++ )
 	{
-		fprintf(file_id, makeCsvFmt(28),	\
+		fprintf(file_id, makeCsvFmt(28, false),	\
 				degenStick.xle[i].x(),					\
 				degenStick.xle[i].y(),					\
 				degenStick.xle[i].z(),					\
@@ -748,6 +756,18 @@ void DegenGeom::write_degenGeomStickCsv_file(FILE* file_id, int nxsecs, DegenSti
 				degenStick.perimTop[i],					\
 				degenStick.perimBot[i],					\
 				degenStick.u[i]						);
+
+		fprintf(file_id, ", ");
+
+		for( int j = 0; j < 16; j ++ )
+			fprintf(file_id, makeCsvFmt(1, false), degenStick.transmat[i][j] );
+
+		fprintf(file_id, ", ");
+
+		for( int j = 0; j < 16; j ++ )
+			fprintf(file_id, makeCsvFmt(1, false), degenStick.invtransmat[i][j] );
+
+		fprintf(file_id, "\n");
 	}
 
 
@@ -916,6 +936,8 @@ void DegenGeom::write_degenGeomStickM_file(FILE* file_id, int nxsecs, DegenStick
 	writeVecDouble.write( file_id, degenStick.perimTop,   basename + "perimTop",   nxsecs );
 	writeVecDouble.write( file_id, degenStick.perimBot,   basename + "perimBot",   nxsecs );
 	writeVecDouble.write( file_id, degenStick.u,          basename + "u",          nxsecs );
+	writeMatDouble.write( file_id, degenStick.transmat,   basename + "transmat",   nxsecs,        16 );
+	writeMatDouble.write( file_id, degenStick.invtransmat,basename + "invtransmat",nxsecs,        16 );
 
 	writeVecDouble.write( file_id, degenStick.sweeple,    basename + "sweeple",    nxsecs - 1 );
 	writeVecDouble.write( file_id, degenStick.sweepte,    basename + "sweepte",    nxsecs - 1 );

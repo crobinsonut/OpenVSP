@@ -130,7 +130,7 @@ public:
 	void createBodyDegenStick(int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, const vector< double > &uArray, const vector< double > &wArray);
 	void createDegenStick(DegenStick &degenStick, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, const vector< double > &uArray, const vector< double > &wArray, int nLow, int nHigh, int startPnt);
 
-	const char* makeCsvFmt( int n );
+	const char* makeCsvFmt( int n, bool newline = true );
 	void write_degenGeomCsv_file(FILE* file_id);
 	void write_degenGeomSurfCsv_file(FILE* file_id, int nxsecs);
 	void write_degenGeomPlateCsv_file(FILE* file_id, int nxsecs, DegenPlate &degenPlate);
