@@ -20,8 +20,6 @@ hold on
 for i=1:ngeom
   disp(['Component ' num2str(i) ' Name: ' degenGeom(i).name]);
   
-  [nxsecs, npt]=size(degenGeom(i).surf.x);
-
   x = degenGeom(i).surf.x;
   y = degenGeom(i).surf.y;
   z = degenGeom(i).surf.z;

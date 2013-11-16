@@ -856,6 +856,9 @@ void DegenGeom::write_degenGeomSurfM_file(FILE* file_id, int nxsecs)
 	WriteMatVec3dM writeMatVec3d;
 	WriteMatDoubleM writeMatDouble;
 
+	fprintf(file_id, "degenGeom(end).surf.nxsecs = %d;\n", nxsecs );
+	fprintf(file_id, "degenGeom(end).surf.num_pnts = %d;\n", num_pnts );
+
 	writeMatVec3d.write(  file_id, degenSurface.x,    basename, nxsecs, num_pnts );
 	writeMatDouble.write( file_id, degenSurface.u,    basename + "u",   nxsecs,      num_pnts );
 	writeMatDouble.write( file_id, degenSurface.w,    basename + "w",   nxsecs,      num_pnts );
@@ -873,6 +876,9 @@ void DegenGeom::write_degenGeomPlateM_file(FILE* file_id, int nxsecs, DegenPlate
 	WriteVecVec3dM writeVecVec3d;
 	WriteMatDoubleM writeMatDouble;
 	WriteMatVec3dM writeMatVec3d;
+
+	fprintf(file_id, "degenGeom(end).plate(%d).nxsecs = %d;\n", iplate, nxsecs );
+	fprintf(file_id, "degenGeom(end).plate(%d).num_pnts = %d;\n", iplate, (num_pnts+1)/2 );
 
 	writeVecVec3d.write(  file_id, degenPlate.nPlate,  basename + "n",       nxsecs );
 	writeMatVec3d.write(  file_id, degenPlate.x,       basename,             nxsecs,    (num_pnts+1)/2 );
@@ -893,6 +899,8 @@ void DegenGeom::write_degenGeomStickM_file(FILE* file_id, int nxsecs, DegenStick
 	WriteVecDoubleM writeVecDouble;
 	WriteVecVec3dM writeVecVec3d;
 	WriteMatDoubleM writeMatDouble;
+
+	fprintf(file_id, "degenGeom(end).stick(%d).nxsecs = %d;\n", istick, nxsecs );
 
 	writeVecVec3d.write(  file_id, degenStick.xle,        basename + "le",         nxsecs );
 	writeVecVec3d.write(  file_id, degenStick.xte,        basename + "te",         nxsecs );

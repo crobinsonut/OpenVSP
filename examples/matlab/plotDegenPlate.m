@@ -29,8 +29,6 @@ for i=1:ngeom
   
   for j=1:length(degenGeom(i).plate)
   
-    [nxsecs, npt]=size(degenGeom(i).plate(j).x);
-    
     if(plotplate)
       if(plotuparm)
         surf(degenGeom(i).plate(j).x, degenGeom(i).plate(j).y, degenGeom(i).plate(j).z, degenGeom(i).plate(j).u);

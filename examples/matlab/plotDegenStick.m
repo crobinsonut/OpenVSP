@@ -27,8 +27,6 @@ for i=1:ngeom
   
   for j=1:length(degenGeom(i).stick)
   
-    nxsecs = size(degenGeom(i).stick(j).lex, 1);
-    
     xle = degenGeom(i).stick(j).lex;
     yle = degenGeom(i).stick(j).ley;
     zle = degenGeom(i).stick(j).lez;
