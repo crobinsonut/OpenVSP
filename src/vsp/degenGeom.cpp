@@ -155,16 +155,28 @@ void DegenGeom::calculate_section_prop( const vector < vec3d > &sect, double &le
 		I12solid += c12 * da;
 	}
 
-	if( abs(area) < 1e-6 )
+	if( abs(len) < 1e-6 )
 	{
-		area = 0.0;
-
 		xcgshell = vec3d( 0, 0, 0 );
-		xcgsolid = vec3d( 0, 0, 0 );
 
 		I11shell = 0.0;
 		I22shell = 0.0;
 		I12shell = 0.0;
+	}
+	else
+	{
+		xcgshell = xcgshell / (2.0*len);
+
+		I11shell /= (3.0*len);
+		I22shell /= (3.0*len);
+		I12shell /= (6.0*len);
+	}
+
+	if( abs(area) < 1e-6 )
+	{
+		area = 0.0;
+
+		xcgsolid = vec3d( 0, 0, 0 );
 
 		I11solid = 0.0;
 		I22solid = 0.0;
@@ -174,12 +186,7 @@ void DegenGeom::calculate_section_prop( const vector < vec3d > &sect, double &le
 	{
 		area /= 2.0;
 
-		xcgshell = xcgshell / (2.0*len);
 		xcgsolid = xcgsolid / (6.0*area);
-
-		I11shell /= (3.0*len);
-		I22shell /= (3.0*len);
-		I12shell /= (6.0*len);
 
 		I11solid /= (12.0*area);
 		I22solid /= (12.0*area);
