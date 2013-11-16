@@ -27,9 +27,9 @@ for i=1:ngeom
   z = degenGeom(i).surf.z;
   
   if(plotuparm)
-    surf(x,y,z,repmat(degenGeom(i).surf.u,1,npt));
+    surf(x,y,z,degenGeom(i).surf.u);
   elseif(plotwparm)
-    surf(x,y,z,repmat(degenGeom(i).surf.w,1,nxsecs)');
+    surf(x,y,z,degenGeom(i).surf.w);
   elseif(plotarea)
     surf(x,y,z,degenGeom(i).surf.area);
   else

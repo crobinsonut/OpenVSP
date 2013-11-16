@@ -19,8 +19,8 @@ typedef struct {
     vector< vector< vec3d > >	x;			//!
     vector< vector< vec3d > >	nvec;		//!
     vector< vector< double > >	area;		//!
-    vector< double >        	u;			//!
-    vector< double >        	w;			//!
+    vector< vector< double > >	u;			//!
+    vector< vector< double > >	w;			//!
 } DegenSurface;
 
 typedef struct {

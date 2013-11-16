@@ -227,7 +227,6 @@ void DegenGeom::createDegenSurface(int sym_code_in, float mat[4][4], const array
 
 	int nxs = nHigh - nLow;
 	degenSurface.x.resize( nxs );
-	degenSurface.u.resize( nxs );
 
 	for ( int i = nLow; i < nHigh; i++ )
 	{
@@ -236,7 +235,6 @@ void DegenGeom::createDegenSurface(int sym_code_in, float mat[4][4], const array
 		{
 			degenSurface.x[i-nLow][j] = pntsarr(i,j).transform(mat);
 		}
-		degenSurface.u[i-nLow] = uArray[i];
 	}
 
 	degenSurface.nvec.resize( nxs - 1 );
@@ -279,10 +277,17 @@ void DegenGeom::createDegenSurface(int sym_code_in, float mat[4][4], const array
 		}
 	}
 
-	degenSurface.w.resize( num_pnts );
-	for ( int j = 0; j < num_pnts; j++ )
+	degenSurface.u.resize( nxs );
+	degenSurface.w.resize( nxs );
+	for ( int i = nLow; i < nHigh; i++ )
 	{
-		degenSurface.w[j] = wArray[j];
+		degenSurface.u[i-nLow].resize( num_pnts );
+		degenSurface.w[i-nLow].resize( num_pnts );
+		for ( int j = 0; j < num_pnts; j++ )
+			{
+				degenSurface.u[i-nLow][j] = uArray[i];
+				degenSurface.w[i-nLow][j] = wArray[j];
+			}
 	}
 }
 
@@ -648,8 +653,8 @@ void DegenGeom::write_degenGeomSurfCsv_file(FILE* file_id, int nxsecs)
 					degenSurface.x[i][j].x(),		\
 					degenSurface.x[i][j].y(),		\
 					degenSurface.x[i][j].z(),		\
-					degenSurface.u[i],				\
-					degenSurface.w[j]				);
+					degenSurface.u[i][j],				\
+					degenSurface.w[i][j]				);
 		}
 	}
 
@@ -850,8 +855,8 @@ void DegenGeom::write_degenGeomSurfM_file(FILE* file_id, int nxsecs)
 	WriteMatDoubleM writeMatDouble;
 
 	writeMatVec3d.write(  file_id, degenSurface.x,    basename, nxsecs, num_pnts );
-	writeVecDouble.write( file_id, degenSurface.u,    basename + "u",   nxsecs );
-	writeVecDouble.write( file_id, degenSurface.w,    basename + "w",   num_pnts );
+	writeMatDouble.write( file_id, degenSurface.u,    basename + "u",   nxsecs,      num_pnts );
+	writeMatDouble.write( file_id, degenSurface.w,    basename + "w",   nxsecs,      num_pnts );
 	writeMatVec3d.write(  file_id, degenSurface.nvec, basename + "n",   nxsecs-1,    num_pnts-1 );
 	writeMatDouble.write( file_id, degenSurface.area, basename + "area",nxsecs-1,    num_pnts-1 );
 }
