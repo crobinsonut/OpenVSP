@@ -449,7 +449,7 @@ void DegenGeom::createBodyDegenStick(int sym_code_in, float mat[4][4], const arr
 void DegenGeom::createDegenStick(DegenStick &degenStick, int sym_code_in, float mat[4][4], const array_2d<vec3d> &pntsarr, int nLow, int nHigh, int startPnt)
 {
 	int platePnts = (num_pnts + 1) / 2;
-	vec3d chordVec, camberPnt, prevCamberPnt;
+	vec3d chordVec, camberPnt;
 
 	for ( int i = nLow; i < nHigh; i++ )
 	{
@@ -516,8 +516,6 @@ void DegenGeom::createDegenStick(DegenStick &degenStick, int sym_code_in, float 
 			}
 			perimTop += dist( pntsarr(i,startPnt+j), pntsarr(i,startPnt+j-1) );
 			perimBot += dist( pntsarr(i, k % (num_pnts-1) ), pntsarr(i, k % (num_pnts-1)+1) );
-
-			prevCamberPnt = camberPnt;
 		}
 
 		camberPnt = ( pntsarr(i,maxThickIdx[0]) + pntsarr(i,maxThickIdx[1]) ) / 2;
