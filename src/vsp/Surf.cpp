@@ -21,6 +21,9 @@ Surf::Surf()
 	m_CompID = -1;
 	m_SurfID = -1;
 	m_WakeFlag = false;
+	m_TransFlag = false;
+	m_SymPlaneFlag = false;
+	m_FarFlag = false;
 	m_WakeParentSurfID = -1;
 	m_Mesh.SetSurfPtr( this );
 	m_NumMap = 10;
@@ -425,6 +428,12 @@ void Surf::BuildTargetMap( vector< MapSource* > &sources, int sid )
 		m_SrcMap[i].resize( nmapw );
 	}
 
+	bool limitFlag = false;
+	if ( m_FarFlag )
+		limitFlag = true;
+	if ( m_SymPlaneFlag )
+		limitFlag = true;
+
 	// Loop over surface evaluating source strength and curvature
 	for( int i = 0; i < nmapu ; i++ )
 	{
@@ -436,7 +445,7 @@ void Surf::BuildTargetMap( vector< MapSource* > &sources, int sid )
 			double len = numeric_limits<double>::max( );
 
 			// apply curvature based limits
-			double curv_len = TargetLen( u, w, m_GridDensityPtr->GetMaxGap(), m_GridDensityPtr->GetRadFrac());
+			double curv_len = TargetLen( u, w, m_GridDensityPtr->GetMaxGap( limitFlag ), m_GridDensityPtr->GetRadFrac( limitFlag ));
 			len = min( len, curv_len );
 
 			// apply minimum edge length as safety on curvature
@@ -444,11 +453,11 @@ void Surf::BuildTargetMap( vector< MapSource* > &sources, int sid )
 
 			// apply sources
 			vec3d p = CompPnt( u, w );
-			double grid_len = m_GridDensityPtr->GetTargetLen( p );
+			double grid_len = m_GridDensityPtr->GetTargetLen( p, limitFlag );
 			len = min( len, grid_len );
 
 			// finally check max size
-			len = min( len, m_GridDensityPtr->GetBaseLen() );
+			len = min( len, m_GridDensityPtr->GetBaseLen( limitFlag ) );
 
 			MapSource ms = MapSource( p, len, sid );
 			m_SrcMap[i][j] = ms;
@@ -456,6 +465,18 @@ void Surf::BuildTargetMap( vector< MapSource* > &sources, int sid )
 		}
 	}
 }
+
+void Surf::SetSymPlaneFlag( bool flag )
+{
+	m_SymPlaneFlag = flag;
+
+	// Refine background map for symmetry plane.
+	if( m_SymPlaneFlag )
+		m_NumMap = 100;
+	else
+		m_NumMap = 10;
+}
+
 
 bool indxcompare( const pair < double, pair < int, int > > &a, const pair < double, pair < int, int > > &b )
 {
@@ -1188,14 +1209,95 @@ bool Surf::BorderCurveOnSurface( Surf* surfPtr )
 				retFlag = true;
 			}
 		}
-		if ( num_pnts_on_surf >= 2 )
+		if ( num_pnts_on_surf > 2 )
 		{
 			//==== If Surface Add To List ====//
 			m_CfdMeshMgr->AddPossCoPlanarSurf( this, surfPtr );
+			PlaneBorderCurveIntersect( surfPtr, border_curves[i] );
 		}
 	}
 
 	return retFlag;
+}
+
+void Surf::PlaneBorderCurveIntersect( Surf* surfPtr, SCurve* brdPtr )
+{
+	bool repeat_curve = false;
+	bool null_ICurve = false;
+	if ( brdPtr->GetICurve() != NULL )
+	{
+		for ( int j = 0 ; j < m_SCurveVec.size() ; j++ )
+		{
+			if (brdPtr->GetICurve() == m_SCurveVec[j]->GetICurve() )
+				repeat_curve = true;
+		}
+	}
+	else
+		null_ICurve = true;
+
+	if (!repeat_curve )
+	{
+		SCurve* pSCurve = new SCurve;
+		SCurve* bSCurve = new SCurve;
+		ICurve* pICurve = new ICurve;
+
+		ICurve* bICurve = pICurve;
+		ICurve* obICurve = brdPtr->GetICurve();
+
+		vector< vec3d > UWCrv_bordercurve;
+		vector< vec3d > UWCrv_plane;
+
+		UWCrv_plane.resize( 4 );
+
+		vector< ICurve* > ICurves = m_CfdMeshMgr->GetICurveVec();
+		int ICurveVecIndex;
+
+		for ( int i = 0 ; i < brdPtr->GetUWCrv().get_num_control_pnts() ; i++ )
+			UWCrv_bordercurve.push_back( brdPtr->GetUWCrv().get_pnt( i ) );
+
+		for ( int i = 0 ; i < UWCrv_bordercurve.size() ; i++ )
+		{
+			vec3d pnt = surfPtr->CompPnt( UWCrv_bordercurve[i].x(), UWCrv_bordercurve[i].y() );
+			vec2d uw = ClosestUW( pnt, m_MaxU/2, m_MaxW/2 );
+			UWCrv_plane[i].set_xyz( uw.x(), uw.y(), 0 );
+		}
+
+		pSCurve->SetBezierControlPnts( UWCrv_plane );
+
+		pICurve->m_SCurve_A = brdPtr;
+		pICurve->m_SCurve_B = pSCurve;
+		pICurve->m_PlaneBorderIntersectFlag = true;
+		pSCurve->SetSurf( this );
+		pSCurve->SetICurve( pICurve );
+
+		bICurve->m_SCurve_A = pSCurve;
+		bICurve->m_SCurve_B = brdPtr;
+		bICurve->m_PlaneBorderIntersectFlag = true;
+		bSCurve->SetSurf( surfPtr );
+		bSCurve->SetICurve( bICurve );
+
+		brdPtr->SetICurve( bICurve );
+
+		if ( !null_ICurve )
+		{
+			ICurveVecIndex = distance(ICurves.begin(), find( ICurves.begin(), ICurves.end(), obICurve ) );
+			if ( ICurveVecIndex < ICurves.size() )
+				m_CfdMeshMgr->SetICurveVec( brdPtr->GetICurve(), ICurveVecIndex );
+		}
+		else
+		{
+			for ( int i = 0 ; i < ICurves.size() ; i++ )
+			{
+				if ( ICurves[i]->m_SCurve_A == brdPtr && ICurves[i]->m_SCurve_B == NULL )
+				{
+					ICurves[i]->m_SCurve_B = pSCurve;
+					ICurves[i]->m_PlaneBorderIntersectFlag = true;
+				}
+			}
+		}
+
+		m_SCurveVec.push_back( pSCurve );
+	}
 }
 
 	
@@ -1520,6 +1622,17 @@ double Surf::GetWScale( double u )		// u 0->1
 
 	double wscale = m_WScaleMap[ind] + fract*(m_WScaleMap[ind+1] - m_WScaleMap[ind]);
 	return wscale;
+}
+
+void Surf::FlipU()
+{
+	vector< vector< vec3d > > pnts;
+	pnts.resize( m_NumU );
+
+	for ( int i = 0 ; i < m_NumU ; i++ )
+		pnts[i] = m_Pnts[m_NumU - i - 1];
+
+	LoadControlPnts( pnts );
 }
 
 bool Surf::ValidUW( vec2d & uw )

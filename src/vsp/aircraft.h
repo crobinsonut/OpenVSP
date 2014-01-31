@@ -186,6 +186,8 @@ public:
 	int getGeomIndex(Geom * geom); //used for saving labels
 	Geom* getClipboardGeom(int index); //used for saving labels
 
+	int getGeomIndex(int ptrid);
+
 	//==== label objects ====//
 	void addLabel( LabelGeom* label );
 	void setActiveLabel( LabelGeom* label );

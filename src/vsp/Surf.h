@@ -110,6 +110,7 @@ public:
 	void IntersectLineSegMesh( vec3d & p0, vec3d & p1, vector< double > & t_vals );
 
 	bool BorderCurveOnSurface( Surf* surfPtr );
+	void PlaneBorderCurveIntersect( Surf* surfPtr, SCurve* brdPtr );
 
 	bbox& GetBBox()											{ return m_BBox; }
 	vector< SurfPatch* >& GetPatchVec()						{ return m_PatchVec; }
@@ -124,6 +125,8 @@ public:
 	double GetUScale( double w );
 	double GetWScale( double u );
 
+	void FlipU();
+
 	bool ValidUW( vec2d & uw );
 
 	void LoadBorderCurves( vector< vector <vec3d> > & borderCurves ); 
@@ -135,6 +138,15 @@ public:
 
 	void SetWakeParentSurfID( int id )				{ m_WakeParentSurfID = id; }
 	int GetWakeParentSurfID()						{ return m_WakeParentSurfID; }
+
+	void SetTransFlag( bool flag )					{ m_TransFlag = flag; }
+	bool GetTransFlag()								{ return m_TransFlag; }
+
+	virtual void SetSymPlaneFlag( bool flag );
+	bool GetSymPlaneFlag()							{ return m_SymPlaneFlag; }
+
+	void SetFarFlag( bool flag )					{ m_FarFlag = flag; }
+	bool GetFarFlag()								{ return m_FarFlag; }
 
 	vector< vector< vec3d > > GetControlPnts()		{ return m_Pnts; }
 
@@ -151,6 +163,10 @@ protected:
 
 	bool m_WakeFlag;
 	int m_WakeParentSurfID;
+
+	bool m_TransFlag;
+	bool m_SymPlaneFlag;
+	bool m_FarFlag;
 
 	vector< vector< vec3d > > m_Pnts;			// Control Pnts
 

@@ -158,6 +158,8 @@ public:
 
 	virtual int  GetCurrGeomID()					{ return m_CurrGeomID; }
 	virtual void SetCurrGeomID(int gid)				{ m_CurrGeomID = gid; }
+	virtual int GetFarGeomID()						{ return m_FarGeomID; }
+	virtual void SetFarGeomID( int gid )			{ m_FarGeomID = gid; }
 	virtual BaseSource* GetCurrSource();
 	virtual void AddSource( int type );
 	virtual BaseSource* CreateSource( int type );
@@ -168,9 +170,12 @@ public:
 
 	virtual void AddDefaultSources();
 	virtual void UpdateSourcesAndWakes();
+	virtual void UpdateDomain();
 	virtual void ScaleTriSize( double scale );
 
 	virtual void Draw();
+	virtual void Draw_BBox( bbox box );
+
 	virtual void WriteSurfs( const char* filename );
 	virtual void ReadSurfs( const char* filename );
 
@@ -188,6 +193,7 @@ public:
 	virtual Stringc CheckWaterTight();
 	virtual Edge* FindAddEdge( map< int, vector<Edge*> > & edgeMap, vector< Node* > & nodeVec, int ind1, int ind2 );
 
+	virtual void BuildDomain();
 	virtual void BuildGrid();
 
 	enum { NO_OUTPUT, CFD_OUTPUT, FEA_OUTPUT, };
@@ -212,7 +218,9 @@ public:
 
 	virtual void BuildCurves();
 	virtual void IntersectSplitChains();
-	virtual void IntersectYSlicePlane();
+
+	virtual vector< Surf* > CreateDomainSurfs();
+
 	virtual void IntersectWakes();
 
 	virtual void MergeInteriorChainIPnts();
@@ -238,8 +246,27 @@ public:
 	virtual void SetDrawMeshFlag( bool f )			{ m_DrawMeshFlag= f; }
 	virtual bool GetDrawSourceFlag()				{ return m_DrawSourceFlag; }
 	virtual void SetDrawSourceFlag( bool f )		{ m_DrawSourceFlag= f; }
+	virtual bool GetDrawFarFlag()					{ return m_DrawFarFlag; }
+	virtual void SetDrawFarFlag( bool f )			{ m_DrawFarFlag = f; }
+	virtual bool GetDrawFarPreFlag()				{ return m_DrawFarPreFlag; }
+	virtual void SetDrawFarPreFlag( bool f )		{ m_DrawFarPreFlag = f; }
+	virtual bool GetDrawBadFlag()					{ return m_DrawBadFlag; }
+	virtual void SetDrawBadFlag( bool f )			{ m_DrawBadFlag = f; }
+	virtual bool GetDrawSymmFlag()					{ return m_DrawSymmFlag; }
+	virtual void SetDrawSymmFlag( bool f )			{ m_DrawSymmFlag = f; }
+	virtual bool GetDrawWakeFlag()					{ return m_DrawWakeFlag; }
+	virtual void SetDrawWakeFlag( bool f )			{ m_DrawWakeFlag = f; }
+
+	virtual bool GetFarMeshFlag()					{ return m_FarMeshFlag; }
+	virtual void SetFarMeshFlag( bool f )			{ m_FarMeshFlag = f; }
+	virtual bool GetFarCompFlag()					{ return m_FarCompFlag; }
+	virtual void SetFarCompFlag(bool f )			{ m_FarCompFlag = f; }
+	virtual bool GetFarManLocFlag()					{ return m_FarManLocFlag; }
+	virtual void SetFarManLocFlag( bool f )			{ m_FarManLocFlag = f; }
+	virtual bool GetFarAbsSizeFlag()				{ return m_FarAbsSizeFlag; }
+	virtual void SetFarAbsSizeFlag( bool f )		{ m_FarAbsSizeFlag = f; }
 	virtual bool GetHalfMeshFlag()					{ return m_HalfMeshFlag; }
-	virtual void SetHalfMeshFlag( bool f )			{ m_HalfMeshFlag= f; }
+	virtual void SetHalfMeshFlag( bool f )			{ m_HalfMeshFlag = f; }
 
 	virtual void HighlightNextChain();	
 
@@ -255,6 +282,21 @@ public:
 	virtual double GetFarXScale()					{ return m_FarXScale; }
 	virtual double GetFarYScale()					{ return m_FarYScale; }
 	virtual double GetFarZScale()					{ return m_FarZScale; }
+
+	virtual void SetFarXLocation( double x )		{ m_FarXLocation = x; }
+	virtual void SetFarYLocation( double y )		{ m_FarYLocation = y; }
+	virtual void SetFarZLocation( double z )		{ m_FarZLocation = z; }
+	virtual double GetFarXLocation()				{ return m_FarXLocation; }
+	virtual double GetFarYLocation()				{ return m_FarYLocation; }
+	virtual double GetFarZLocation()				{ return m_FarZLocation; }
+
+	virtual void SetFarLength( double l )		{ m_FarLength = l; }
+	virtual void SetFarWidth( double w )		{ m_FarWidth = w; }
+	virtual void SetFarHeight( double h )		{ m_FarHeight = h; }
+	virtual double GetFarLength()				{ return m_FarLength; }
+	virtual double GetFarWidth()				{ return m_FarWidth; }
+	virtual double GetFarHeight()				{ return m_FarHeight; }
+
 
 	virtual void SetWakeScale( double s )			{ m_WakeScale = s; }
 	virtual double GetWakeScale()					{ return m_WakeScale; }
@@ -280,6 +322,9 @@ public:
 	vector< vec2d > debugUWs;
 	vector< SurfPatch* > debugPatches;
 
+	vector< ICurve* > GetICurveVec()					{ return m_ICurveVec; }
+	virtual void SetICurveVec( ICurve* newcurve, int loc );
+
 #ifdef DEBUG_CFD_MESH
 	FILE* m_DebugFile;
 	Stringc m_DebugDir;
@@ -295,12 +340,11 @@ protected:
 	Aircraft* aircraftPtr;
 
 	int m_CurrGeomID;
+	int m_FarGeomID;
 	bool m_BatchFlag;
 	
 	GridDensity m_GridDensity;
 	vector< Surf* > m_SurfVec;
-
-	Surf* m_YSlicePlane;
 
 	//==== Wakes ====//
 	WakeMgr m_WakeMgr;
@@ -317,13 +361,34 @@ protected:
 
 	int m_NumComps;
 	int m_HighlightChainIndex;
+
 	bool m_DrawMeshFlag;
 	bool m_DrawSourceFlag;
+	bool m_DrawFarFlag;
+	bool m_DrawFarPreFlag;
+	bool m_DrawBadFlag;
+	bool m_DrawSymmFlag;
+	bool m_DrawWakeFlag;
+
+	bool m_FarMeshFlag;
+	bool m_FarCompFlag;
+	bool m_FarManLocFlag;
+	bool m_FarAbsSizeFlag;
 	bool m_HalfMeshFlag;
 
 	double m_FarXScale;
 	double m_FarYScale;
 	double m_FarZScale;
+
+	double m_FarLength;
+	double m_FarWidth;
+	double m_FarHeight;
+
+	double m_FarXLocation;
+	double m_FarYLocation;
+	double m_FarZLocation;
+
+	bbox m_Domain;
 
 	double m_WakeScale;
 
@@ -339,6 +404,10 @@ protected:
 
 	//==== Vector of Surfs that may have a border that lies on Surf A ====//
 	map< Surf*, vector< Surf* > > m_PossCoPlanarSurfMap;
+
+	vector<Edge*> m_BadEdges;
+	vector<Tri*> m_BadTris;
+	vector< Node* > m_nodeStore;
 
 };
 

@@ -143,6 +143,7 @@ void Wake::BuildSurfs(  )
 
 			Surf* s = new Surf();
 			s->SetWakeFlag( true );
+			s->SetTransFlag( true );
 			s->SetCfdMeshMgr( cfdMeshMgrPtr );
 			s->SetCompID( m_CompID );
 			s->SetSurfID( m_SurfVec.size() );
@@ -348,15 +349,26 @@ CfdMeshMgr::CfdMeshMgr()
 {
 	m_CurrGeomID = 0;
 	m_HighlightChainIndex = 0;
+
 	m_DrawMeshFlag = true;
 	m_DrawSourceFlag = true;
+	m_DrawFarFlag = true;
+	m_DrawFarPreFlag = true;
+	m_DrawBadFlag = true;
+	m_DrawSymmFlag = true;
+	m_DrawWakeFlag = true;
+
 	m_BatchFlag = false;
 	m_HalfMeshFlag = false;
-	m_WakeScale = 2.0;
-	m_FarXScale = m_FarYScale = m_FarZScale = 4.0;
+	m_FarCompFlag = false;
+	m_FarMeshFlag = false;
+	m_FarManLocFlag = false;
+	m_FarAbsSizeFlag = false;
 
-	m_YSlicePlane = new Surf();
-	m_YSlicePlane->SetGridDensityPtr( &m_GridDensity );
+	m_WakeScale = 2.0;
+
+	m_FarXScale = m_FarYScale = m_FarZScale = 4.0;
+	m_FarXLocation = m_FarYLocation = m_FarZLocation = 0.0;
 
 	for ( int i = 0 ; i < NUM_FILE_NAMES ; i++ )
 	{
@@ -374,7 +386,6 @@ CfdMeshMgr::CfdMeshMgr()
 CfdMeshMgr::~CfdMeshMgr()
 {
 	CleanUp();
-	delete m_YSlicePlane;
 
 #ifdef DEBUG_CFD_MESH
 	if (m_DebugFile)
@@ -421,6 +432,21 @@ void CfdMeshMgr::CleanUp()
 	for ( i = 0 ; i < (int)m_DelISegChainVec.size() ; i++ )
 		delete m_DelISegChainVec[i];
 	m_DelISegChainVec.clear();
+
+	//==== Delete Stored Ndoes ====//
+	for ( i = 0 ; i < (int)m_nodeStore.size() ; i++ )
+		delete m_nodeStore[i];
+	m_nodeStore.clear();
+
+	//==== Delete Bad Edges ====//
+	for ( i = 0 ; i < (int)m_BadEdges.size() ; i++ )
+		delete m_BadEdges[i];
+	m_BadEdges.clear();
+
+	//==== Delete Bad Triangles ====//
+	for ( i = 0 ; i < (int)m_BadTris.size() ; i++ )
+		delete m_BadTris[i];
+	m_BadTris.clear();
 
 	m_BinMap.clear();
 	m_PossCoPlanarSurfMap.clear();
@@ -532,6 +558,12 @@ void CfdMeshMgr::GUI_Val( Stringc name, double val )
 		source->SetLen( val );
 	else if ( name == "Radius1" && source )
 		source->SetRad( val );
+	else if ( name == "FarLength" )
+		m_GridDensity.SetFarMaxLen( val );
+	else if ( name == "FarGapSize"  )
+		m_GridDensity.SetFarMaxGap( val );
+	else if ( name == "FarCircSeg"  )
+		m_GridDensity.SetFarNCircSeg( val );
 	else
 	{
 		if ( source ) 
@@ -702,6 +734,79 @@ void CfdMeshMgr::UpdateSourcesAndWakes()
 
 }
 
+void CfdMeshMgr::UpdateDomain()
+{
+	aircraftPtr->update_bbox();
+	m_Domain = aircraftPtr->getBndBox();
+
+	vec3d lwh = vec3d( m_Domain.get_max( 0 ) - m_Domain.get_min( 0 ),
+						m_Domain.get_max( 1 ) - m_Domain.get_min( 1 ),
+						m_Domain.get_max( 2 ) - m_Domain.get_min( 2 ) );
+
+	vec3d xyzc = m_Domain.get_center();
+
+	vec3d xyz0 = xyzc;
+	xyz0.v[0] = m_Domain.get_min( 0 );
+
+	if ( m_FarMeshFlag )
+	{
+		if( !m_FarCompFlag )
+		{
+			if ( m_FarAbsSizeFlag )
+			{
+				m_FarXScale = m_FarLength/lwh.x();
+				m_FarYScale = m_FarWidth/lwh.y();
+				m_FarZScale = m_FarHeight/lwh.z();
+
+				lwh = vec3d( m_FarLength, m_FarWidth, m_FarHeight );
+			}
+			else
+			{
+				lwh.scale_x( m_FarXScale );
+				lwh.scale_y( m_FarYScale );
+				lwh.scale_z( m_FarZScale );
+
+				m_FarLength = lwh.x();
+				m_FarWidth = lwh.y();
+				m_FarHeight = lwh.z();
+			}
+
+			if ( m_FarManLocFlag )
+			{
+				xyz0 = vec3d( m_FarXLocation, m_FarYLocation, m_FarZLocation );
+				xyzc = xyz0;
+				xyzc.v[0] += lwh.v[0]/2.0;
+			}
+			else
+			{
+				vec3d xyz0 = xyzc;
+				xyz0.v[0] -= lwh.v[0]/2.0;
+
+				m_FarXLocation = xyz0.x();
+				m_FarYLocation = xyz0.y();
+				m_FarZLocation = xyz0.z();
+			}
+
+			m_Domain.init();
+			m_Domain.update( xyzc - lwh/2.0 );
+			m_Domain.update( xyzc + lwh/2.0 );
+		}
+		else
+		{
+			m_Domain.expand( 1.0 );
+		}
+	}
+	else
+	{
+		m_Domain.expand( 1.0 );
+	}
+
+	if ( m_HalfMeshFlag )
+	{
+		m_Domain.set_min( 1, 0.0 );
+	}
+}
+
 void CfdMeshMgr::AddDefaultSources()
 {
 	if ( m_GridDensity.GetNumSources() == 0 )
@@ -721,6 +826,9 @@ void CfdMeshMgr::ScaleTriSize( double scale )
 	m_GridDensity.SetMinLen( scale*m_GridDensity.GetMinLen() );
 	m_GridDensity.SetMaxGap( scale*m_GridDensity.GetMaxGap() );
 	m_GridDensity.SetNCircSeg( m_GridDensity.GetNCircSeg()/scale );
+	m_GridDensity.SetFarMaxLen( scale*m_GridDensity.GetFarMaxLen() );
+	m_GridDensity.SetFarMaxGap( scale*m_GridDensity.GetFarMaxGap() );
+	m_GridDensity.SetFarNCircSeg( m_GridDensity.GetFarNCircSeg()/scale );
 	m_GridDensity.ScaleAllSources( scale );
 }
 
@@ -788,7 +896,7 @@ void CfdMeshMgr::ReadSurfs( const char* filename )
 				surfPtr->ReadSurf( file_id );
 
 				bool addSurfFlag = true;
-				if ( m_HalfMeshFlag && surfPtr->LessThanY( -0.01 ) )
+				if ( m_HalfMeshFlag && surfPtr->LessThanY( 0.0 ) )
 					addSurfFlag = false;
 
 				if ( m_HalfMeshFlag && surfPtr->PlaneAtYZero() )
@@ -806,7 +914,7 @@ void CfdMeshMgr::ReadSurfs( const char* filename )
 
 	//==== Combine Components With Matching Surface Edges ====//
 	map< int, int > mergeCompMap;
-	for ( int s = 0 ; s < (int)m_SurfVec.size() ; s++ )
+	for ( int s = 0 ; s < (int)m_SurfVec.size()-1 ; s++ )
 	{
 		for ( int t = s+1 ; t < (int)m_SurfVec.size() ; t++ )
 		{
@@ -825,11 +933,59 @@ void CfdMeshMgr::ReadSurfs( const char* filename )
 		if ( mergeCompMap.find( compID ) != mergeCompMap.end() )
 		{
 			int newCompID = mergeCompMap[compID];
+
+			// Keep looking through the merge map until we get to the root component
+			while ( mergeCompMap.find( newCompID ) != mergeCompMap.end() )
+			{
+				newCompID = mergeCompMap[newCompID];
+			}
+
 			m_SurfVec[s]->SetCompID( newCompID );
 		}
 	}
 }
-	
+
+void CfdMeshMgr::BuildDomain()
+{
+	vector< Surf* > FFBox = CreateDomainSurfs();
+
+	int inc = FFBox.size();
+
+	//==== Bump up ID's for 'normal' components & add far field surfs ====//
+	if ( inc > 0 )
+	{
+		for ( int i = 0 ; i < m_SurfVec.size() ; i++ )
+		{
+			m_SurfVec[i]->SetCompID( m_SurfVec[i]->GetCompID() + inc );
+			m_SurfVec[i]->SetSurfID( m_SurfVec[i]->GetSurfID() + inc );
+		}
+
+		for ( int i = 0 ; i < FFBox.size() ; i++ )
+			m_SurfVec.push_back( FFBox[i] );
+	}
+
+
+	//==== Mark & Change Modes for Component Far Field ====//
+	if ( m_FarMeshFlag )
+	{
+		if ( m_FarCompFlag )
+		{
+
+			int compID = aircraftPtr->getGeomIndex( m_FarGeomID ) + inc;
+
+			for ( int i = 0 ; i < m_SurfVec.size() ; i++ )
+			{
+				if ( m_SurfVec[i]->GetCompID() == compID )
+				{
+					m_SurfVec[i]->SetFarFlag( true );
+					m_SurfVec[i]->SetTransFlag( true );
+					m_SurfVec[i]->FlipU();
+				}
+			}
+		}
+	}
+}
+
 void CfdMeshMgr::BuildGrid()
 {
 
@@ -895,16 +1051,12 @@ void CfdMeshMgr::BuildTargetMap( int output_type )
 	MSCloud ms_cloud;
 	vector< MapSource* > allsources;
 
-	if ( m_HalfMeshFlag )
-		m_YSlicePlane->BuildTargetMap( allsources, -1 );
-
 	int i;
 	for ( i = 0 ; i < (int)m_SurfVec.size() ; i++ )
 	{
 		m_SurfVec[i]->BuildTargetMap( allsources, i );
 		m_SurfVec[i]->LimitTargetMap();
 	}
-
 
 	// Set up split sources to provide a source at the endpoint of curves where
 	// mesh information is hard to transfer.
@@ -1169,16 +1321,6 @@ void CfdMeshMgr::WriteTetGen( const char* filename )
 		tri_cnt += m_SurfVec[i]->GetMesh()->GetSimpTriVec().size();
 	}
 
-	//==== Force Sliced Point onto Plane ====//
-	if ( m_HalfMeshFlag )
-	{
-		for ( int i = 0 ; i < (int)allPntVec.size() ; i++ )
-		{
-			if ( fabs( allPntVec[i]->y() ) < 0.0001 )
-				allPntVec[i]->set_y( 0.0 );
-		}
-	}
-
 	//==== Build Map ====//
 	map< int, vector< int > > indMap;
 	vector< int > pntShift;
@@ -1186,75 +1328,18 @@ void CfdMeshMgr::WriteTetGen( const char* filename )
 
 	//===== Write Num Pnts and Tris ====//
 	fprintf( fp, "# Part 1 - node list\n");
-	fprintf( fp, "%d 3 0 0\n", numPnts + 8 );	// 8 Nodes For Far Field Box
-
-	//==== Write Far Pnts ====//
-	bbox box = aircraftPtr->getBndBox();
-	vec3d cent = box.get_center();
-	double max_d = 0.5*box.get_largest_dim();
-	vec3d offset( max_d*m_FarXScale, max_d*m_FarYScale, max_d*m_FarZScale );
-	vec3d far_min = cent - offset;
-	vec3d far_max = cent + offset;
-
-	if ( m_HalfMeshFlag )
-		far_min.set_y( 0.0 );
-
-	fprintf( fp, "1 %.16g %.16g %.16g\n", far_min.x(), far_min.y(), far_min.z() );
-	fprintf( fp, "2 %.16g %.16g %.16g\n", far_max.x(), far_min.y(), far_min.z() );
-	fprintf( fp, "3 %.16g %.16g %.16g\n", far_max.x(), far_max.y(), far_min.z() );
-	fprintf( fp, "4 %.16g %.16g %.16g\n", far_min.x(), far_max.y(), far_min.z() );
-	fprintf( fp, "5 %.16g %.16g %.16g\n", far_min.x(), far_min.y(), far_max.z() );
-	fprintf( fp, "6 %.16g %.16g %.16g\n", far_max.x(), far_min.y(), far_max.z() );
-	fprintf( fp, "7 %.16g %.16g %.16g\n", far_max.x(), far_max.y(), far_max.z() );
-	fprintf( fp, "8 %.16g %.16g %.16g\n", far_min.x(), far_max.y(), far_max.z() );
+	fprintf( fp, "%d 3 0 0\n", numPnts );
 
 	//==== Write Model Pnts ====//
 	for ( int i = 0 ; i < (int)allPntVec.size() ; i++ )
 	{
 		if ( pntShift[i] >= 0 )
-			fprintf( fp, "%d %.16g %.16g %.16g\n", i+1+8, allPntVec[i]->x(), allPntVec[i]->y(), allPntVec[i]->z() );
-	}
-
-	vector< int > planeIndVec;
-	if ( m_HalfMeshFlag )
-	{
-		for ( int i = 0 ; i < (int)allPntVec.size() ; i++ )
-		{
-			if ( pntShift[i] >= 0 && fabs( allPntVec[i]->y() ) < 0.000001 )
-				planeIndVec.push_back( i );
-		}
+			fprintf( fp, "%d %.16g %.16g %.16g\n", i+1, allPntVec[i]->x(), allPntVec[i]->y(), allPntVec[i]->z() );
 	}
 
 	//==== Write Tris ====//
 	fprintf( fp, "# Part 2 - facet list\n");
-	fprintf( fp, "%d 0\n", tri_cnt + 6 );		// 6 Cube Faces
-	if ( !m_HalfMeshFlag )
-	{
-		fprintf( fp, "1\n" );
-		fprintf( fp, "4  1 2 6 5\n" );
-	}
-	else
-	{
-		fprintf( fp, "%d\n", (int)(planeIndVec.size() + 1) );
-		fprintf( fp, "4  1 2 6 5\n" );
-		for ( int i = 0 ; i < (int)planeIndVec.size() ; i++ )
-		{
-			int a_ind = planeIndVec[i];
-			int ind = FindPntIndex( *allPntVec[a_ind], allPntVec, indMap );
-			int shift_ind = pntShift[ind] + 1 + 8;
-			fprintf( fp, "1  %d\n", shift_ind);
-		}
-	}
-	fprintf( fp, "1\n" );
-	fprintf( fp, "4  5 6 7 8\n" );
-	fprintf( fp, "1\n" );
-	fprintf( fp, "4  1 2 3 4\n" );
-	fprintf( fp, "1\n" );
-	fprintf( fp, "4  2 3 7 6\n" );
-	fprintf( fp, "1\n" );
-	fprintf( fp, "4  3 4 8 7\n" );
-	fprintf( fp, "1\n" );
-	fprintf( fp, "4  4 1 5 8\n" );
+	fprintf( fp, "%d 0\n", tri_cnt );
 	 
 	for ( int i = 0 ; i < (int)m_SurfVec.size() ; i++ )
 	{
@@ -1265,9 +1350,9 @@ void CfdMeshMgr::WriteTetGen( const char* filename )
 			int i0 = FindPntIndex( sPntVec[sTriVec[t].ind0], allPntVec, indMap );
 			int i1 = FindPntIndex( sPntVec[sTriVec[t].ind1], allPntVec, indMap );
 			int i2 = FindPntIndex( sPntVec[sTriVec[t].ind2], allPntVec, indMap );
-			int ind1 = pntShift[i0] + 1 + 8;
-			int ind2 = pntShift[i1] + 1 + 8;
-			int ind3 = pntShift[i2] + 1 + 8;
+			int ind1 = pntShift[i0] + 1;
+			int ind2 = pntShift[i1] + 1;
+			int ind3 = pntShift[i2] + 1;
 
 			fprintf( fp, "1\n" );
 			fprintf( fp, "3 %d %d %d\n", ind1, ind2, ind3);
@@ -1281,7 +1366,19 @@ void CfdMeshMgr::WriteTetGen( const char* filename )
 	for ( int i = 0 ; i < (int)geomVec.size() ; i++ )
 	{
 		if ( geomVec[i]->getOutputFlag() )
-			geomVec[i]->GetInteriorPnts( interiorPntVec );
+		{
+			if ( GetFarMeshFlag() && GetFarCompFlag() )
+			{
+				if ( geomVec[i]->getPtrID() != GetFarGeomID() )
+				{
+					geomVec[i]->GetInteriorPnts( interiorPntVec );
+				}
+			}
+			else
+			{
+				geomVec[i]->GetInteriorPnts( interiorPntVec );
+			}
+		}
 	}
 
 	if ( m_HalfMeshFlag )
@@ -1754,7 +1851,6 @@ void CfdMeshMgr::WriteSurfsIntCurves( const char* filename )
 
 Stringc CfdMeshMgr::CheckWaterTight()
 {
-	vector< Node* > nodeVec;
 	vector< Tri* > triVec;
 
 	int tri_cnt = 0;
@@ -1784,7 +1880,7 @@ Stringc CfdMeshMgr::CheckWaterTight()
 		{
 			Node* n = new Node();
 			n->pnt = *allPntVec[i];
-			nodeVec.push_back(n);
+			m_nodeStore.push_back(n);
 		}
 	}
 
@@ -1806,17 +1902,31 @@ Stringc CfdMeshMgr::CheckWaterTight()
 				int ind2 = pntShift[i1];
 				int ind3 = pntShift[i2];
 
-				Edge* e0 = FindAddEdge( edgeMap, nodeVec, ind1, ind2 );
-				Edge* e1 = FindAddEdge( edgeMap, nodeVec, ind2, ind3 );
-				Edge* e2 = FindAddEdge( edgeMap, nodeVec, ind3, ind1 );
+				Edge* e0 = FindAddEdge( edgeMap, m_nodeStore, ind1, ind2 );
+				Edge* e1 = FindAddEdge( edgeMap, m_nodeStore, ind2, ind3 );
+				Edge* e2 = FindAddEdge( edgeMap, m_nodeStore, ind3, ind1 );
 
-				Tri* tri = new Tri( nodeVec[ind1], nodeVec[ind2], nodeVec[ind3], e0, e1, e2 );
+				Tri* tri = new Tri( m_nodeStore[ind1], m_nodeStore[ind2], m_nodeStore[ind3], e0, e1, e2 );
 
-				if ( !e0->SetTri( tri ) ) moreThanTwoTriPerEdge++;
-				if ( !e1->SetTri( tri ) ) moreThanTwoTriPerEdge++;
-				if ( !e2->SetTri( tri ) ) moreThanTwoTriPerEdge++;
+				if ( !e0->SetTri( tri ) )
+				{
+					tri->debugFlag = true;
+					moreThanTwoTriPerEdge++;
+				}
+				if ( !e1->SetTri( tri ) )
+				{
+					tri->debugFlag = true;
+					moreThanTwoTriPerEdge++;
+				}
+				if ( !e2->SetTri( tri ) )
+				{
+					tri->debugFlag = true;
+					moreThanTwoTriPerEdge++;
+				}
 				triVec.push_back( tri );
 
+				if ( tri->debugFlag == true )
+					m_BadTris.push_back( tri );
 			}
 		}
 	}
@@ -1830,21 +1940,28 @@ Stringc CfdMeshMgr::CheckWaterTight()
 		{
 			Edge* e = iter->second[i];
 			if ( !(e->t0 && e->t1) )
+			{
+				m_BadEdges.push_back( e );
+				e->debugFlag = true;
 				num_border_edges++;
+			}
+
 		}
 	}
 
 	//==== Clean Up ====//
-	for ( int i = 0 ; i < (int)nodeVec.size() ; i++ )
-	{
-		delete nodeVec[i];
-	}
 	for ( iter = edgeMap.begin() ; iter != edgeMap.end() ; iter++ )
 	{
 		for ( int i = 0 ; i < (int)iter->second.size() ; i++ )
 		{
-			delete iter->second[i];
+			if ( iter->second[i]->debugFlag == false )
+				delete iter->second[i];
 		}
+	}
+	for ( int i = 0 ; i < (int)triVec.size() ; i++ )
+	{
+		if ( triVec[i]->debugFlag == false )
+			delete triVec[i];
 	}
 
 	char resultStr[255];
@@ -1860,8 +1977,7 @@ Stringc CfdMeshMgr::CheckWaterTight()
 
 }
 
-Edge* CfdMeshMgr::FindAddEdge( map< int, vector<Edge*> > & edgeMap, 
-							  vector< Node* > & nodeVec, int ind1, int ind2 )
+Edge* CfdMeshMgr::FindAddEdge( map< int, vector<Edge*> > & edgeMap, vector< Node* > & nodeVec, int ind1, int ind2 )
 {
 	Edge* e = NULL;
 	map<int, vector<Edge*> >::const_iterator iter;
@@ -1884,8 +2000,6 @@ Edge* CfdMeshMgr::FindAddEdge( map< int, vector<Edge*> > & edgeMap,
 
 	return e;
 }
-
-
 
 int CfdMeshMgr::BuildIndMap( vector< vec3d* > & allPntVec, map< int, vector< int > >& indMap, vector< int > & pntShift )
 {
@@ -1994,9 +2108,6 @@ void CfdMeshMgr::Intersect()
 			m_SurfVec[i]->Intersect( m_SurfVec[j] );
 		}
 
-	if ( m_HalfMeshFlag )
-		IntersectYSlicePlane();
-
 	BuildChains();
 
 	LoadBorderCurves();
@@ -2010,60 +2121,97 @@ void CfdMeshMgr::Intersect()
 	BuildCurves();
 }
 
-void CfdMeshMgr::IntersectYSlicePlane()
+vector< Surf* > CfdMeshMgr::CreateDomainSurfs()
 {
-	//==== Get Bounding Box ====//
-	bbox bigbox;
-	for ( int i = 0 ; i < (int)m_SurfVec.size() ; i++ )
-	{
-		bigbox.update( m_SurfVec[i]->GetBBox() );
-	}
+	vector < vec3d > p0;
+	p0.resize(6);
+	p0[0] = m_Domain.get_pnt(1);	// Symmetry or pilot's left
+	p0[1] = m_Domain.get_pnt(2);	// Pilot's right
+	p0[2] = m_Domain.get_pnt(0);	// Upstream of aircraft
+	p0[3] = m_Domain.get_pnt(3);	// Downstream of aircraft
+	p0[4] = m_Domain.get_pnt(0);	// Below aircraft
+	p0[5] = m_Domain.get_pnt(5);	// Above aircraft
+	vector < vec3d > p1;
+	p1.resize(6);
+	p1[0] = m_Domain.get_pnt(0);
+	p1[1] = m_Domain.get_pnt(3);
+	p1[2] = m_Domain.get_pnt(2);
+	p1[3] = m_Domain.get_pnt(1);
+	p1[4] = m_Domain.get_pnt(1);
+	p1[5] = m_Domain.get_pnt(4);
+	vector < vec3d > p2;
+	p2.resize(6);
+	p2[0] = m_Domain.get_pnt(5);
+	p2[1] = m_Domain.get_pnt(6);
+	p2[2] = m_Domain.get_pnt(4);
+	p2[3] = m_Domain.get_pnt(7);
+	p2[4] = m_Domain.get_pnt(2);
+	p2[5] = m_Domain.get_pnt(7);
+	vector < vec3d > p3;
+	p3.resize(6);
+	p3[0] = m_Domain.get_pnt(4);
+	p3[1] = m_Domain.get_pnt(7);
+	p3[2] = m_Domain.get_pnt(6);
+	p3[3] = m_Domain.get_pnt(5);
+	p3[4] = m_Domain.get_pnt(3);
+	p3[5] = m_Domain.get_pnt(6);
 
-	double offset = 1.0;
-	double min_x = bigbox.get_min(0) - offset;
-	double min_z = bigbox.get_min(2) - offset;
-	double max_x = bigbox.get_max(0) + offset;
-	double max_z = bigbox.get_max(2) + offset;
-
-	vec3d p0 = vec3d(min_x, 0.0, min_z);
-	vec3d p1 = vec3d(max_x, 0.0, min_z);
-	vec3d p2 = vec3d(min_x, 0.0, max_z);
-	vec3d p3 = vec3d(max_x, 0.0, max_z);
-
-	//==== Build Slice Surface ====//
-	m_YSlicePlane->SetCfdMeshMgr(this);
-	m_YSlicePlane->SetCompID( -999 );
-	m_YSlicePlane->SetSurfID( 0 );
-
-	vector< vector< vec3d > > cpVec;
+	vector < vector < vec3d > > cpVec;
 	cpVec.resize(4);
-	for ( int i = 0 ; i < 4 ; i++ )
-		cpVec[i].resize(4);
+	for ( int j = 0 ; j < cpVec.size() ; j++ )
+		cpVec[j].resize(4);
 
-	cpVec[0][0] = p0;
-	cpVec[1][0] = p0 + (p1-p0)*0.333;
-	cpVec[2][0] = p0 + (p1-p0)*0.667;
-	cpVec[3][0] = p1;
-	cpVec[0][3] = p2;
-	cpVec[1][3] = p2 + (p3-p2)*0.333;
-	cpVec[2][3] = p2 + (p3-p2)*0.667;
-	cpVec[3][3] = p3;
-	cpVec[0][1] = cpVec[0][0] + (cpVec[0][3] - cpVec[0][0])*.333;
-	cpVec[1][1] = cpVec[1][0] + (cpVec[1][3] - cpVec[1][0])*.333;
-	cpVec[2][1] = cpVec[2][0] + (cpVec[2][3] - cpVec[2][0])*.333;
-	cpVec[3][1] = cpVec[3][0] + (cpVec[3][3] - cpVec[3][0])*.333;
-	cpVec[0][2] = cpVec[0][0] + (cpVec[0][3] - cpVec[0][0])*.667;
-	cpVec[1][2] = cpVec[1][0] + (cpVec[1][3] - cpVec[1][0])*.667;
-	cpVec[2][2] = cpVec[2][0] + (cpVec[2][3] - cpVec[2][0])*.667;
-	cpVec[3][2] = cpVec[3][0] + (cpVec[3][3] - cpVec[3][0])*.667;
+	// Default, no additional surfaces.
+	int ndomain = 0;
 
-	m_YSlicePlane->LoadControlPnts( cpVec );
+	// Half mesh with no outer domain or component outer domain
+	if ( m_HalfMeshFlag )
+		ndomain = 1;
 
-	for ( int i = 0 ; i < (int)m_SurfVec.size() ; i++ )
+	// Box outer domain, half or full mesh.
+	if ( m_FarMeshFlag && !m_FarCompFlag )
+		ndomain = 6;
+
+	vector< Surf* > domainSurfs;
+
+	for ( int i = 0 ; i < ndomain ; i++ )
 	{
-		if ( !m_SurfVec[i]->OnYZeroPlane() )
-			m_YSlicePlane->Intersect( m_SurfVec[i] );
+		Surf* ptr = new Surf;
+		domainSurfs.push_back( ptr );
+
+		domainSurfs[i]->SetCfdMeshMgr( this );
+
+		domainSurfs[i]->SetSurfID( i );
+		domainSurfs[i]->SetCompID( i );
+
+		domainSurfs[i]->SetTransFlag( true );
+
+		if( i == 0 && m_HalfMeshFlag )
+			domainSurfs[i]->SetSymPlaneFlag( true );
+		else
+			domainSurfs[i]->SetFarFlag( true );
+
+		cpVec[0][0] = p0[i];
+		cpVec[1][0] = p0[i] + (p1[i]-p0[i])*0.333;
+		cpVec[2][0] = p0[i] + (p1[i]-p0[i])*0.667;
+		cpVec[3][0] = p1[i];
+		cpVec[0][3] = p2[i];
+		cpVec[1][3] = p2[i] + (p3[i]-p2[i])*0.333;
+		cpVec[2][3] = p2[i] + (p3[i]-p2[i])*0.667;
+		cpVec[3][3] = p3[i];
+		cpVec[0][1] = cpVec[0][0] + (cpVec[0][3] - cpVec[0][0])*.333;
+		cpVec[1][1] = cpVec[1][0] + (cpVec[1][3] - cpVec[1][0])*.333;
+		cpVec[2][1] = cpVec[2][0] + (cpVec[2][3] - cpVec[2][0])*.333;
+		cpVec[3][1] = cpVec[3][0] + (cpVec[3][3] - cpVec[3][0])*.333;
+		cpVec[0][2] = cpVec[0][0] + (cpVec[0][3] - cpVec[0][0])*.667;
+		cpVec[1][2] = cpVec[1][0] + (cpVec[1][3] - cpVec[1][0])*.667;
+		cpVec[2][2] = cpVec[2][0] + (cpVec[2][3] - cpVec[2][0])*.667;
+		cpVec[3][2] = cpVec[3][0] + (cpVec[3][3] - cpVec[3][0])*.667;
+
+		domainSurfs[i]->LoadControlPnts( cpVec );
+
 	}
+	return domainSurfs;
 }
 
 
@@ -2420,7 +2568,18 @@ void CfdMeshMgr::LoadBorderCurves()
 		if ( !m_ICurveVec[i]->m_SCurve_B )								// Non Closed Solid
 			m_ICurveVec[i]->m_SCurve_B = m_ICurveVec[i]->m_SCurve_A;
 
-		m_ICurveVec[i]->BorderTesselate( );
+		if ( m_ICurveVec[i]->m_PlaneBorderIntersectFlag )
+		{
+			Surf* SurfA = m_ICurveVec[i]->m_SCurve_A->GetSurf();
+			if ( !SurfA->GetSymPlaneFlag() )
+				m_ICurveVec[i]->PlaneBorderTesselate( m_ICurveVec[i]->m_SCurve_A, m_ICurveVec[i]->m_SCurve_B );
+			else
+				m_ICurveVec[i]->PlaneBorderTesselate( m_ICurveVec[i]->m_SCurve_B, m_ICurveVec[i]->m_SCurve_A );
+		}
+		else
+		{
+			m_ICurveVec[i]->BorderTesselate( );
+		}
 
 		//==== Create New Chain ====//
 		ISegChain* chain = new ISegChain;
@@ -2977,26 +3136,52 @@ void CfdMeshMgr::RemoveInteriorTris()
 		for ( t = triList.begin() ; t != triList.end(); t++ )
 		{
 			vector< vector< double > > t_vec_vec;
-			t_vec_vec.resize( m_NumComps );
+			t_vec_vec.resize( m_NumComps + 6 );  // + 6 to handle possibility of outer domain and symmetry plane.
+
 			vec3d cp = (*t)->ComputeCenterPnt( m_SurfVec[s] );
 			vec3d ep = cp + vec3d( x_dist, 0.0001, 0.0001 );
 
 			for ( int i = 0 ; i < (int)m_SurfVec.size() ; i++ )
 			{
 				int comp_id = m_SurfVec[i]->GetCompID();
-				if ( comp_id != tri_comp_id && m_SurfVec[i]->GetWakeFlag() == false )
+				if ( comp_id != tri_comp_id ) // Don't check self intersection.
 				{
-					m_SurfVec[i]->IntersectLineSeg( cp, ep, t_vec_vec[comp_id] );
+					if ( m_SurfVec[i]->GetTransFlag() == false ) // Don't check against transparent surf.
+					{
+						m_SurfVec[i]->IntersectLineSeg( cp, ep, t_vec_vec[comp_id] );
+					}
+					else if ( m_SurfVec[i]->GetFarFlag() == true && m_SurfVec[s]->GetSymPlaneFlag() == true && m_FarCompFlag == true ) // Unless trimming sym plane by outer domain
+					{
+						m_SurfVec[i]->IntersectLineSeg( cp, ep, t_vec_vec[comp_id] );
+					}
 				}
 			}
 			bool interiorFlag = false;
-			for ( int c = 0 ; c < m_NumComps ; c++ )
+
+
+			// Loop over m_SurfVec instead of component id's.  Components will be addressed multiple times,
+			// but it allows access to m_SurfVec[i]->GetFarFlag() without a reverse lookup on component id.
+			for ( int i = 0 ; i < (int)m_SurfVec.size() ; i++ )
 			{
-				if ( (int)t_vec_vec[c].size()%2 == 1 )
+				int c =  m_SurfVec[i]->GetCompID();
+
+				if ( m_SurfVec[s]->GetSymPlaneFlag() == true && m_SurfVec[i]->GetFarFlag() == true  && m_FarCompFlag == true )
 				{
-					interiorFlag = true;
+					if ((int)(t_vec_vec[c].size() + 1 )%2 == 1  ) // +1 Reverse action on sym plane wrt outer boundary.
+					{
+						interiorFlag = true;
+					}
+				}
+				else
+				{
+					if ( (int)t_vec_vec[c].size()%2 == 1 )
+					{
+						interiorFlag = true;
+					}
 				}
 			}
+
+
 			(*t)->interiorFlag = interiorFlag;
 			//==== Load Adjoining Tris - NOT Crossing Borders ====//
 			set< Tri* > triSet;
@@ -3032,12 +3217,25 @@ void CfdMeshMgr::RemoveInteriorTris()
 	{
 		for ( s = 0 ; s < (int)m_SurfVec.size() ; s++ )
 		{
-			list <Tri*> triList = m_SurfVec[s]->GetMesh()->GetTriList();
-			for ( t = triList.begin() ; t != triList.end(); t++ )
+			if ( m_SurfVec[s]->GetSymPlaneFlag() == false )
 			{
-				vec3d cp = (*t)->ComputeCenterPnt( m_SurfVec[s] );
-				if ( cp[1] < 0.0000000001 )
-					(*t)->interiorFlag = true;
+				list <Tri*> triList = m_SurfVec[s]->GetMesh()->GetTriList();
+				for ( t = triList.begin() ; t != triList.end(); t++ )
+				{
+					vec3d cp = (*t)->ComputeCenterPnt( m_SurfVec[s] );
+					if ( cp[1] < -0.0000000001 )
+						(*t)->interiorFlag = true;
+				}
+			}
+
+			if( !m_FarMeshFlag ) // Don't keep symmetry plane.
+			{
+				if ( m_SurfVec[s]->GetSymPlaneFlag() == true )
+				{
+					list <Tri*> triList = m_SurfVec[s]->GetMesh()->GetTriList();
+					for ( t = triList.begin() ; t != triList.end(); t++ )
+						(*t)->interiorFlag = true;
+				}
 			}
 		}
 	}
@@ -3366,6 +3564,7 @@ void CfdMeshMgr::Draw()
 		return;
 
 	UpdateSourcesAndWakes();
+	UpdateDomain();
 
 	glLineWidth( 1.0 );
 	glColor4ub( 255, 0, 0, 255 );
@@ -3373,11 +3572,19 @@ void CfdMeshMgr::Draw()
 	BaseSource* source = GetCurrSource();
 
 	if ( m_DrawSourceFlag )
+	{
 		m_GridDensity.Draw(source);
-
-	//==== Draw Wake Lines ====//
-	if ( m_DrawSourceFlag )
 		m_WakeMgr.Draw();
+	}
+
+	if ( m_DrawFarPreFlag )
+	{
+		if ( m_FarMeshFlag )
+		{
+			glColor4ub( 0, 200, 0, 255 );
+			Draw_BBox( m_Domain );
+		}
+	}
 
 	if ( m_DrawMeshFlag )
 	{
@@ -3421,7 +3628,9 @@ void CfdMeshMgr::Draw()
 			vector< vec3d > pVec = m_SurfVec[i]->GetMesh()->GetSimpPntVec();
 			for ( int t = 0 ; t < (int)m_SurfVec[i]->GetMesh()->GetSimpTriVec().size() ; t++ )
 			{
-				if ( !m_SurfVec[i]->GetWakeFlag() )
+				if ( !m_SurfVec[i]->GetWakeFlag() &&
+						( !m_SurfVec[i]->GetFarFlag() || m_DrawFarFlag ) &&
+						( !m_SurfVec[i]->GetSymPlaneFlag() || m_DrawSymmFlag ) )
 				{
 					SimpTri* stri = &m_SurfVec[i]->GetMesh()->GetSimpTriVec()[t];
 					glBegin( GL_POLYGON );
@@ -3445,12 +3654,17 @@ void CfdMeshMgr::Draw()
 			vector< vec3d > pVec = m_SurfVec[i]->GetMesh()->GetSimpPntVec();
 			for ( int t = 0 ; t < (int)m_SurfVec[i]->GetMesh()->GetSimpTriVec().size() ; t++ )
 			{
-				SimpTri* stri = &m_SurfVec[i]->GetMesh()->GetSimpTriVec()[t];
-				glBegin( GL_LINE_LOOP );
-					glVertex3dv( pVec[stri->ind0].data() );
-					glVertex3dv( pVec[stri->ind1].data() );
-					glVertex3dv( pVec[stri->ind2].data() );
-				glEnd();
+				if ( ( !m_SurfVec[i]->GetWakeFlag() || m_DrawWakeFlag ) &&
+						( !m_SurfVec[i]->GetFarFlag() || m_DrawFarFlag ) &&
+						( !m_SurfVec[i]->GetSymPlaneFlag() || m_DrawSymmFlag ) )
+				{
+					SimpTri* stri = &m_SurfVec[i]->GetMesh()->GetSimpTriVec()[t];
+					glBegin( GL_LINE_LOOP );
+						glVertex3dv( pVec[stri->ind0].data() );
+						glVertex3dv( pVec[stri->ind1].data() );
+						glVertex3dv( pVec[stri->ind2].data() );
+					glEnd();
+				}
 			}
 		}
 		glDisable( GL_CULL_FACE );
@@ -3488,6 +3702,41 @@ void CfdMeshMgr::Draw()
 	}
 
 #endif
+
+
+	if ( m_DrawBadFlag )
+	{
+		vector< Edge* >::iterator e;
+
+		glLineWidth( 3.0 );
+		glColor3ub( 255, 0, 0 );
+		glBegin( GL_LINES );
+		for ( e = m_BadEdges.begin() ; e != m_BadEdges.end(); e++ )
+		{
+			glVertex3dv( (*e)->n0->pnt.data() );
+			glVertex3dv( (*e)->n1->pnt.data() );
+		}
+		glEnd();
+
+
+		vector< Tri* >::iterator t;
+
+		for ( t = m_BadTris.begin() ; t != m_BadTris.end(); t++ )
+		{
+			glBegin( GL_POLYGON );
+				glVertex3dv( (*t)->n0->pnt.data() );
+				glVertex3dv( (*t)->n1->pnt.data() );
+				glVertex3dv( (*t)->n2->pnt.data() );
+			glEnd();
+
+			glBegin( GL_LINE_LOOP );
+				glVertex3dv( (*t)->n0->pnt.data() );
+				glVertex3dv( (*t)->n1->pnt.data() );
+				glVertex3dv( (*t)->n2->pnt.data() );
+			glEnd();
+		}
+
+	}
 
 	//glLineWidth( 1.0 );
 	//glColor4ub( 150, 150, 150, 255 );
@@ -3561,3 +3810,62 @@ void CfdMeshMgr::Draw()
 
 }
 
+
+//==== Compose Modeling Matrix ====//
+void CfdMeshMgr::Draw_BBox( bbox box )
+{
+  double temp[3];
+  temp[0] = box.get_min(0);
+  temp[1] = box.get_min(1);
+  temp[2] = box.get_min(2);
+
+  glBegin( GL_LINE_STRIP );
+    glVertex3dv(temp);
+    temp[0] = box.get_max(0);
+    glVertex3dv(temp);
+    temp[1] = box.get_max(1);
+    glVertex3dv(temp);
+    temp[2] = box.get_max(2);
+    glVertex3dv(temp);
+    temp[0] = box.get_min(0);
+    glVertex3dv(temp);
+    temp[2] = box.get_min(2);
+    glVertex3dv(temp);
+    temp[1] = box.get_min(1);
+    glVertex3dv(temp);
+    temp[2] = box.get_max(2);
+    glVertex3dv(temp);
+    temp[0] = box.get_max(0);
+    glVertex3dv(temp);
+    temp[2] = box.get_min(2);
+    glVertex3dv(temp);
+  glEnd();
+
+  glBegin( GL_LINE_STRIP );
+    temp[2] = box.get_max(2);
+    glVertex3dv(temp);
+    temp[1] = box.get_max(1);
+    glVertex3dv(temp);
+  glEnd();
+
+  glBegin( GL_LINE_STRIP );
+    temp[2] = box.get_min(2);
+    glVertex3dv(temp);
+    temp[0] = box.get_min(0);
+    glVertex3dv(temp);
+  glEnd();
+
+  glBegin( GL_LINE_STRIP );
+    temp[2] = box.get_max(2);
+    glVertex3dv(temp);
+    temp[1] = box.get_min(1);
+    glVertex3dv(temp);
+  glEnd();
+
+}
+
+
+void CfdMeshMgr::SetICurveVec( ICurve* newcurve, int loc )
+{
+	m_ICurveVec[loc] = newcurve;
+}

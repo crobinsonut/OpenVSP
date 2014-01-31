@@ -32,9 +32,13 @@ CfdMeshScreen::CfdMeshScreen(ScreenMgr* mgr, Aircraft* airPtr)
 	//ui->meshAllButton->callback( staticScreenCB, this );
 	ui->finalMeshButton->callback( staticScreenCB, this );
 	ui->viewMeshButton->callback( staticScreenCB, this );
+	ui->viewFarMeshButton->callback( staticScreenCB, this );
+	ui->viewFarPreButton->callback( staticScreenCB, this );
 	ui->viewSourceButton->callback( staticScreenCB, this );
+	ui->viewBadButton->callback( staticScreenCB, this );
+	ui->viewSymmButton->callback( staticScreenCB, this );
+	ui->viewWakeButton->callback( staticScreenCB, this );
 	ui->rigorLimitButton->callback( staticScreenCB, this );
-	ui->halfMeshButton->callback( staticScreenCB, this );
 
 	ui->SourceNameInput->callback( staticScreenCB, this );
 
@@ -62,11 +66,11 @@ CfdMeshScreen::CfdMeshScreen(ScreenMgr* mgr, Aircraft* airPtr)
 	m_Radius2Slider->SetRange( 1.0 );
 	m_Radius2Slider->UpdateGui();
 
-	m_GlobalEdgeSizeSlider = new SliderInputCombo( ui->globalEdgeSizeSlider, ui->globalEdgeSizeInput );
-	m_GlobalEdgeSizeSlider->SetCallback( staticScreenCB, this );
-	m_GlobalEdgeSizeSlider->SetLimits( 0.000001, 1000000.0 );
-	m_GlobalEdgeSizeSlider->SetRange( 1.0 );
-	m_GlobalEdgeSizeSlider->UpdateGui();
+	m_BodyEdgeSizeSlider = new SliderInputCombo( ui->bodyEdgeSizeSlider, ui->bodyEdgeSizeInput );
+	m_BodyEdgeSizeSlider->SetCallback( staticScreenCB, this );
+	m_BodyEdgeSizeSlider->SetLimits( 0.000001, 1000000.0 );
+	m_BodyEdgeSizeSlider->SetRange( 1.0 );
+	m_BodyEdgeSizeSlider->UpdateGui();
 
 	m_MinEdgeSizeSlider = new SliderInputCombo( ui->minEdgeSizeSlider, ui->minEdgeSizeInput );
 	m_MinEdgeSizeSlider->SetCallback( staticScreenCB, this );
@@ -92,23 +96,59 @@ CfdMeshScreen::CfdMeshScreen(ScreenMgr* mgr, Aircraft* airPtr)
 	m_GrowRatioSlider->SetRange( 2.0 );
 	m_GrowRatioSlider->UpdateGui();
 
-	m_FarXScaleSlider = new SliderInputCombo( ui->farXSlider, ui->farXInput );
+	m_FarEdgeLengthSlider = new SliderInputCombo( ui->farEdgeSizeSlider, ui->farEdgeSizeInput );
+	m_FarEdgeLengthSlider->SetCallback( staticScreenCB, this );
+	m_FarEdgeLengthSlider->SetLimits( 0.000001, 1000000.0 );
+	m_FarEdgeLengthSlider->SetRange( 1.0 );
+	m_FarEdgeLengthSlider->UpdateGui();
+
+	m_FarGapSizeSlider = new SliderInputCombo( ui->farGapSizeSlider, ui->farGapSizeInput );
+	m_FarGapSizeSlider->SetCallback( staticScreenCB, this );
+	m_FarGapSizeSlider->SetLimits( 0.0000001, 1000000.0 );
+	m_FarGapSizeSlider->SetRange( 1.0 );
+	m_FarGapSizeSlider->UpdateGui();
+
+	m_FarCircSegmentSlider = new SliderInputCombo( ui->farCircSegmentSlider, ui->farCircSegmentInput );
+	m_FarCircSegmentSlider->SetCallback( staticScreenCB, this );
+	m_FarCircSegmentSlider->SetLimits( 0.00001, 1000.0 );
+	m_FarCircSegmentSlider->SetRange( 100.0 );
+	m_FarCircSegmentSlider->UpdateGui();
+
+	m_FarXScaleSlider = new SliderInputCombo( ui->farXScaleSlider, ui->farXScaleInput );
 	m_FarXScaleSlider->SetCallback( staticScreenCB, this );
-	m_FarXScaleSlider->SetLimits( 1.1, 10000.0 );
+	m_FarXScaleSlider->SetLimits( 1.0, 10000.0 );
 	m_FarXScaleSlider->SetRange( 10.0 );
 	m_FarXScaleSlider->UpdateGui();
 
-	m_FarYScaleSlider = new SliderInputCombo( ui->farYSlider, ui->farYInput );
+	m_FarYScaleSlider = new SliderInputCombo( ui->farYScaleSlider, ui->farYScaleInput );
 	m_FarYScaleSlider->SetCallback( staticScreenCB, this );
-	m_FarYScaleSlider->SetLimits( 1.1, 10000.0 );
+	m_FarYScaleSlider->SetLimits( 1.0, 10000.0 );
 	m_FarYScaleSlider->SetRange( 10.0 );
 	m_FarYScaleSlider->UpdateGui();
 
-	m_FarZScaleSlider = new SliderInputCombo( ui->farZSlider, ui->farZInput );
+	m_FarZScaleSlider = new SliderInputCombo( ui->farZScaleSlider, ui->farZScaleInput );
 	m_FarZScaleSlider->SetCallback( staticScreenCB, this );
-	m_FarZScaleSlider->SetLimits( 1.1, 10000.0 );
+	m_FarZScaleSlider->SetLimits( 1.0, 10000.0 );
 	m_FarZScaleSlider->SetRange( 10.0 );
 	m_FarZScaleSlider->UpdateGui();
+
+	m_FarXLocationSlider = new SliderInputCombo( ui->farXLocSlider, ui->farXLocInput );
+	m_FarXLocationSlider->SetCallback( staticScreenCB, this );
+	m_FarXLocationSlider->SetLimits( -1000000.0, 1000000.0 );
+	m_FarXLocationSlider->SetRange( 5.0 );
+	m_FarXLocationSlider->UpdateGui();
+
+	m_FarYLocationSlider = new SliderInputCombo( ui->farYLocSlider, ui->farYLocInput );
+	m_FarYLocationSlider->SetCallback( staticScreenCB, this );
+	m_FarYLocationSlider->SetLimits( -1000000.0, 1000000.0 );
+	m_FarYLocationSlider->SetRange( 5.0 );
+	m_FarYLocationSlider->UpdateGui();
+
+	m_FarZLocationSlider = new SliderInputCombo( ui->farZLocSlider, ui->farZLocInput );
+	m_FarZLocationSlider->SetCallback( staticScreenCB, this );
+	m_FarZLocationSlider->SetLimits( -1000000.0, 1000000.0 );
+	m_FarZLocationSlider->SetRange( 5.0 );
+	m_FarZLocationSlider->UpdateGui();
 
 	m_WakeScaleSlider= new SliderInputCombo( ui->wakeScaleSlider, ui->wakeScaleInput );
 	m_WakeScaleSlider->SetCallback( staticScreenCB, this );
@@ -173,6 +213,20 @@ CfdMeshScreen::CfdMeshScreen(ScreenMgr* mgr, Aircraft* airPtr)
 	ui->addWakeButton->value(0);
 	ui->wakeCompChoice->callback( staticScreenCB, this );
 
+	ui->halfMeshButton->callback( staticScreenCB, this );
+
+	ui->farMeshButton->callback( staticScreenCB, this );
+	ui->farUpdateButton->callback( staticScreenCB, this );
+	ui->farCompChoice->callback( staticScreenCB, this );
+	ui->farCenLocButton->callback( staticScreenCB, this );
+	ui->farManLocButton->callback( staticScreenCB, this );
+	ui->farAbsSizeButton->callback( staticScreenCB, this );
+	ui->farRelSizeButton->callback( staticScreenCB, this );
+	ui->farBoxGenButton->callback( staticScreenCB, this );
+	ui->farComponentGenButton->callback( staticScreenCB, this );
+	ui->farXScaleAbsInput->callback( staticScreenCB, this );
+	ui->farYScaleAbsInput->callback( staticScreenCB, this );
+	ui->farZScaleAbsInput->callback( staticScreenCB, this );
 }
 
 CfdMeshScreen::~CfdMeshScreen()
@@ -181,7 +235,7 @@ CfdMeshScreen::~CfdMeshScreen()
 	delete m_RadiusSlider;
 	delete m_Length2Slider;
 	delete m_Radius2Slider;
-	delete m_GlobalEdgeSizeSlider;
+	delete m_BodyEdgeSizeSlider;
 	delete m_MinEdgeSizeSlider;
 	delete m_MaxGapSizeSlider;
 	delete m_NumCircSegmentSlider;
@@ -189,6 +243,12 @@ CfdMeshScreen::~CfdMeshScreen()
 	delete m_FarXScaleSlider;
 	delete m_FarYScaleSlider;
 	delete m_FarZScaleSlider;
+	delete m_FarXLocationSlider;
+	delete m_FarYLocationSlider;
+	delete m_FarZLocationSlider;
+	delete m_FarEdgeLengthSlider;
+	delete m_FarGapSizeSlider;
+	delete m_FarCircSegmentSlider;
 	delete m_WakeScaleSlider;
 	delete m_WakeAngleSlider;
 
@@ -200,9 +260,11 @@ void CfdMeshScreen::update()
 	int i;
 	char str[256];
 
+	cfdMeshMgrPtr->UpdateDomain();
+
 	//==== Base Len ====//
-	m_GlobalEdgeSizeSlider->SetVal(cfdMeshMgrPtr->GetGridDensityPtr()->GetBaseLen()); 
-	m_GlobalEdgeSizeSlider->UpdateGui();
+	m_BodyEdgeSizeSlider->SetVal(cfdMeshMgrPtr->GetGridDensityPtr()->GetBaseLen());
+	m_BodyEdgeSizeSlider->UpdateGui();
 	m_MinEdgeSizeSlider->SetVal(cfdMeshMgrPtr->GetGridDensityPtr()->GetMinLen());
 	m_MinEdgeSizeSlider->UpdateGui();
 	m_MaxGapSizeSlider->SetVal(cfdMeshMgrPtr->GetGridDensityPtr()->GetMaxGap());
@@ -219,6 +281,30 @@ void CfdMeshScreen::update()
 	m_FarYScaleSlider->UpdateGui();
 	m_FarZScaleSlider->UpdateGui();
 
+	char xstr[255];
+	char ystr[255];
+	char zstr[255];
+	sprintf( xstr, "%0.4f", cfdMeshMgrPtr->GetFarLength() );
+	sprintf( ystr, "%0.4f", cfdMeshMgrPtr->GetFarWidth() );
+	sprintf( zstr, "%0.4f", cfdMeshMgrPtr->GetFarHeight() );
+	cfdMeshUI->farXScaleAbsInput->value(xstr);
+	cfdMeshUI->farYScaleAbsInput->value(ystr);
+	cfdMeshUI->farZScaleAbsInput->value(zstr);
+
+	m_FarXLocationSlider->SetVal( cfdMeshMgrPtr->GetFarXLocation() );
+	m_FarYLocationSlider->SetVal( cfdMeshMgrPtr->GetFarYLocation() );
+	m_FarZLocationSlider->SetVal( cfdMeshMgrPtr->GetFarZLocation() );
+	m_FarXLocationSlider->UpdateGui();
+	m_FarYLocationSlider->UpdateGui();
+	m_FarZLocationSlider->UpdateGui();
+
+	m_FarEdgeLengthSlider->SetVal( cfdMeshMgrPtr->GetGridDensityPtr()->GetFarMaxLen() );
+	m_FarEdgeLengthSlider->UpdateGui();
+	m_FarGapSizeSlider->SetVal(cfdMeshMgrPtr->GetGridDensityPtr()->GetFarMaxGap());
+	m_FarGapSizeSlider->UpdateGui();
+	m_FarCircSegmentSlider->SetVal(cfdMeshMgrPtr->GetGridDensityPtr()->GetFarNCircSeg());
+	m_FarCircSegmentSlider->UpdateGui();
+
 	m_WakeScaleSlider->SetVal( cfdMeshMgrPtr->GetWakeScale() );
 	m_WakeScaleSlider->UpdateGui();
 	m_WakeAngleSlider->SetVal( cfdMeshMgrPtr->GetWakeAngle() );
@@ -228,12 +314,14 @@ void CfdMeshScreen::update()
 	vector< Geom* > geomVec = aircraftPtr->getGeomVec();	
 	cfdMeshUI->compChoice->clear();
 	cfdMeshUI->wakeCompChoice->clear();
+	cfdMeshUI->farCompChoice->clear();
 	for ( i = 0 ; i < (int)geomVec.size() ; i++ )
 	{
 		char str[256];
 		sprintf( str, "%d_%s", i, geomVec[i]->getName().get_char_star() );
 		cfdMeshUI->compChoice->add( str );
 		cfdMeshUI->wakeCompChoice->add( str );
+		cfdMeshUI->farCompChoice->add( str );
 	}
 
 	int currGeomID = cfdMeshMgrPtr->GetCurrGeomID();
@@ -242,6 +330,9 @@ void CfdMeshScreen::update()
 		cfdMeshUI->compChoice->value( currGeomID );
 		cfdMeshUI->wakeCompChoice->value( currGeomID );
 	}
+
+	int farGeomID = cfdMeshMgrPtr->GetFarGeomID();
+	cfdMeshUI->farCompChoice->value( aircraftPtr->getGeomIndex( farGeomID ) );
 
 	BaseSource* source = cfdMeshMgrPtr->GetCurrSource();
 
@@ -360,6 +451,31 @@ void CfdMeshScreen::update()
 	else
 		cfdMeshUI->viewSourceButton->value(0);
 
+	if ( cfdMeshMgrPtr->GetDrawFarFlag() )
+		cfdMeshUI->viewFarMeshButton->value(1);
+	else
+		cfdMeshUI->viewFarMeshButton->value(0);
+
+	if ( cfdMeshMgrPtr->GetDrawFarPreFlag() )
+		cfdMeshUI->viewFarPreButton->value(1);
+	else
+		cfdMeshUI->viewFarPreButton->value(0);
+
+	if ( cfdMeshMgrPtr->GetDrawBadFlag() )
+		cfdMeshUI->viewBadButton->value(1);
+	else
+		cfdMeshUI->viewBadButton->value(0);
+
+	if ( cfdMeshMgrPtr->GetDrawSymmFlag() )
+		cfdMeshUI->viewSymmButton->value(1);
+	else
+		cfdMeshUI->viewSymmButton->value(0);
+
+	if ( cfdMeshMgrPtr->GetDrawWakeFlag() )
+		cfdMeshUI->viewWakeButton->value(1);
+	else
+		cfdMeshUI->viewWakeButton->value(0);
+
 	if ( cfdMeshMgrPtr->GetHalfMeshFlag() )
 		cfdMeshUI->halfMeshButton->value(1);
 	else
@@ -408,6 +524,65 @@ void CfdMeshScreen::update()
 	}
 
 
+
+	//=== Domain tab GUI active areas ===//
+	if ( cfdMeshMgrPtr->GetFarMeshFlag() )
+	{
+		cfdMeshUI->farParametersGroup->activate();
+
+		if(	cfdMeshMgrPtr->GetFarCompFlag() )
+		{
+			cfdMeshUI->farBoxGroup->deactivate();
+			cfdMeshUI->farCompGroup->activate();
+		}
+		else
+		{
+			cfdMeshUI->farBoxGroup->activate();
+			cfdMeshUI->farCompGroup->deactivate();
+
+			if(	cfdMeshMgrPtr->GetFarManLocFlag() )
+				cfdMeshUI->farXYZLocationGroup->activate();
+			else
+				cfdMeshUI->farXYZLocationGroup->deactivate();
+		}
+	}
+	else
+	{
+		cfdMeshUI->farParametersGroup->deactivate();
+	}
+
+	//=== Domain tab GUI radio & highlight buttons ===//
+	if( cfdMeshMgrPtr->GetFarMeshFlag() )
+		cfdMeshUI->farMeshButton->value(1);
+	else
+		cfdMeshUI->farMeshButton->value(0);
+
+	if(	cfdMeshMgrPtr->GetFarCompFlag() )
+		cfdMeshUI->farComponentGenButton->setonly();
+	else
+		cfdMeshUI->farBoxGenButton->setonly();
+
+	if(	cfdMeshMgrPtr->GetFarAbsSizeFlag() )
+	{
+		cfdMeshUI->farAbsSizeButton->value(1);
+		cfdMeshUI->farRelSizeButton->value(0);
+	}
+	else
+	{
+		cfdMeshUI->farAbsSizeButton->value(0);
+		cfdMeshUI->farRelSizeButton->value(1);
+	}
+
+	if(	cfdMeshMgrPtr->GetFarManLocFlag() )
+	{
+		cfdMeshUI->farManLocButton->value(1);
+		cfdMeshUI->farCenLocButton->value(0);
+	}
+	else
+	{
+		cfdMeshUI->farManLocButton->value(0);
+		cfdMeshUI->farCenLocButton->value(1);
+	}
 }
 
 Stringc CfdMeshScreen::truncateFileName( const char* fn, int len )
@@ -459,6 +634,41 @@ void CfdMeshScreen::screenCB( Fl_Widget* w )
 		else
 			cfdMeshMgrPtr->SetDrawMeshFlag( false );
 	}
+	else if ( w == cfdMeshUI->viewFarMeshButton )
+	{
+		if ( cfdMeshUI->viewFarMeshButton->value() )
+			cfdMeshMgrPtr->SetDrawFarFlag( true );
+		else
+			cfdMeshMgrPtr->SetDrawFarFlag( false );
+	}
+	else if (w == cfdMeshUI->viewFarPreButton )
+	{
+		if ( cfdMeshUI->viewFarPreButton->value() )
+			cfdMeshMgrPtr->SetDrawFarPreFlag( true );
+		else
+			cfdMeshMgrPtr->SetDrawFarPreFlag( false );
+	}
+	else if (w == cfdMeshUI->viewBadButton )
+	{
+		if ( cfdMeshUI->viewBadButton->value() )
+			cfdMeshMgrPtr->SetDrawBadFlag( true );
+		else
+			cfdMeshMgrPtr->SetDrawBadFlag( false );
+	}
+	else if (w == cfdMeshUI->viewSymmButton )
+	{
+		if ( cfdMeshUI->viewSymmButton->value() )
+			cfdMeshMgrPtr->SetDrawSymmFlag( true );
+		else
+			cfdMeshMgrPtr->SetDrawSymmFlag( false );
+	}
+	else if (w == cfdMeshUI->viewWakeButton )
+	{
+		if ( cfdMeshUI->viewWakeButton->value() )
+			cfdMeshMgrPtr->SetDrawWakeFlag( true );
+		else
+			cfdMeshMgrPtr->SetDrawWakeFlag( false );
+	}
 	else if ( w == cfdMeshUI->viewSourceButton )
 	{
 		if ( cfdMeshUI->viewSourceButton->value() )
@@ -472,6 +682,17 @@ void CfdMeshScreen::screenCB( Fl_Widget* w )
 			cfdMeshMgrPtr->GetGridDensityPtr()->SetRigorLimit( true );
 		else
 			cfdMeshMgrPtr->GetGridDensityPtr()->SetRigorLimit( false );
+	}
+	else if ( w == cfdMeshUI->farUpdateButton )
+	{
+		// Don't do anything, update_flag defaults to true;
+	}
+	else if ( w == cfdMeshUI->farMeshButton )
+	{
+		if ( cfdMeshUI->farMeshButton->value() )
+			cfdMeshMgrPtr->SetFarMeshFlag( true );
+		else
+			cfdMeshMgrPtr->SetFarMeshFlag( false );
 	}
 	else if ( w == cfdMeshUI->halfMeshButton )
 	{
@@ -492,6 +713,9 @@ void CfdMeshScreen::screenCB( Fl_Widget* w )
 		cfdMeshMgrPtr->ReadSurfs( bezTempFile );
 
 		cfdMeshMgrPtr->UpdateSourcesAndWakes();
+		cfdMeshMgrPtr->UpdateDomain();
+		cfdMeshMgrPtr->BuildDomain();
+
 		addOutputText( "Build Grid\n");
 		cfdMeshMgrPtr->BuildGrid();
 
@@ -547,9 +771,9 @@ void CfdMeshScreen::screenCB( Fl_Widget* w )
 			geomVec[currGeomID]->AddDefaultSources(base_len);
 		}
 	}
-	else if ( m_GlobalEdgeSizeSlider->GuiChanged( w ) )
+	else if ( m_BodyEdgeSizeSlider->GuiChanged( w ) )
 	{
-		cfdMeshMgrPtr->GUI_Val( "GlobalEdgeSize", m_GlobalEdgeSizeSlider->GetVal() );
+		cfdMeshMgrPtr->GUI_Val( "GlobalEdgeSize", m_BodyEdgeSizeSlider->GetVal() );
 		update_flag = false;
 	}
 	else if ( m_MinEdgeSizeSlider->GuiChanged( w ) )
@@ -572,19 +796,106 @@ void CfdMeshScreen::screenCB( Fl_Widget* w )
 		cfdMeshMgrPtr->GUI_Val( "GrowRatio", m_GrowRatioSlider->GetVal() );
 		update_flag = false;
 	}
+	else if ( m_FarEdgeLengthSlider->GuiChanged( w ) )
+	{
+		cfdMeshMgrPtr->GUI_Val( "FarLength", m_FarEdgeLengthSlider->GetVal() );
+		update_flag = false;
+	}
+	else if ( m_FarGapSizeSlider->GuiChanged( w ) )
+	{
+		cfdMeshMgrPtr->GUI_Val( "FarGapSize", m_FarGapSizeSlider->GetVal() );
+		update_flag = false;
+	}
+	else if ( m_FarCircSegmentSlider->GuiChanged( w ) )
+	{
+		cfdMeshMgrPtr->GUI_Val( "FarCircSeg", m_FarCircSegmentSlider->GetVal() );
+		update_flag = false;
+	}
 	else if ( m_FarXScaleSlider->GuiChanged( w ) )
 	{
-		cfdMeshMgrPtr->SetFarXScale( m_FarXScaleSlider->GetVal() );
+		double val = m_FarXScaleSlider->GetVal();
+		bool change = false;
+
+		if ( cfdMeshMgrPtr->GetFarAbsSizeFlag() )
+		{
+			cfdMeshMgrPtr->SetFarAbsSizeFlag( false );
+			change = true;
+		}
+
+		cfdMeshMgrPtr->SetFarXScale( val );
+		cfdMeshMgrPtr->UpdateDomain();
+		char xstr[255];
+		sprintf( xstr, "%0.4f", cfdMeshMgrPtr->GetFarLength() );
+		cfdMeshUI->farXScaleAbsInput->value(xstr);
+
+		if ( !cfdMeshMgrPtr->GetFarManLocFlag() )
+		{
+			m_FarXLocationSlider->SetVal( cfdMeshMgrPtr->GetFarXLocation() );
+			m_FarXLocationSlider->UpdateGui();
+		}
+
+		if ( change )
+			cfdMeshMgrPtr->SetFarAbsSizeFlag( true );
+
 		update_flag = false;
 	}
 	else if ( m_FarYScaleSlider->GuiChanged( w ) )
 	{
-		cfdMeshMgrPtr->SetFarYScale( m_FarYScaleSlider->GetVal() );
+		double val = m_FarYScaleSlider->GetVal();
+		bool change = false;
+
+		if ( cfdMeshMgrPtr->GetFarAbsSizeFlag() )
+		{
+			cfdMeshMgrPtr->SetFarAbsSizeFlag( false );
+			change = true;
+		}
+
+		cfdMeshMgrPtr->SetFarYScale( val );
+		cfdMeshMgrPtr->UpdateDomain();
+		char ystr[255];
+		sprintf( ystr, "%0.4f", cfdMeshMgrPtr->GetFarWidth() );
+		cfdMeshUI->farYScaleAbsInput->value(ystr);
+
+		if ( change )
+			cfdMeshMgrPtr->SetFarAbsSizeFlag( true );
+
 		update_flag = false;
 	}
 	else if ( m_FarZScaleSlider->GuiChanged( w ) )
 	{
-		cfdMeshMgrPtr->SetFarZScale( m_FarZScaleSlider->GetVal() );
+		double val = m_FarZScaleSlider->GetVal();
+		bool change = false;
+
+		if ( cfdMeshMgrPtr->GetFarAbsSizeFlag() )
+		{
+			cfdMeshMgrPtr->SetFarAbsSizeFlag( false );
+			change = true;
+		}
+
+		cfdMeshMgrPtr->SetFarZScale( val );
+		cfdMeshMgrPtr->UpdateDomain();
+		char zstr[255];
+		sprintf( zstr, "%0.4f", cfdMeshMgrPtr->GetFarHeight() );
+		cfdMeshUI->farZScaleAbsInput->value(zstr);
+
+		if ( change )
+			cfdMeshMgrPtr->SetFarAbsSizeFlag( true );
+
+		update_flag = false;
+	}
+	else if ( m_FarXLocationSlider->GuiChanged( w ) )
+	{
+		cfdMeshMgrPtr->SetFarXLocation( m_FarXLocationSlider->GetVal() );
+		update_flag = false;
+	}
+	else if ( m_FarYLocationSlider->GuiChanged( w ) )
+	{
+		cfdMeshMgrPtr->SetFarYLocation( m_FarYLocationSlider->GetVal() );
+		update_flag = false;
+	}
+	else if ( m_FarZLocationSlider->GuiChanged( w ) )
+	{
+		cfdMeshMgrPtr->SetFarZLocation( m_FarZLocationSlider->GetVal() );
 		update_flag = false;
 	}
 	else if ( m_WakeScaleSlider->GuiChanged( w ) )
@@ -644,6 +955,13 @@ void CfdMeshScreen::screenCB( Fl_Widget* w )
 		//==== Load List of Parts for Comp ====//
 		int id = cfdMeshUI->wakeCompChoice->value();
 		cfdMeshMgrPtr->SetCurrGeomID( id );
+	}
+	else if ( w == cfdMeshUI->farCompChoice )
+	{
+		//==== Load List of Parts for Comp ====//
+		int id = cfdMeshUI->farCompChoice->value();
+		vector< Geom* > geomVec = aircraftPtr->getGeomVec();
+		cfdMeshMgrPtr->SetFarGeomID( geomVec[id]->getPtrID() );
 	}
 	else if ( w == cfdMeshUI->sourceBrowser )
 	{
@@ -754,6 +1072,103 @@ void CfdMeshScreen::screenCB( Fl_Widget* w )
 			  w == cfdMeshUI->gmshToggle || w == cfdMeshUI->srfToggle )
 	{
 		setMeshExportFlags();
+	}
+	else if ( w == cfdMeshUI->farBoxGenButton )
+	{
+		cfdMeshMgrPtr->SetFarCompFlag( false );
+	}
+	else if ( w == cfdMeshUI->farComponentGenButton )
+	{
+		cfdMeshMgrPtr->SetFarCompFlag( true );
+	}
+	else if ( w == cfdMeshUI->farCenLocButton )
+	{
+		cfdMeshMgrPtr->SetFarManLocFlag( false );
+	}
+	else if ( w == cfdMeshUI->farManLocButton )
+	{
+		cfdMeshMgrPtr->SetFarManLocFlag( true );
+	}
+	else if ( w == cfdMeshUI->farRelSizeButton )
+	{
+		cfdMeshMgrPtr->SetFarAbsSizeFlag( false );
+	}
+	else if ( w == cfdMeshUI->farAbsSizeButton )
+	{
+		cfdMeshMgrPtr->SetFarAbsSizeFlag( true );
+	}
+	else if ( w == cfdMeshUI->farXScaleAbsInput )
+	{
+		bool change = false;
+
+		if ( !cfdMeshMgrPtr->GetFarAbsSizeFlag() )
+		{
+			cfdMeshMgrPtr->SetFarAbsSizeFlag( true );
+			change = true;
+		}
+		
+		double val = atof( cfdMeshUI->farXScaleAbsInput->value() );
+		cfdMeshMgrPtr->SetFarLength( val );
+		cfdMeshMgrPtr->UpdateDomain();
+		double scale = cfdMeshMgrPtr->GetFarXScale();
+		m_FarXScaleSlider->SetVal( scale );
+		m_FarXScaleSlider->UpdateGui();
+
+		if ( !cfdMeshMgrPtr->GetFarManLocFlag() )
+		{
+			m_FarXLocationSlider->SetVal( cfdMeshMgrPtr->GetFarXLocation() );
+			m_FarXLocationSlider->UpdateGui();
+		}
+		update_flag = false;
+
+		if ( change )
+			cfdMeshMgrPtr->SetFarAbsSizeFlag( false );
+	}
+
+	else if ( w == cfdMeshUI->farYScaleAbsInput )
+	{
+		bool change = false;
+
+		if ( !cfdMeshMgrPtr->GetFarAbsSizeFlag() )
+		{
+			cfdMeshMgrPtr->SetFarAbsSizeFlag( true );
+			change = true;
+		}
+
+		double val = atof( cfdMeshUI->farYScaleAbsInput->value() );
+		cfdMeshMgrPtr->SetFarWidth( val );
+		cfdMeshMgrPtr->UpdateDomain();
+		double scale = cfdMeshMgrPtr->GetFarYScale();
+		m_FarYScaleSlider->SetVal( scale );
+		m_FarYScaleSlider->UpdateGui();
+
+		update_flag = false;
+
+		if ( change )
+			cfdMeshMgrPtr->SetFarAbsSizeFlag( false );
+	}
+
+	else if ( w == cfdMeshUI->farZScaleAbsInput )
+	{
+		bool change = false;
+
+		if ( !cfdMeshMgrPtr->GetFarAbsSizeFlag() )
+		{
+			cfdMeshMgrPtr->SetFarAbsSizeFlag( true );
+			change = true;
+		}
+
+		double val = atof( cfdMeshUI->farZScaleAbsInput->value() );
+		cfdMeshMgrPtr->SetFarHeight( val );
+		cfdMeshMgrPtr->UpdateDomain();
+		double scale = cfdMeshMgrPtr->GetFarZScale();
+		m_FarZScaleSlider->SetVal( scale );
+		m_FarZScaleSlider->UpdateGui();
+
+		update_flag = false;
+
+		if ( change )
+			cfdMeshMgrPtr->SetFarAbsSizeFlag( false );
 	}
 
 	if ( update_flag )

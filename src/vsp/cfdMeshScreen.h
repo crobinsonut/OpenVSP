@@ -54,7 +54,7 @@ private:
 	SliderInputCombo* m_Length2Slider;
 	SliderInputCombo* m_Radius2Slider;
 
-	SliderInputCombo* m_GlobalEdgeSizeSlider;
+	SliderInputCombo* m_BodyEdgeSizeSlider;
 	SliderInputCombo* m_MinEdgeSizeSlider;
 	SliderInputCombo* m_MaxGapSizeSlider;
 	SliderInputCombo* m_NumCircSegmentSlider;
@@ -63,6 +63,14 @@ private:
 	SliderInputCombo* m_FarXScaleSlider;
 	SliderInputCombo* m_FarYScaleSlider;
 	SliderInputCombo* m_FarZScaleSlider;
+
+	SliderInputCombo* m_FarXLocationSlider;
+	SliderInputCombo* m_FarYLocationSlider;
+	SliderInputCombo* m_FarZLocationSlider;
+
+	SliderInputCombo* m_FarEdgeLengthSlider;
+	SliderInputCombo* m_FarGapSizeSlider;
+	SliderInputCombo* m_FarCircSegmentSlider;
 
 	SliderInputCombo* m_WakeScaleSlider;
 	SliderInputCombo* m_WakeAngleSlider;

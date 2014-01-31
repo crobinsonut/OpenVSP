@@ -136,18 +136,28 @@ void SCurve::ExtractBorderControlPnts( vector< vec3d > & control_pnts )
 
 double SCurve::GetTargetLen( GridDensity* grid_den, SCurve* BCurve, vec3d p, vec3d uw, double u )
 {
-	double len = grid_den->GetBaseLen();
+	bool limitFlag = false;
+	if ( m_Surf->GetFarFlag() )
+		limitFlag = true;
+	if ( m_Surf->GetSymPlaneFlag() )
+		limitFlag = true;
 
-	if( m_Surf->GetCompID() >= 0 )
-	   len = m_Surf->InterpTargetMap( uw.x(), uw.y() );
+	double len = grid_den->GetBaseLen( limitFlag );
+
+	len = m_Surf->InterpTargetMap( uw.x(), uw.y() );
 
 	if(BCurve){
+		limitFlag = false;
+		if ( BCurve->m_Surf->GetFarFlag() )
+			limitFlag = true;
+		if ( BCurve->m_Surf->GetSymPlaneFlag() )
+			limitFlag = true;
+
 		vec3d uwB = BCurve->m_UWCrv.comp_pnt( u );
 
-		double lenB = grid_den->GetBaseLen();
+		double lenB = grid_den->GetBaseLen( limitFlag );
 
-		if( BCurve->m_Surf->GetCompID() >= 0 )
-			lenB = BCurve->m_Surf->InterpTargetMap( uwB.x(), uwB.y() );
+		lenB = BCurve->m_Surf->InterpTargetMap( uwB.x(), uwB.y() );
 
 		len = min( len, lenB );
 	}
@@ -201,6 +211,44 @@ void SCurve::BorderTesselate( )
 
 		vec3d uw = vec3d(ust + frac * du, wst + frac * dw, 0.0);
 		m_UWTess.push_back( uw );
+	}
+}
+
+void SCurve::CheapTesselate( )
+{
+	int npts = 10000;
+
+	m_UTess.clear();
+	m_UTess.resize( npts );
+	for ( int i = 0; i < npts; i++ )
+		m_UTess[i] = (double)i/(double)( npts - 1 );
+
+	UWTess();
+}
+
+void SCurve::ProjectTessToSurf( SCurve* othercurve )
+{
+	vector< vec3d > UWTessB = othercurve->GetUWTessPnts();
+
+	Surf* SurfA = GetSurf();
+	Surf* SurfB = othercurve->GetSurf();
+
+	double uguess = SurfA->GetMaxU() / 2.0;
+	double wguess = SurfA->GetMaxW() / 2.0;
+
+	int npts = UWTessB.size();
+	m_UWTess.clear();
+	m_UWTess.resize( npts );
+	for ( int i = 0 ; i < npts ; i++ )
+	{
+		vec3d ptOther = SurfB->CompPnt( UWTessB[i].x(), UWTessB[i].y() );
+
+		vec2d uw = SurfA->ClosestUW( ptOther, uguess, wguess );
+
+		m_UWTess[i] = vec3d( uw.x(), uw.y(), 0 );
+
+		uguess = uw.x();
+		wguess = uw.y();
 	}
 }
 
