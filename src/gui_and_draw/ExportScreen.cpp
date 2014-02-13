@@ -30,6 +30,7 @@ ExportScreen::ExportScreen( ScreenMgr* mgr ) : VspScreen( mgr )
     ui->povrayButton->callback( staticScreenCB, this );
     ui->gmshButton->callback( staticScreenCB, this );
     ui->x3dButton->callback( staticScreenCB, this );
+    ui->stepButton->callback( staticScreenCB, this );
     ui->bezButton->callback( staticScreenCB, this );
 
 }
@@ -109,6 +110,10 @@ void ExportScreen::ExportFile( string &newfile, int write_set, int type )
     {
         newfile = m_ScreenMgr->GetSelectFileScreen()->FileChooser( "Write X3D File?", "*.x3d" );
     }
+    else if ( type == ExportScreen::STEP )
+    {
+        newfile = m_ScreenMgr->GetSelectFileScreen()->FileChooser( "Write STEP File?", "*.stp" );
+    }
     else if ( type == ExportScreen::BEZ )
     {
         newfile = m_ScreenMgr->GetSelectFileScreen()->FileChooser( "Write Bezier File?", "*.bez" );
@@ -150,6 +155,10 @@ void ExportScreen::ExportFile( string &newfile, int write_set, int type )
         else if ( type == ExportScreen::X3D )
         {
             veh->WriteX3DFile( newfile, write_set );
+        }
+        else if ( type == ExportScreen::STEP )
+        {
+            veh->WriteSTEPFile( newfile, write_set );
         }
         else if ( type == ExportScreen::BEZ )
         {
@@ -194,6 +203,10 @@ void ExportScreen::CallBack( Fl_Widget *w )
     else if ( w == m_ExportFileUI->x3dButton )
     {
         ExportFile( newfile, m_SelectedSetIndex, ExportScreen::X3D );
+    }
+    else if ( w == m_ExportFileUI->stepButton )
+    {
+        ExportFile( newfile, m_SelectedSetIndex, ExportScreen::STEP );
     }
     else if ( w == m_ExportFileUI->bezButton )
     {

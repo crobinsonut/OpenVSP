@@ -157,6 +157,7 @@ public:
     void WriteX3DViewpoints( xmlNodePtr node );
     void WriteX3DViewpointProps( xmlNodePtr node, string orients, string cents, string posits, string sfov, string name );
     void WritePovRayFile( const string & file_name, int write_set );
+    void WriteSTEPFile( const string & file_name, int write_set );
 
     void WriteBezFile( const string & file_name, int write_set );
     //==== Export File Names ====//

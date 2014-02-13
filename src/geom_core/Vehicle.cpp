@@ -1727,6 +1727,10 @@ void Vehicle::WriteBezFile( const string & file_name, int write_set )
     fclose( id );
 }
 
+void Vehicle::WriteSTEPFile( const string & file_name, int write_set )
+{
+}
+
 void Vehicle::AddLinkableContainers( vector< string > & linkable_container_vec )
 {
     ParmContainer::AddLinkableContainers( linkable_container_vec );
