@@ -48,3 +48,42 @@ ADD_SUBDIRECTORY( triangle )
 ADD_SUBDIRECTORY( nanoflann )
 ADD_SUBDIRECTORY( sixseries )
 ADD_SUBDIRECTORY( tritri )
+
+INCLUDE( ExternalProject )
+INCLUDE( External_STEPCode )
+
+IF(NOT WIN32)
+	set( STEPCODE_LIBRARIES
+	${STEPCODE_INSTALL_DIR}/lib/libbase.a
+	${STEPCODE_INSTALL_DIR}/lib/libstepcore.a
+	${STEPCODE_INSTALL_DIR}/lib/libstepeditor.a
+	${STEPCODE_INSTALL_DIR}/lib/libstepdai.a
+	${STEPCODE_INSTALL_DIR}/lib/libsteputils.a
+	${STEPCODE_INSTALL_DIR}/lib/libsdai_ap203.a
+	PARENT_SCOPE )
+ELSE()
+	set( STEPCODE_LIBRARIES
+	${STEPCODE_INSTALL_DIR}/lib/base.lib
+	${STEPCODE_INSTALL_DIR}/lib/stepcore.lib
+	${STEPCODE_INSTALL_DIR}/lib/stepeditor.lib
+	${STEPCODE_INSTALL_DIR}/lib/stepdai.lib
+	${STEPCODE_INSTALL_DIR}/lib/steputils.lib
+	${STEPCODE_INSTALL_DIR}/lib/sdai_ap203.lib
+	${STEPCODE_INSTALL_DIR}/lib/express.lib
+	${STEPCODE_INSTALL_DIR}/lib/libexppp.lib
+	PARENT_SCOPE )
+ENDIF()
+
+MESSAGE( STATUS "STEPCODE_INSTALL_DIR: " ${STEPCODE_INSTALL_DIR} )
+
+set( STEPCODE_INCLUDE_DIR
+${STEPCODE_INSTALL_DIR}/include/stepcode
+${STEPCODE_INSTALL_DIR}/include/stepcode/base
+${STEPCODE_INSTALL_DIR}/include/stepcode/clstepcore
+${STEPCODE_INSTALL_DIR}/include/stepcode/cldai
+${STEPCODE_INSTALL_DIR}/include/stepcode/clutils
+${STEPCODE_INSTALL_DIR}/include/stepcode/cleditor
+${STEPCODE_INSTALL_DIR}/include/ap203
+${STEPCODE_INSTALL_DIR}/include
+${STEPCODE_BINARY_DIR}/data/ap203
+PARENT_SCOPE )
