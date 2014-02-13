@@ -17,6 +17,7 @@
 #include "Geom.h"
 #include "MessageMgr.h"
 #include "DrawObj.h"
+#include "STEPutil.h"
 
 #include <assert.h>
 

@@ -16,6 +16,8 @@
 #include "VspCurve.h"
 #include "BndBox.h"
 
+#include "STEPutil.h"
+
 #include "eli/code_eli.hpp"
 
 #include "eli/geom/surface/bezier.hpp"
@@ -68,6 +70,8 @@ private:
     double m_RightCurvature[4];
     int m_State;
 };
+
+class STEPutil;
 
 class VspSurf
 {
@@ -130,6 +134,9 @@ public:
     //===== Tesselate ====//
     void Tesselate( int num_u, int num_v, std::vector< vector< vec3d > > & pnts,  std::vector< vector< vec3d > > & norms ) const;
     void Tesselate( const vector<int> &num_u, int num_v, std::vector< vector< vec3d > > & pnts,  std::vector< vector< vec3d > > & norms ) const;
+
+    void ToSTEP_Bez_Patches( STEPutil * step, vector<SdaiBezier_surface *> &surfs );
+    void ToSTEP_BSpline_Quilt( STEPutil * step, vector<SdaiB_spline_surface_with_knots *> &surfs );
 
 protected:
     void PrepairCrossSections( vector<piecewise_curve_type> &pc, const vector<VspCurve> &crv_in ) const;
