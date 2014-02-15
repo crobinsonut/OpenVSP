@@ -71,6 +71,7 @@ ELSE()
 	${STEPCODE_INSTALL_DIR}/lib/libsdai_ap203.lib
 	${STEPCODE_INSTALL_DIR}/lib/libexpress.lib
 	${STEPCODE_INSTALL_DIR}/lib/libexppp.lib
+	shlwapi.lib
 	PARENT_SCOPE )
 ENDIF()
 
