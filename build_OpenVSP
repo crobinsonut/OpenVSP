@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+sudo apt-get install build-essential gfortran
+sudo apt-get install git
+sudo apt-get install cmake
+sudo apt-get install libcpptest-dev
+sudo apt-get install libxml2-dev 
+sudo apt-get install libfltk1.3-dev
+sudo apt-get install libeigen3-dev 
+sudo apt-get install libglm-dev
+sudo apt-get install libglew-dev
+sudo apt-get install libjpeg-dev
+sudo apt-get install fluid
+
+git clone https://github.com/ramcdona/OpenVSP.git
+cd OpenVSP
+git fetch origin
+git branch v3_Alpha origin/v3_Alpha
+git checkout v3_Alpha
+
+mkdir -p build/lib build/vsp
+cd build/lib
+cmake ../../Libraries -DVSP_USE_SYSTEM_CPPTEST=true -DVSP_USE_SYSTEM_LIBXML2=true -DVSP_USE_SYSTEM_EIGEN=true -DVSP_USE_SYSTEM_FLTK=true -DVSP_USE_SYSTEM_GLM=true -DVSP_USE_SYSTEM_GLEW=true
+make
+
+cd ../vsp
+cmake ${HOME}/OpenVSP/src -DVSP_LIBRARY_PATH=${HOME}/OpenVSP/build/lib -DFLUID_COMMAND=/usr/bin/fluid
+make
+
