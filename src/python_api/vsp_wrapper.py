@@ -1,12 +1,43 @@
 import vsp
+def geometry_to_clipboard(geometry):
+    vsp.CopyGeomToClipboard(geometry.id)
 
+def clipboard_to_geometry(geometry=None):
+    if not geometry:
+        vsp.PasteGeomClipboard()
+    new_children = set(geometry.children) - children
+    
+    return list(new_children)
+
+class VSP(object):
+    @classmethod
+    def to_clipboard(cls, geometry):
+        #Cache the geometry
+        cls._geometry_name = geometry.name
+        vsp.CopyGeomToClipboard(geometry)
+
+    @classmethod
+    def from_clipboard(cls, parent=None):
+        #Pull geometry from cache
+        parent_id = ''
+
+        if parent:
+            parent_id = parent.id
+
+        vsp.PasteGeomClipboard(parent_id)
+
+        if parent:
+
+
+        return geometry
+        
 class Geometry(object):
 
     def __init__(self, geometry_type, name=None, parent=None):
         if not parent:
             parent = ''
 
-        self._id = vsp.AddGeom(geometry_type, parent)
+        self._id = vsp.AddGeom(geometry_type, parent.id)
 
         if name:
             self.name = name
@@ -26,6 +57,8 @@ class Geometry(object):
             parameter_type = parameter_types[parameter_type]
 
             setattr(self.__class__, parameter_name.lower(), Parameter(parameter_id, parameter_type))
+
+        self._children = []
         
     def __str__(self):
         string = "{geometry_type}<name={geometry_name}, id={geometry_id}>"
@@ -36,6 +69,9 @@ class Geometry(object):
                             )
         return string
 
+    @staticmethod
+    def to_clipboard(cls):
+        
     @property
     def name(self):
         return vsp.GetGeomName(self._id)
@@ -48,23 +84,17 @@ class Geometry(object):
     def id(self):
         return self._id
 
-for geometry_type in vsp.GetGeomTypes():
-    setattr(Geometry, geometry_type, geometry_type)
+    @property
+    def children(self):
+        return self._children
 
-class Pod(Geometry):
+    def create_child(self, geometry_type):
+        child = Geometry(geometry_type, parent=self)
+        self._children.append(child)
 
-    def __init__(self, parent=None, name=None):
-        super(Pod, self).__init__(Geometry.POD, name=name, parent=parent)
+        return child
 
-class Blank(Geometry):
-
-    def __init__(self, name=None, parent=None):
-        super(Blank, self).__init__(Geometry.BLANK, name=name, parent=parent)
-
-class Fuselage(Geometry):
-
-    def __init__(self, name=None, parent=None):
-        super(Fuselage, self).__init__(Geometry.FUSELAGE, name=name, parent=parent)
+GeometryType = type("GeometryType", (,), {name:value for geometry_type in vsp.GetGeomTypes()})
 
 class Parameter(object):
 
